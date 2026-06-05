@@ -1,4 +1,7 @@
 # splendor_v1
 Initial Splendor Agent and Environment
 
-Acticate virtual environment: source .venv/Scripts/activate
+Activate virtual environment: source .venv/Scripts/activate
+
+Install requirements: pip install -r requirements.txt
+
