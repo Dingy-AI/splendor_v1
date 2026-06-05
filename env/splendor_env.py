@@ -2,7 +2,7 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 
-class SplendorEnv(gym.env)
+class SplendorEnv(gym.Env):
     def __init__ (self):
         #TODO
         self.action_space = spaces.Discrete(256)
