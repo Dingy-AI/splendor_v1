@@ -5,7 +5,17 @@ from gymnasium import spaces
 class SplendorEnv(gym.Env):
     def __init__ (self):
         #TODO
-        self.action_space = spaces.Discrete(256)
+        
+        #I need to define the action space to allow for more expansions in the future
+        #Pick Gems (6 gem types) -> Red, Blue, Green, Black, White
+        #Pick 3 -
+        #Pick 2 -
+
+        #Buy a card
+        # Reserve a card
+        self.action_space = spaces.Discrete(512)
+        #
+
         return None 
     
     def reset(self, seed=420):
@@ -25,6 +35,9 @@ class SplendorEnv(gym.Env):
 
     def legal_actions(self):
         #TODO
+        #write the mask that starts everything as false
+        #and then sets the valid values to true
+        
         return None
     
     def get_reward(player_id = None):
