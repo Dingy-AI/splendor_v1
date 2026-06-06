@@ -7,7 +7,7 @@ class GemColor(Enum):
     BLUE = 1
     GREEN = 2
     RED = 3
-    BROWN = 4
+    BLACK = 4
     GOLD = 5
 
 @dataclass(frozen=True)
