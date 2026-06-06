@@ -2,21 +2,33 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 
+MAX_ACTIONS_PER_STATE = 128
+
 class SplendorEnv(gym.Env):
     def __init__ (self):
         #TODO
         
         #I need to define the action space to allow for more expansions in the future
         #Pick Gems (6 gem types) -> Red, Blue, Green, Black, White
-        #Pick 3 -
-        #Pick 2 -
+        #Pick 3 (9) - Red/Blue/Green, Red/Blue/Black, Red/Blue/White
+        #             Red/Green/Black, Red/Green/White, Red/Black/White, Blue/Green/Black, Blue/Black/White, Green/Black/White
+        #Pick 2 (5) - Red, Blue, Green, Black, White
 
         #Buy a card
+        #Buy 1 of 12 (12) (15)
+
         # Reserve a card
-        self.action_space = spaces.Discrete(512)
-        #
+        self.action_space = spaces.Discrete(MAX_ACTIONS_PER_STATE)
+        # Reserve 1 of 15 (15)
+
+        # 0-8 -> Pick 3
+        # 9-13 -> Pick 2
+        # 14-29 -> Buy a Card
+        # 30-45 -> Reserve a Card
+        #Total actions 9 + 5 + 15 + 15 = 44 Actions
 
         return None 
+    
     
     def reset(self, seed=420):
         #TODO
@@ -37,7 +49,7 @@ class SplendorEnv(gym.Env):
         #TODO
         #write the mask that starts everything as false
         #and then sets the valid values to true
-        
+
         return None
     
     def get_reward(player_id = None):
