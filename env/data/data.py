@@ -1,4 +1,5 @@
 from core.card import Card
+from core.noble import Noble
 from core.enums import GemColor
 
 
@@ -1181,4 +1182,126 @@ BASE_TIER_3 = [
     ),  
 ]
 
-NOBLES = []
+NOBLES = [
+
+    Noble(
+        id=0,
+        Name="Anne of Brittany, Queen of France",
+        points=3,
+        requirement={
+            GemColor.WHITE: 3,
+            GemColor.BLUE: 3,
+            GemColor.GREEN: 3,
+            GemColor.RED: 0,
+            GemColor.BLACK: 0,
+        }
+    ),
+    Noble(
+        id=1,
+        Name="Catherine de' Medici, Queen of France",
+        points=3,
+        requirement={
+            GemColor.WHITE: 3,
+            GemColor.BLUE: 3,
+            GemColor.GREEN: 0,
+            GemColor.RED: 3,
+            GemColor.BLACK: 0,
+        }
+    ),
+    Noble(
+        id=2,
+        Name="Charles V, Holy Roman Emperor",
+        points=3,
+        requirement={
+            GemColor.WHITE: 3,
+            GemColor.BLUE: 0,
+            GemColor.GREEN: 0,
+            GemColor.RED: 3,
+            GemColor.BLACK: 3,
+        }
+    ),
+    Noble(
+        id=3,
+        Name="Elisabeth of Austria, Queen of France",
+        points=3,
+        requirement={
+            GemColor.WHITE: 3,
+            GemColor.BLUE: 3,
+            GemColor.GREEN: 0,
+            GemColor.RED: 0,
+            GemColor.BLACK: 3,
+        }
+    ),
+    Noble(
+        id=4,
+        Name="Francis I, King of France",
+        points=3,
+        requirement={
+            GemColor.WHITE: 0,
+            GemColor.BLUE: 0,
+            GemColor.GREEN: 3,
+            GemColor.RED: 3,
+            GemColor.BLACK: 3,
+        }
+    ),
+    Noble(
+        id=5,
+        Name="Henry VIII, King of England",
+        points=3,
+        requirement={
+            GemColor.WHITE: 0,
+            GemColor.BLUE: 0,
+            GemColor.GREEN: 0,
+            GemColor.RED: 4,
+            GemColor.BLACK: 4,
+        }
+    ),
+    Noble(
+        id=6,
+        Name="Isabella I, Queen of Castile and Leon",
+        points=3,
+        requirement={
+            GemColor.WHITE: 4,
+            GemColor.BLUE: 0,
+            GemColor.GREEN: 0,
+            GemColor.RED: 0,
+            GemColor.BLACK: 4,
+        }
+    ),
+    Noble(
+        id=7,
+        Name="Mary, Queen of Scots",
+        points=3,
+        requirement={
+            GemColor.WHITE: 0,
+            GemColor.BLUE: 0,
+            GemColor.GREEN: 4,
+            GemColor.RED: 4,
+            GemColor.BLACK: 0,
+        }
+    ),
+    Noble(
+        id=8,
+        Name="Niccolo Machiavelli, Diplomat",
+        points=3,
+        requirement={
+            GemColor.WHITE: 4,
+            GemColor.BLUE: 4,
+            GemColor.GREEN: 0,
+            GemColor.RED: 0,
+            GemColor.BLACK: 0,
+        }
+    ),
+    Noble(
+        id=9,
+        Name="Suleiman the Magnificent, Sultan of the Ottoman Empire",
+        points=3,
+        requirement={
+            GemColor.WHITE: 0,
+            GemColor.BLUE: 4,
+            GemColor.GREEN: 4,
+            GemColor.RED: 0,
+            GemColor.BLACK: 0,
+        }
+    ),
+]
