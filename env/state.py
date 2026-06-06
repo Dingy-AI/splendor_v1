@@ -34,3 +34,15 @@ class Player:
     bonuses: dict[GemColor, int]
     reserved_cards: list[Card]
     purchased_cards: list[Card]
+    points: int = 0
+
+@dataclass
+class Gamestate:
+    players: list[Player]
+    bank: dict
+    nobles: list[Noble]
+    visible_cards: dict[int, list[Card]]
+    decks: list[Card]
+    current_player: int
+    turn_number: int
+    game_over: bool = False

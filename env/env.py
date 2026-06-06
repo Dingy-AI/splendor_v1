@@ -25,7 +25,10 @@ class SplendorEnv(gym.Env):
         # 9-13 -> Pick 2
         # 14-29 -> Buy a Card
         # 30-45 -> Reserve a Card
-        #Total actions 9 + 5 + 15 + 15 = 44 Actions
+        # 46-48 -> Pick Noble
+        # 49-61 -> Discard 13
+        # 62+ -> Expansion
+        #Total actions 9 + 5 + 15 + 15 = 61 Actions
 
         return None 
     
@@ -51,7 +54,23 @@ class SplendorEnv(gym.Env):
         #and then sets the valid values to true
 
         return None
+    def can_afford(self, card) -> bool:
+        gold_needed = 0
+
+        for color, cost in card.cost.items():
+            effective_cost = max(
+                0,
+                cost - self.bonuses[color]
+            )
+
+            available = self.gems[color]
+
+            if available < effective_cost:
+                gold_needed += effective_cost - available
+
+        return gold_needed <= self.gems[GemColor.GOLD]
     
+
     def get_reward(player_id = None):
         #TOOD
         return None 
