@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from decision_graph import NodeType
 from state import GemColor
 
-ACTION_SPACE_SIZE = 512
+ACTION_SPACE_SIZE = 128
 
 class ActionType(Enum):
     TAKE_GEMS = 0

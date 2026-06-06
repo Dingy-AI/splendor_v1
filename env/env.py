@@ -1,8 +1,7 @@
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
-
-MAX_ACTIONS_PER_STATE = 128
+from actions import ACTION_SPACE_SIZE
 
 class SplendorEnv(gym.Env):
     def __init__ (self):
@@ -18,7 +17,7 @@ class SplendorEnv(gym.Env):
         #Buy 1 of 12 (12) (15)
 
         # Reserve a card
-        self.action_space = spaces.Discrete(MAX_ACTIONS_PER_STATE)
+        self.action_space = spaces.Discrete(ACTION_SPACE_SIZE)
         # Reserve 1 of 15 (15)
 
         # 0-8 -> Pick 3
@@ -26,7 +25,7 @@ class SplendorEnv(gym.Env):
         # 14-29 -> Buy a Card
         # 30-45 -> Reserve a Card
         # 46-48 -> Pick Noble
-        # 49-61 -> Discard 13
+        # 49-61 -> Discard 13 #this will be a loop where we will discard 1 and recheck to discard another
         # 62+ -> Expansion
         #Total actions 9 + 5 + 15 + 15 = 61 Actions
 
