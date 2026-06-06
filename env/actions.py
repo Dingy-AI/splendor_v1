@@ -16,5 +16,5 @@ class ActionType(Enum):
 class Action:
     id: int
     type: ActionType
-    payload: list[GemColor]
+    params: dict
     causes_node: NodeType | None = None
