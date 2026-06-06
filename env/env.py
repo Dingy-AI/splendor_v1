@@ -1,10 +1,11 @@
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
-from actions import ACTION_SPACE_SIZE
+from splendor_v1.env.core.actions import ACTION_SPACE_SIZE
+from state import GameState
 
 class SplendorEnv(gym.Env):
-    def __init__ (self):
+    def __init__ (self, num_players: int = 2, seed = 420):
         #TODO
         
         #I need to define the action space to allow for more expansions in the future
@@ -32,12 +33,24 @@ class SplendorEnv(gym.Env):
         return None 
     
     
-    def reset(self, seed=420):
+    def reset(self,num_players=2, seed=420,) -> GameState:
         #TODO
         obs = None
         info = None
         return obs, info
     
+    def reset_deck(self):
+        pass
+
+    def create_visible_cards(self):
+        pass
+
+    def create_players(self, num_players):
+        pass
+
+    def create_nobles(self, num_players):
+        pass 
+
     def step(self, action=None):
         #TODO 
         obs = None
