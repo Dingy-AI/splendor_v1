@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from enums import NodeType
-from player import Player
-from noble import Noble
-from card import Card
+from core.enums import NodeType
+from core.player import Player
+from core.noble import Noble
+from core.card import Card
 
-@dataclass
+@dataclass(frozen=True)
 class GameState:
     node_type: NodeType
     players: list[Player]

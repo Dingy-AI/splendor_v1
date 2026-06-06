@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-@dataclass
+@dataclass(frozen=True)
 class GemColor(Enum):
     WHITE = 0
     BLUE = 1
@@ -10,7 +10,7 @@ class GemColor(Enum):
     BROWN = 4
     GOLD = 5
 
-@dataclass
+@dataclass(frozen=True)
 class ActionType(Enum):
     TAKE_GEMS = 0
     BUY_CARD = 1
@@ -18,7 +18,7 @@ class ActionType(Enum):
     FORCED_DISCARD = 4 #CHATGPT does not recommend this in here. Might move it to rules?
     PICK_NOBLE = 5
 
-@dataclass
+@dataclass(frozen=True)
 class NodeType(Enum):
     MAIN_DECISION = 1
     NOBLE_CLAIM = 3

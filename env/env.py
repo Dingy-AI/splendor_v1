@@ -2,7 +2,7 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 from splendor_v1.env.core.actions import ACTION_SPACE_SIZE
-from state import GameState
+from splendor_v1.env.state.base import GameState
 
 class SplendorEnv(gym.Env):
     def __init__ (self, num_players: int = 2, seed = 420):

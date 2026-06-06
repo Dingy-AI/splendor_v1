@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enums import GemColor
 
-@dataclass
+@dataclass(frozen=True)
 class Noble:
     id: int
     points: int

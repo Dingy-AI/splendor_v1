@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from enums import GemColor
+from core.enums import GemColor
 
-@dataclass
+@dataclass(frozen=True)
 class Card:
     id: int
     tier: int
     points: int
-    bonus_color: int
+    bonus_color: GemColor
     cost: dict[GemColor, int]

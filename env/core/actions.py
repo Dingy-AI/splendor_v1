@@ -1,11 +1,10 @@
 from dataclasses import dataclass
-from decision_graph import NodeType
 
-from enums import ActionType
+from core.enums import ActionType, NodeType
 
 ACTION_SPACE_SIZE = 128
 
-@dataclass
+@dataclass(frozen=True)
 class Action:
     id: int
     type: ActionType

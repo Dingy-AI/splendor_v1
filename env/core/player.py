@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from enums import GemColor
-from card import Card
+from core.enums import GemColor
+from core.card import Card
 
-@dataclass
+@dataclass(frozen=True)
 class Player:
     gems: dict[GemColor, int]
     bonuses: dict[GemColor, int]
