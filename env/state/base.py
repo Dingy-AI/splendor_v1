@@ -1,17 +1,17 @@
 from dataclasses import dataclass
-from core.enums import NodeType
-from core.player import Player
-from core.noble import Noble
-from core.card import Card
+from env.core.enums import NodeType, GemColor
+from env.core.player import Player
+from env.core.noble import Noble
+from env.core.card import Card
 
 @dataclass(frozen=True)
 class GameState:
     node_type: NodeType
     players: list[Player]
-    bank: dict
+    bank: dict[GemColor, int]
     nobles: list[Noble]
     visible_cards: dict[int, list[Card]]
-    decks: list[Card]
+    decks: dict[int, list[Card]]
     current_player: int
     turn_number: int
     game_over: bool = False

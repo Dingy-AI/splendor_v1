@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from core.enums import ActionType, NodeType
+from env.core.enums import ActionType, NodeType
 
 ACTION_SPACE_SIZE = 128
 
