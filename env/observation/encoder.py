@@ -1,11 +1,14 @@
+from state.base import GameState
+
 class ObservationEncoder:
     def __init__(self):
         pass
 
-    def encoder(self, state):
+    def encoder(self, state:GameState):
 
+        features = []
         #need different functions to encode different things
-
+        state.node_type
 
         #need to convert things everything into a number :)
         # we have player features 
