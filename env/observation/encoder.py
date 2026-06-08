@@ -4,7 +4,7 @@ from core.player import Player
 from core.enums import GemColor, CardColor
 from core.card import Card
 
-from core.constants import GEM_SCALE_NORM, BONUS_NORM, MAX_RESERVES, CARD_COST_SCALE_NORM
+from core.constants import GEM_SCALE_NORM, BONUS_NORM, MAX_RESERVES, CARD_COST_SCALE_NORM, CARD_POINTS_NORM, POINT_SCALE_NORM
 
 class ObservationEncoder:
     def __init__(self):
@@ -87,17 +87,23 @@ class ObservationEncoder:
             feature_reserved_cards = [0] * 33
         else:
             for i in len(player.reserved_cards):
+                # need to refactor this into card encoding in the future
                 feature_reserved_cards.append(player.reserved_cards[i].points)
-                feature_bonus = [0] * 5
+                feature_bonus_color = [0] * 5
                 for color in CardColor:
 
                     feature_reserved_cards.append(player.reserved_cards[i].cost[color] / CARD_COST_SCALE_NORM)
                     if player.reserved_cards[i].bonus_color == color:
-                        feature_bonus[color] = 1
+                        feature_bonus_color[color.value] = 1
 
-                
-            
-        pass
+                feature_reserved_cards.append(feature_bonus_color)
+                feature_reserved_cards.append([player.reserved_cards[i].points] / CARD_POINTS_NORM)
+            if len(player.reserved_cards) < MAX_RESERVES:
+                feature_reserved_cards.append([0] * 11 * (MAX_RESERVES - len(player.reserved_cards)))
+
+        feature = feature_gems + feature_bonus + feature_reserved_cards + [player.points / POINT_SCALE_NORM]
+        return feature
+    
 
     def _encode_card(self, card):
         vec = []

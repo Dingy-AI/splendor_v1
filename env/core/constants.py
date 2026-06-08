@@ -14,3 +14,5 @@ CARD_COST_SCALE_NORM = 7.0 # the cost of a card for a certain gem does not excee
 TIER1_NORM = 40
 TIER2_NORM = 30
 TIER3_NORM = 20
+
+CARD_POINTS_NORM = 3.0 #normalizing the amount of points on the card itself
