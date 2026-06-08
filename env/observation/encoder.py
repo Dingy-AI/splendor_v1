@@ -1,4 +1,10 @@
 from state.base import GameState
+import numpy as np
+from core.player import Player
+from core.enums import GemColor, CardColor
+from core.card import Card
+
+from core.constants import GEM_SCALE_NORM, BONUS_NORM, MAX_RESERVES, CARD_COST_SCALE_NORM
 
 class ObservationEncoder:
     def __init__(self):
@@ -8,7 +14,22 @@ class ObservationEncoder:
 
         features = []
         #need different functions to encode different things
-        state.node_type
+
+
+        #player encoder
+        #noble encoder
+        #deck encoder 
+        #bank encoder 
+        #board encoder
+        #meta encoder? -> not sure if I really need this maybe just what the node type is?
+            #looks like I will just need to say what node it is
+            # also probably just say how many turns it has been
+
+        self._encode_player(state.players,state.current_player)
+
+
+        return np.array(features, dtype=np.float32)
+
 
         #need to convert things everything into a number :)
         # we have player features 
@@ -36,15 +57,47 @@ class ObservationEncoder:
         # 354 input features
 
         #work on normalization and encoder next time :3
-        pass 
+         
     
     # we need a normalization strategy for our encoding? :O
     # we have to do turn order in the feature 
     # need to know deck size as well 
     # deck encoder? 
 
-    def _encode_player(self, player):
-        return None
+    def _encode_players(self, players:list[Player], current_player:int):
+        
+        feature = []
+        players = players[current_player:] + players[:current_player]
+
+        for player in players:
+            feature = feature + self._encode_single_player(player)
+
+        return feature
+
+    def _encode_single_player(self, player:Player):
+        feature_gems = []
+        feature_bonus = []
+        feature_reserved_cards = []
+        for color in GemColor:
+            feature_gems.append(player.gems[color] / GEM_SCALE_NORM)
+            if color != GemColor.GOLD:
+                feature_bonus.append(player.bonuses[color] / BONUS_NORM)
+
+        if len(player.reserved_cards) == 0:
+            feature_reserved_cards = [0] * 33
+        else:
+            for i in len(player.reserved_cards):
+                feature_reserved_cards.append(player.reserved_cards[i].points)
+                feature_bonus = [0] * 5
+                for color in CardColor:
+
+                    feature_reserved_cards.append(player.reserved_cards[i].cost[color] / CARD_COST_SCALE_NORM)
+                    if player.reserved_cards[i].bonus_color == color:
+                        feature_bonus[color] = 1
+
+                
+            
+        pass
 
     def _encode_card(self, card):
         vec = []

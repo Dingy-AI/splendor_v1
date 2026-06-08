@@ -2,6 +2,14 @@ from dataclasses import dataclass
 from enum import Enum
 
 @dataclass(frozen=True)
+class CardColor(Enum):
+    WHITE = 0
+    BLUE = 1
+    GREEN = 2
+    RED = 3
+    BLACK = 4
+
+@dataclass(frozen=True)
 class GemColor(Enum):
     WHITE = 0
     BLUE = 1

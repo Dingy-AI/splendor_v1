@@ -89,7 +89,7 @@ class SplendorEnv(gym.Env):
 
     def _init_players(self):
         return [
-            Player() for _ in range(self.num_players)
+            Player(id=i) for i in range(self.num_players)
         ]
 
     def _init_bank(self):
@@ -99,7 +99,7 @@ class SplendorEnv(gym.Env):
         elif self.num_players == 3:
             base = 5 
 
-        bank = {color: base for color in GemColor if color != GemColor.GOLD}
+        bank = {color: base for color in GemColor}
         bank[GemColor.GOLD] = 5
 
         return bank 
