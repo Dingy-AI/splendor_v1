@@ -4,14 +4,23 @@ from core.player import Player
 from core.enums import GemColor, CardColor
 from core.card import Card
 
-from core.constants import GEM_SCALE_NORM, BONUS_NORM, MAX_RESERVES, CARD_COST_SCALE_NORM, CARD_POINTS_NORM, POINT_SCALE_NORM
+FOUR_PLAYER_GEM_NORM = 7
+from core.constants import GEM_SCALE_NORM, BONUS_NORM, MAX_RESERVES, CARD_COST_SCALE_NORM, CARD_POINTS_NORM, POINT_SCALE_NORM, MAX_PLAYER_COUNT, TWO_PLAYER_GEM_NORM, THREE_PLAYER_GEM_NORM, 
 
 class ObservationEncoder:
     def __init__(self):
+
         pass
 
     def encoder(self, state:GameState):
 
+        self.player_gem_norm = TWO_PLAYER_GEM_NORM
+        if len(state.players) == 4:
+            self.player_gem_norm = FOUR_PLAYER_GEM_NORM
+        elif len(state.player) == 3:
+            self.player_gem_norm = THREE_PLAYER_GEM_NORM
+            
+        
         features = []
         #need different functions to encode different things
 
@@ -25,8 +34,8 @@ class ObservationEncoder:
             #looks like I will just need to say what node it is
             # also probably just say how many turns it has been
 
-        self._encode_player(state.players,state.current_player)
-
+        feature = self._encode_players(state.players,state.current_player)
+        feature = feature + self._encode_bank(state.bank)
 
         return np.array(features, dtype=np.float32)
 
@@ -44,7 +53,7 @@ class ObservationEncoder:
         #(6+5+ (11*3)) -> 44 
 
         # do this for players in current turn order
-        # 44*4 
+        # (44+1) * 4
         #board state
         # each card is 11 features there are 12 cards = 132 features
         # deck size - normalize this -> remaining_cards/max_cards 3
@@ -71,6 +80,11 @@ class ObservationEncoder:
 
         for player in players:
             feature = feature + self._encode_single_player(player)
+
+        # each player has 45 features
+
+        if len(players) < MAX_PLAYER_COUNT:
+            feature = feature + ((MAX_PLAYER_COUNT - len(players)) * [0] * 45 )
 
         return feature
 
@@ -104,7 +118,12 @@ class ObservationEncoder:
         feature = feature_gems + feature_bonus + feature_reserved_cards + [player.points / POINT_SCALE_NORM]
         return feature
     
-
+    def _encode_bank(self, bank):
+        feature = []
+        for color in GemColor:
+            feature = feature + [bank[color] / self.player_gem_norm]
+        return feature 
+    
     def _encode_card(self, card):
         vec = []
 
