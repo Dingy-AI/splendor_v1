@@ -6,7 +6,7 @@ from core.card import Card
 from env.core.noble import Noble
 
 FOUR_PLAYER_GEM_NORM = 7
-from core.constants import GEM_SCALE_NORM, BONUS_NORM, MAX_RESERVES, CARD_COST_SCALE_NORM, CARD_POINTS_NORM, POINT_SCALE_NORM, MAX_PLAYER_COUNT, TWO_PLAYER_GEM_NORM, THREE_PLAYER_GEM_NORM, MAX_DECK_SIZE_NORM
+from core.constants import GEM_SCALE_NORM, BONUS_NORM, MAX_RESERVES, CARD_COST_SCALE_NORM, CARD_POINTS_NORM, POINT_SCALE_NORM, MAX_PLAYER_COUNT, TWO_PLAYER_GEM_NORM, THREE_PLAYER_GEM_NORM, MAX_DECK_SIZE_NORM, NOBLE_SCALE_NORM
 
 class ObservationEncoder:
     def __init__(self):
@@ -39,6 +39,7 @@ class ObservationEncoder:
         feature = feature + self._encode_bank(state.bank)
         feature = feature + self._encode_decks(state.decks)
         feature = feature + self._encode_nobles(state.nobles)
+        feature = feature + self._encode_board(state.visible_cards)
         return np.array(features, dtype=np.float32)
 
 
@@ -139,29 +140,36 @@ class ObservationEncoder:
         feature = []
 
         for noble in nobles:
-            
-            
-            noble.requirement
-            noble.points
+            for color in CardColor:
+                
+                feature = feature + [(noble.requirement[color] / NOBLE_SCALE_NORM)]
 
-            #need to do a player check and a noble count check
+            feature = feature + [noble.points]
 
+            #need to do a player check and a noble count checkw
+        if len(nobles) < 5:
+            feature = feature +  (5 - len(nobles)) * [0] * 6
+        return feature
+    
+    def _encode_board(self, visible_cards:  dict[int, list[Card]]):    
+        feature = []
+        for tier in (0, 1, 2):
+            cards = visible_cards[tier]
+
+            for card in cards:
+                feature.extend(self._encode_card(card))
         return feature
     
     def _encode_card(self, card):
         vec = []
-
-        # 1. points
-        vec.append(card.points)
-
-        # 2. bonus color one-hot
-        for color in self.gem_colors:
-            vec.append(1.0 if card.bonus_color == color else 0.0)
-
         # 3. cost vector
         for color in self.gem_colors:
             vec.append(card.cost.get(color, 0))
-
+        # 2. bonus color one-hot
+        for color in self.gem_colors:
+            vec.append(1.0 if card.bonus_color == color else 0.0)
+        # 1. points
+        vec.append(card.points)
         return vec
 
 

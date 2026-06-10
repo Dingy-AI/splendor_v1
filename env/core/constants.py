@@ -3,7 +3,7 @@ MAX_RESERVES = 3
 ACTION_SPACE_SIZE = 128
 VICTORY_REQUIREMENT = 15
 MAX_PLAYER_COUNT = 4
-
+MAX_NOBLE_COUNT = 5
 
 GEM_SCALE_NORM = 10.0 #normalize the number of gems of each type in the hand
 
