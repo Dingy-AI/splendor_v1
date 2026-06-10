@@ -13,6 +13,9 @@ BONUS_NORM = 7.0 #normalize the number of cards of each type
 POINT_SCALE_NORM = 15.0
 NOBLE_SCALE_NORM = 4.0
 CARD_COST_SCALE_NORM = 7.0 # the cost of a card for a certain gem does not exceed 7
+
+MAX_DECK_SIZE_NORM = [40,30,20]
+
 TIER1_NORM = 40
 TIER2_NORM = 30
 TIER3_NORM = 20

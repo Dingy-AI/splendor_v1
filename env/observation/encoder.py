@@ -3,9 +3,10 @@ import numpy as np
 from core.player import Player
 from core.enums import GemColor, CardColor
 from core.card import Card
+from env.core.noble import Noble
 
 FOUR_PLAYER_GEM_NORM = 7
-from core.constants import GEM_SCALE_NORM, BONUS_NORM, MAX_RESERVES, CARD_COST_SCALE_NORM, CARD_POINTS_NORM, POINT_SCALE_NORM, MAX_PLAYER_COUNT, TWO_PLAYER_GEM_NORM, THREE_PLAYER_GEM_NORM, 
+from core.constants import GEM_SCALE_NORM, BONUS_NORM, MAX_RESERVES, CARD_COST_SCALE_NORM, CARD_POINTS_NORM, POINT_SCALE_NORM, MAX_PLAYER_COUNT, TWO_PLAYER_GEM_NORM, THREE_PLAYER_GEM_NORM, MAX_DECK_SIZE_NORM
 
 class ObservationEncoder:
     def __init__(self):
@@ -36,7 +37,8 @@ class ObservationEncoder:
 
         feature = self._encode_players(state.players,state.current_player)
         feature = feature + self._encode_bank(state.bank)
-
+        feature = feature + self._encode_decks(state.decks)
+        feature = feature + self._encode_nobles(state.nobles)
         return np.array(features, dtype=np.float32)
 
 
@@ -86,6 +88,7 @@ class ObservationEncoder:
         if len(players) < MAX_PLAYER_COUNT:
             feature = feature + ((MAX_PLAYER_COUNT - len(players)) * [0] * 45 )
 
+
         return feature
 
     def _encode_single_player(self, player:Player):
@@ -123,6 +126,27 @@ class ObservationEncoder:
         for color in GemColor:
             feature = feature + [bank[color] / self.player_gem_norm]
         return feature 
+    
+    def _encode_decks(self, decks):
+        feature = []
+        for tier in (0, 1, 2):
+            cards = decks[tier]
+            feature.append(len(cards) / MAX_DECK_SIZE_NORM[tier])
+        return feature
+    
+
+    def _encode_nobles(self, nobles:list[Noble]):
+        feature = []
+
+        for noble in nobles:
+            
+            
+            noble.requirement
+            noble.points
+
+            #need to do a player check and a noble count check
+
+        return feature
     
     def _encode_card(self, card):
         vec = []

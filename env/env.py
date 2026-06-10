@@ -74,9 +74,9 @@ class SplendorEnv(gym.Env):
     def _init_decks(self):
         return {
 
-            1: deepcopy(BASE_TIER_1),
-            2: deepcopy(BASE_TIER_2),
-            3: deepcopy(BASE_TIER_3)
+            0: deepcopy(BASE_TIER_1),
+            1: deepcopy(BASE_TIER_2),
+            2: deepcopy(BASE_TIER_3)
         }
 
     def _deal_visible_cards(self, decks):
