@@ -20,17 +20,20 @@ class GemColor(Enum):
 
 @dataclass(frozen=True)
 class ActionType(Enum):
-    TAKE_GEMS = 0
-    BUY_CARD = 1
-    RESERVE_CARD = 2
-    FORCED_DISCARD = 4 #CHATGPT does not recommend this in here. Might move it to rules?
-    PICK_NOBLE = 5
+    BUY_VISIBLE = 0
+    BUY_RESERVED = 1
+    RESERVE_VISIBLE = 2 
+    RESERVE_TOP_DECK = 3
+    TAKE_GEMS = 4
+    DISCARD_GEMS = 5
+    TAKE_NOBLE = 6
 
 @dataclass(frozen=True)
 class NodeType(Enum):
-    MAIN_DECISION = 1
-    NOBLE_CLAIM = 3
+    MAIN_DECISION = 0
+    NOBLE_CLAIM = 1
     OVERFLOW_DISCARD = 2
+    END_TURN = 3
 
 # MAIN_ACTION
 #    ↓

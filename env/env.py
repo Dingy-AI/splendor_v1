@@ -4,9 +4,11 @@ from gymnasium import spaces
 from env.core.constants import ACTION_SPACE_SIZE
 from env.state.base import GameState
 from env.data.data import BASE_TIER_1, BASE_TIER_2, BASE_TIER_3, NOBLES
-
+from env.core.actions import Action
 from env.core.player import Player
 from env.core.enums import GemColor, NodeType
+
+from observation.encoder import ObservationEncoder
 
 import random
 from copy import deepcopy
@@ -14,12 +16,17 @@ from copy import deepcopy
 class SplendorEnv(gym.Env):
     def __init__ (self, num_players: int = 2, seed = 420):
         #TODO
-        
+        self.observation_encoder = ObservationEncoder()
         #I need to define the action space to allow for more expansions in the future
         #Pick Gems (6 gem types) -> Red, Blue, Green, Black, White
-        #Pick 3 (9) - Red/Blue/Green, Red/Blue/Black, Red/Blue/White
-        #             Red/Green/Black, Red/Green/White, Red/Black/White, Blue/Green/Black, Blue/Black/White, Green/Black/White
-        #Pick 2 (5) - Red, Blue, Green, Black, White
+        #Pick 3 (10) - Red/Blue/Green, Red/Blue/Black, Red/Blue/White
+        #             Red/Green/Black, Red/Green/White, Red/Black/White, 
+        #             Blue/Green/Black, Blue/Green/White, Blue/Black/White, 
+        #             Green/Black/White
+        #Pick 2 different Color  Red/Blue, Red/Green, Red/Black, Red/White,
+        #                        Blue/Green, Blue/Black, Blue/White
+        #                        Green/Black, Green/White, Black/White
+        #Pick 2 same color (5) - Red, Blue, Green, Black, White
 
         #Buy a card
         #Buy 1 of 12 (12) (15)
@@ -46,7 +53,7 @@ class SplendorEnv(gym.Env):
         self.state = self._build_initial_state()
 
 
-        obs = self._get_observation(self.state)
+        obs = self.observation_encoder.encoder(self.state)
         info = self._get_info(self.state)
         return obs, info
     
@@ -109,11 +116,8 @@ class SplendorEnv(gym.Env):
         random.shuffle(nobles)
         return nobles[:self.num_players+1]
 
-    def _get_observation(self):
-        pass
-
-    def _get_info(self):
-        pass    
+    def _get_info(self): # work on this later for debugging purpose 
+        return None 
 
     def step(self, action=None):
         #TODO 
@@ -124,13 +128,30 @@ class SplendorEnv(gym.Env):
         info = None 
         return obs, reward, terminated, truncated, info
 
-    def legal_actions(self):
+    def _legal_actions(self, state:GameState)  -> list[Action]:
         #TODO
-        #write the mask that starts everything as false
-        #and then sets the valid values to true
+        actions = []
 
-        return None
-    def can_afford(self, card) -> bool:
+        actions = actions + self._legal_buy_visible(state)
+        #I actually cant write the mask yet.
+        #write now I just want a list of legal actions
+
+        # BUY_VISIBLE
+        # BUY_RESERVED
+        # RESERVE_VISIBLE
+        # RESERVE_TOP_DECK
+        # TAKE_NOBLE
+        # TAKE_GEMS
+        # DISCARD_GEMS
+        return actions
+    
+    def _legal_buy_visible(self, state:GameState) -> list[Action]:
+
+        actions = [] 
+        return actions 
+
+        
+    def _can_afford(self, card) -> bool:
         gold_needed = 0
 
         for color, cost in card.cost.items():
@@ -147,27 +168,59 @@ class SplendorEnv(gym.Env):
         return gold_needed <= self.gems[GemColor.GOLD]
     
 
-    def get_reward(player_id = None):
-        #TOOD
-        return None 
+    # def get_reward(player_id = None):
+    #     #TOOD
+    #     return None 
 
-    def clone(self):
-        #TODO
-        return None 
+    # def clone(self):
+    #     #TODO
+    #     return None 
 
-    def current_player(self):
-        #TODO
-        return None
+    # def current_player(self):
+    #     #TODO
+    #     return None
 
-    def is_terminal(self):
-        #TODO
-        return None
+    # def is_terminal(self):
+    #     #TODO
+    #     return None
     
-    def render(self):
-        #TODO
-        return None
+    # def render(self):
+    #     #TODO
+    #     return None
 
-    def get_winner(self):
-        #TODO
-        return None
+    # def get_winner(self):
+    #     #TODO
+    #     return None
     
+#TODO NEED TO WORK ON ACTION MASKING
+
+#    ↓
+# legal_actions(state)
+#    ↓
+# [Action, Action, Action]
+#    ↓
+# action_to_id()
+#    ↓
+# [17, 22, 31]
+#    ↓
+# get_action_mask()
+#    ↓
+# [0,0,1,0,1,...]
+#    ↓
+# Policy Network
+#    ↓
+# chosen action_id
+#    ↓
+# id_to_action()
+#    ↓
+# Action(...)
+#    ↓
+# env.step(action)
+
+# ✅ legal_actions(state)
+# ✅ step(action)
+# ✅ helper functions (_can_afford, _take_gems, etc.)
+# Later: action_to_id # can live in decoder/encoder 
+# Later: id_to_action # can live in decoder / encoder 
+# Later: get_action_mask
+# Later: legal_action_ids
