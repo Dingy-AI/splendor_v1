@@ -1,16 +1,18 @@
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
-from env.core.constants import ACTION_SPACE_SIZE
+from env.core.constants import ACTION_SPACE_SIZE, MAX_GEMS, VICTORY_REQUIREMENT
 from env.state.base import GameState
 from env.data.data import BASE_TIER_1, BASE_TIER_2, BASE_TIER_3, NOBLES
 from env.core.actions import Action
 from env.core.player import Player
 from env.core.enums import GemColor, NodeType, ActionType
 from env.core.card import Card
+from env.core.noble import Noble
+
 
 from observation.encoder import ObservationEncoder
-
+from itertools import combinations
 import random
 from copy import deepcopy
 
@@ -120,16 +122,20 @@ class SplendorEnv(gym.Env):
     def _get_info(self): # work on this later for debugging purpose 
         return None 
 
-    def step(self, action=None):
-        #TODO 
-        obs = None
-        reward = None 
-        terminated = None
-        truncated = None
-        info = None 
-        return obs, reward, terminated, truncated, info
+    def _legal_actions(self, state: GameState) -> list[Action]:
 
-    def _legal_actions(self, state:GameState)  -> list[Action]:
+        if state.node_type == NodeType.MAIN_DECISION:
+            return self._legal_main_actions(state)
+
+        if state.node_type == NodeType.OVERFLOW_DISCARD:
+            return self._legal_discard_actions(state)
+
+        if state.node_type == NodeType.NOBLE_CLAIM:
+            return self._legal_noble_actions(state)
+
+        raise ValueError(f"Unknown node type: {state.node_type}")
+
+    def _legal_main_actions(self, state:GameState)  -> list[Action]:
         #TODO
         actions = []
         #I actually cant write the mask yet.
@@ -142,6 +148,7 @@ class SplendorEnv(gym.Env):
         # TAKE_NOBLE
         # TAKE_GEMS
         # DISCARD_GEMS
+
 
         actions.extend(self._legal_buy_visible(state))
         actions.extend(self._legal_buy_reserved(state))
@@ -245,7 +252,7 @@ class SplendorEnv(gym.Env):
             for color in GemColor
             if color != GemColor.GOLD and bank[color] > 0
         ]
-        
+
         # Take 1 gem
         for color in available_colors:
             actions.append(
@@ -285,6 +292,60 @@ class SplendorEnv(gym.Env):
 
         return actions
 
+    def _legal_discard_actions(self, state: GameState) -> list[Action]:
+        actions = []
+
+        player = state.players[state.current_player]
+
+        total_gems = sum(player.gems.values())
+        excess = total_gems - MAX_GEMS  # usually 10
+
+        if excess <= 0:
+            return actions
+
+        # One-gem discard actions (repeat until resolved by multiple turns)
+        for color, count in player.gems.items():
+
+            if count <= 0:
+                continue
+
+            actions.append(
+                Action(
+                    action_type=ActionType.DISCARD_GEMS,
+                    gem_colors=(color,),
+                )
+            )
+
+        return actions
+
+    def _legal_noble_actions(self, state: GameState) -> list[Action]:
+        actions = []
+
+        player = state.players[state.current_player]
+
+        for i, noble in enumerate(state.nobles):
+
+            # Skip missing / already-taken nobles if applicable
+            if noble is None:
+                continue
+
+            # Check if player qualifies
+            if self._qualifies_for_noble(player, noble):
+                actions.append(
+                    Action(
+                        action_type=ActionType.TAKE_NOBLE,
+                        noble_index=i
+                    )
+                )
+
+        return actions
+        
+    def _qualifies_for_noble(self, player: Player, noble: Noble) -> bool:
+        for color, required in noble.requirements.items():
+            if player.bonuses.get(color, 0) < required:
+                return False
+        return True
+
 
     def _can_afford(self, player: Player, card: Card) -> bool:
         gold_needed = 0
@@ -302,6 +363,291 @@ class SplendorEnv(gym.Env):
 
         return gold_needed <= player.gems.get(GemColor.GOLD, 0)
     
+
+    def step(self, action: Action):
+        state = self.state
+
+        actor = state.current_player   # FREEZE actor here
+        prev_points = state.players[actor].points
+
+
+        
+        # 1. Apply action
+        self._apply_action(state, action)
+
+        # 2. Resolve forced transitions (overflow, nobles, etc.)
+        self._resolve_transitions(state)
+
+
+        self._maybe_advance_player(state)
+
+
+        # 3. Compute observation
+        obs = self.observation_encoder.encoder(self.state)
+
+
+
+        # 4. Compute reward
+        reward = self._compute_reward(state, actor, prev_points)
+
+        # 4.5 Check end triggered
+
+        # 5. Check termination
+        terminated = self._check_terminated(state)   # game ended naturally
+
+        # 6. Check truncation
+        truncated = False #ptional time limit
+
+
+
+
+        # 7. Info dictionary (debug / logging)
+        info = {
+            "node_type": state.node_type,
+            "current_player": state.current_player,
+            "legal_actions_count": len(self._legal_actions(state)),
+            "turn_number": state.turn_number,
+        }
+
+        if terminated:
+            info["winners"] = state.winners
+            info["final_scores"] = [
+                p.points for p in state.players
+                ]
+
+        return obs, reward, terminated, truncated, info
+
+    def _compute_reward(self, state, actor, prev_points):
+
+        curr_points = state.players[actor].points
+
+        reward = curr_points - prev_points
+        return reward
+
+    def _check_terminated(self, state):
+
+        if not state.end_triggered:
+            return False
+
+        # end when we return to start player of final round
+        if state.current_player == len(state.players)-1:
+            state.winners = self._compute_winners(state)
+            return True
+
+        return False
+
+    def _compute_winners(self, state: GameState) -> list[int]:
+
+        best_points = max(p.points for p in state.players)
+
+        candidates = [
+            (i, p) for i, p in enumerate(state.players)
+            if p.points == best_points
+        ]
+
+        # Splendor rule: FEWEST cards wins
+        min_cards = min(len(p.cards) for _, p in candidates)
+
+        winnerss = [
+            i for i, p in candidates
+            if len(p.cards) == min_cards
+        ]
+
+        return winnerss
+
+    def _maybe_advance_player(self, state: GameState):
+
+        # DO NOT switch players during forced nodes
+        if state.node_type != NodeType.MAIN_DECISION:
+            return
+
+        state.current_player = (state.current_player + 1) % state.num_players
+        state.turn_number += 1
+
+    def _resolve_transitions(self, state: GameState):
+
+        # IMPORTANT: only called from MAIN_DECISION
+
+        # 1. overflow has highest priority
+        if self._check_overflow(state):
+            state.node_type = NodeType.OVERFLOW_DISCARD
+            return
+
+        # 2. nobles next priority
+        if self._check_nobles(state):
+            state.node_type = NodeType.NOBLE_CLAIM
+            return
+
+        # 3. otherwise continue normal gameplay
+        state.node_type = NodeType.MAIN_DECISION
+        return
+
+    def _check_overflow(self, state):
+
+        player = state.players[state.current_player]
+
+        return sum(player.gems.values()) > state.max_gems
+
+    def _check_nobles(self, state):
+
+        player = state.players[state.current_player]
+
+        for noble in state.nobles:
+            if noble and self._qualifies_for_noble(player, noble):
+                return True
+
+        return False
+
+    def _apply_action(self, state: GameState, action: Action):
+
+        if state.node_type == NodeType.MAIN_DECISION:
+            self._apply_main_action(state, action)
+
+        elif state.node_type == NodeType.OVERFLOW_DISCARD:
+            self._apply_discard_action(state, action)
+
+        elif state.node_type == NodeType.NOBLE_CLAIM:
+            self._apply_noble_action(state, action)
+
+        else:
+            raise ValueError(f"Unknown node type: {state.node_type}")
+
+
+    def _apply_main_action(self, state: GameState, action: Action):
+
+        if action.action_type == ActionType.BUY_VISIBLE:
+            self._buy_visible(state, action)
+
+        elif action.action_type == ActionType.BUY_RESERVED:
+            self._buy_reserved(state, action)
+
+        elif action.action_type == ActionType.RESERVE_VISIBLE:
+            self._reserve_visible(state, action)
+
+        elif action.action_type == ActionType.RESERVE_TOP_DECK:
+            self._reserve_top_deck(state, action)
+
+        elif action.action_type == ActionType.TAKE_GEMS:
+            self._take_gems(state, action)
+
+        else:
+            raise ValueError(f"Invalid main action: {action}")
+
+
+    def _buy_visible(self, state: GameState, action: Action):
+
+        player = state.players[state.current_player]
+        card = state.visible_cards[action.tier][action.slot]
+
+        self._pay_for_card(player, card)
+
+        player.purchased_cards.append(card)
+        player.points += card.points
+        player.bonuses[card.bonus] += 1
+
+        # remove card from board
+        state.visible_cards[action.tier][action.slot] = self._draw_card(state, action.tier)
+
+        if player.points >= VICTORY_REQUIREMENT:
+            state.end_triggered = True
+
+    def _buy_reserved(self, state: GameState, action: Action):
+
+        player = state.players[state.current_player]
+        card = player.reserved_cards.pop(action.reserved_index)
+
+        self._pay_for_card(player, card)
+
+        player.purchased_cards.append(card)
+        player.points += card.points
+        player.bonuses[card.bonus] += 1
+
+        if player.points >= VICTORY_REQUIREMENT:
+            state.end_triggered = True
+
+    def _reserve_visible(self, state: GameState, action: Action):
+
+        player = state.players[state.current_player]
+
+        card = state.visible_cards[action.tier][action.slot]
+
+        player.reserved_cards.append(card)
+
+        # refill slot
+        state.visible_cards[action.tier][action.slot] = self._draw_card(state, action.tier)
+
+        # gold bonus (optional)
+        if state.bank[GemColor.GOLD] > 0:
+            player.gems[GemColor.GOLD] += 1
+            state.bank[GemColor.GOLD] -= 1
+
+
+    def _reserve_top_deck(self, state: GameState, action: Action):
+
+        player = state.players[state.current_player]
+
+        card = state.decks[action.tier].pop()
+
+        player.reserved_cards.append(card)
+
+        # gold bonus (optional)
+        if state.bank[GemColor.GOLD] > 0:
+            player.gems[GemColor.GOLD] += 1
+            state.bank[GemColor.GOLD] -= 1
+     
+
+    def _take_gems(self, state: GameState, action: Action):
+
+        player = state.players[state.current_player]
+
+        for color in action.gem_colors:
+            player.gems[color] += 1
+            state.bank[color] -= 1
+
+    def _apply_discard_action(self, state: GameState, action: Action):
+
+        player = state.players[state.current_player]
+
+        for color in action.gem_colors:
+            player.gems[color] -= 1
+
+        # AFTER applying discard → check if overflow is resolved
+        if sum(player.gems.values()) <= state.max_gems:
+            state.node_type = NodeType.MAIN_DECISION
+
+
+    def _apply_noble_action(self, state: GameState, action: Action):
+
+        player = state.players[state.current_player]
+        noble = state.nobles[action.noble_index]
+
+        player.nobles.append(noble)
+        player.points += noble.points # standard Splendor noble value
+
+        state.nobles[action.noble_index] = None
+
+        state.node_type = NodeType.MAIN_DECISION
+        if player.points >= VICTORY_REQUIREMENT:
+            state.end_triggered = True        
+
+    def _pay_for_card(self, player: Player, card: Card):
+
+        remaining_gold = player.gems[GemColor.GOLD]
+
+        for color, cost in card.cost.items():
+
+            discount = player.bonuses.get(color, 0)
+            needed = max(0, cost - discount)
+
+            available = player.gems.get(color, 0)
+
+            use = min(available, needed)
+            player.gems[color] -= use
+            needed -= use
+
+            remaining_gold -= needed
+
+        player.gems[GemColor.GOLD] = remaining_gold
 
     # def get_reward(player_id = None):
     #     #TOOD
@@ -323,7 +669,7 @@ class SplendorEnv(gym.Env):
     #     #TODO
     #     return None
 
-    # def get_winner(self):
+    # def get_winners(self):
     #     #TODO
     #     return None
     

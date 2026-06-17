@@ -15,3 +15,5 @@ class GameState:
     current_player: int
     turn_number: int
     game_over: bool = False
+    winners: list[int] = []
+    end_triggered: bool = False
