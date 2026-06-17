@@ -6,7 +6,8 @@ from env.state.base import GameState
 from env.data.data import BASE_TIER_1, BASE_TIER_2, BASE_TIER_3, NOBLES
 from env.core.actions import Action
 from env.core.player import Player
-from env.core.enums import GemColor, NodeType
+from env.core.enums import GemColor, NodeType, ActionType
+from env.core.card import Card
 
 from observation.encoder import ObservationEncoder
 
@@ -131,8 +132,6 @@ class SplendorEnv(gym.Env):
     def _legal_actions(self, state:GameState)  -> list[Action]:
         #TODO
         actions = []
-
-        actions = actions + self._legal_buy_visible(state)
         #I actually cant write the mask yet.
         #write now I just want a list of legal actions
 
@@ -143,29 +142,165 @@ class SplendorEnv(gym.Env):
         # TAKE_NOBLE
         # TAKE_GEMS
         # DISCARD_GEMS
+
+        actions.extend(self._legal_buy_visible(state))
+        actions.extend(self._legal_buy_reserved(state))
+        actions.extend(self._legal_reserve_visible(state))
+        actions.extend(self._legal_reserve_top_deck(state))
+        actions.extend(self._legal_take_gems(state))        
         return actions
     
     def _legal_buy_visible(self, state:GameState) -> list[Action]:
+        actions = []
 
-        actions = [] 
-        return actions 
+        player = state.players[state.current_player]
 
+        for tier, cards in state.visible_cards.items():
+            for slot, card in enumerate(cards):
+
+                if self._can_afford(player, card):
+                    actions.append(
+                        Action(
+                            action_type=ActionType.BUY_VISIBLE,
+                            tier=tier,
+                            slot=slot,
+                        )
+                    )
+        return actions
+
+    def _legal_buy_reserved(self, state: GameState) -> list[Action]:
+        actions = []
+
+        player = state.players[state.current_player]
+
+        for reserved_index, card in enumerate(player.reserved_cards):
+
+            if self._can_afford(player, card):
+                actions.append(
+                    Action(
+                        action_type=ActionType.BUY_RESERVED,
+                        reserved_index=reserved_index,
+                    )
+                )
+
+        return actions
+
+    def _legal_reserve_visible(self, state: GameState) -> list[Action]:
+        actions = []
+
+        player = state.players[state.current_player]
+
+        # Reserve limit reached
+        if len(player.reserved_cards) >= 3:
+            return actions
+
+        for tier, cards in state.visible_cards.items():
+            for slot, card in enumerate(cards):
+
+                # Skip empty slots if your implementation uses None
+                if card is None:
+                    continue
+
+                actions.append(
+                    Action(
+                        action_type=ActionType.RESERVE_VISIBLE,
+                        tier=tier,
+                        slot=slot,
+                    )
+                )
+
+        return actions
+
+    def _legal_reserve_top_deck(self, state: GameState) -> list[Action]:
+        actions = []
+
+        player = state.players[state.current_player]
+
+        # Cannot reserve more than 3 cards
+        if len(player.reserved_cards) >= 3:
+            return actions
+
+        for tier, deck in state.decks.items():
+
+            # Cannot reserve from an empty deck
+            if len(deck) == 0:
+                continue
+
+            actions.append(
+                Action(
+                    action_type=ActionType.RESERVE_TOP_DECK,
+                    tier=tier,
+                )
+            )
+
+        return actions
+    
+    def _legal_take_gems(self, state: GameState) -> list[Action]:
+        actions = []
+
+        bank = state.bank
+
+        available_colors = [
+            color
+            for color in GemColor
+            if color != GemColor.GOLD and bank[color] > 0
+        ]
         
-    def _can_afford(self, card) -> bool:
+        # Take 1 gem
+        for color in available_colors:
+            actions.append(
+                Action(
+                    action_type=ActionType.TAKE_GEMS,
+                    gem_colors=(color,)
+                )
+            )
+
+        # Take 2 different gems
+        for combo in combinations(available_colors, 2):
+            actions.append(
+                Action(
+                    action_type=ActionType.TAKE_GEMS,
+                    gem_colors=combo
+                )
+            )
+
+        # Take 3 different gems
+        for combo in combinations(available_colors, 3):
+            actions.append(
+                Action(
+                    action_type=ActionType.TAKE_GEMS,
+                    gem_colors=combo
+                )
+            )
+
+        # Take 2 of same color
+        for color in available_colors:
+            if bank[color] >= 4:
+                actions.append(
+                    Action(
+                        action_type=ActionType.TAKE_GEMS,
+                        gem_colors=(color, color)
+                    )
+                )
+
+        return actions
+
+
+    def _can_afford(self, player: Player, card: Card) -> bool:
         gold_needed = 0
 
         for color, cost in card.cost.items():
-            effective_cost = max(
-                0,
-                cost - self.bonuses[color]
-            )
 
-            available = self.gems[color]
+            # Apply bonus discount
+            discounted_cost = max(0, cost - player.bonuses.get(color, 0))
 
-            if available < effective_cost:
-                gold_needed += effective_cost - available
+            # How many colored gems do we actually have?
+            available = player.gems.get(color, 0)
 
-        return gold_needed <= self.gems[GemColor.GOLD]
+            # Missing gems must be covered by gold
+            gold_needed += max(0, discounted_cost - available)
+
+        return gold_needed <= player.gems.get(GemColor.GOLD, 0)
     
 
     # def get_reward(player_id = None):
