@@ -2,6 +2,8 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 from env.core.constants import MAX_GEMS, VICTORY_REQUIREMENT
+from env.core.action_constants import GEM_ACTION_TO_ID, DISCARD_COLOR_TO_ID, TAKE_GEMS_START, RESERVE_START, RESERVE_DECK_START, BUY_START, BUY_RESERVED_START, DISCARD_START, NOBLE_START
+
 from env.state.base import GameState
 from env.data.data import BASE_TIER_1, BASE_TIER_2, BASE_TIER_3, NOBLES
 from env.core.actions import Action
@@ -9,6 +11,8 @@ from env.core.player import Player
 from env.core.enums import GemColor, NodeType, ActionType
 from env.core.card import Card
 from env.core.noble import Noble
+
+
 
 from env.core.action_constants import ACTION_SPACE_SIZE
 
@@ -657,32 +661,50 @@ class SplendorEnv(gym.Env):
     def action_to_id(self, action: Action) -> int:
 
         if action.action_type == ActionType.TAKE_GEMS:
-            return self._take_gems_to_id(action)
-
+            return TAKE_GEMS_START + GEM_ACTION_TO_ID[action.gem_colors]
+        
         elif action.action_type == ActionType.RESERVE_VISIBLE:
-            return 20 + (action.tier * 4) + action.slot
+            return RESERVE_START + (action.tier * 4) + action.slot
 
         elif action.action_type == ActionType.RESERVE_TOP_DECK:
-            return 32 + action.tier
+            return RESERVE_DECK_START + action.tier
 
         elif action.action_type == ActionType.BUY_VISIBLE:
-            return 35 + (action.tier * 4) + action.slot
+            return BUY_START + (action.tier * 4) + action.slot
 
         elif action.action_type == ActionType.BUY_RESERVED:
-            return 47 + action.reserved_index
+            return BUY_RESERVED_START + action.reserved_index
 
         elif action.action_type == ActionType.DISCARD_GEM:
-            return 50 + self._gem_color_to_index(
-                action.gem_colors
-            )
+            return DISCARD_START + DISCARD_COLOR_TO_ID[action.gem_colors]
 
         elif action.action_type == ActionType.TAKE_NOBLE:
-            return 56 + action.noble_index
+            return NOBLE_START + action.noble_index
 
         raise ValueError(f"Unknown action: {action}")
 
+    #CONTINUE HERE TOMORROW -> Need to do ID to action 
+    # Also need to do the masking 
 
-    
+    def id_to_action(self, action_id: int) -> Action:
+
+        if 0 <= action_id < 20:
+            return self._id_to_take_gems(action_id)
+
+        elif 20 <= action_id < 35:
+            return self._id_to_reserve(action_id)
+
+        elif 35 <= action_id < 50:
+            return self._id_to_buy(action_id)
+
+        elif 50 <= action_id < 56:
+            return self._id_to_discard(action_id)
+
+        elif 56 <= action_id < 61:
+            return self._id_to_noble(action_id)
+
+        raise ValueError(action_id)
+        
 #TODO NEED TO WORK ON ACTION MASKING
 
 #    ↓

@@ -19,6 +19,11 @@ GEM_ACTIONS = [
     (GemColor.BLUE, GemColor.RED, GemColor.BLACK), (GemColor.GREEN, GemColor.RED, GemColor.BLACK)
 ]
 
+GEM_ACTION_TO_ID = {
+    combo: idx
+    for idx, combo in enumerate(GEM_ACTIONS)
+}
+
 
 DISCARD_COLORS = [
     GemColor.WHITE,
@@ -28,12 +33,20 @@ DISCARD_COLORS = [
     GemColor.BLACK,
     GemColor.GOLD
 ]
+
+DISCARD_COLOR_TO_ID = {
+    color: i
+    for i, color in enumerate(DISCARD_COLORS)
+}
+
 MAX_VISIBLE_CARDS = 12
 MAX_RESERVED_CARDS = 3
 MAX_NOBLES = 5
 
 TAKE_GEMS_START = 0
 RESERVE_START = 20
+RESERVE_DECK_START = 32
 BUY_START = 35
+BUY_RESERVED_START = 47
 DISCARD_START = 50
 NOBLE_START = 56
