@@ -1,0 +1,39 @@
+
+
+# Take GEMS
+        #Pick 3 (10) - Red/Blue/Green, Red/Blue/Black, Red/Blue/White
+        #             Red/Green/Black, Red/Green/White, Red/Black/White, 
+        #             Blue/Green/Black, Blue/Green/White, Blue/Black/White, 
+        #             Green/Black/White
+
+        #Pick 2 different Color  Red/Blue, Red/Green, Red/Black, Red/White,
+        #                        Blue/Green, Blue/Black, Blue/White
+        #                        Green/Black, Green/White, Black/White
+
+        #Pick 2 same color (5) - Red, Blue, Green, Black, White
+
+        #Pick 1 color (5) - Red, Blue, Green, Black, White
+
+    Total -> 20
+
+# Reserve a Card: 
+        1 of 15 (since you can top deck) 
+
+    Total -> 15
+
+# Buy a card:
+        1 of 15 (since you can buy reserved cards)
+
+    Total -> 15
+
+# Discard a Gem:
+        1 of 6 (Since you have to discard one of the 6 colors)
+    
+    Total -> 6
+
+# Take Noble:
+        1 of 5
+
+    Total -> 5
+
+Total -> 61

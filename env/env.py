@@ -1,7 +1,7 @@
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
-from env.core.constants import ACTION_SPACE_SIZE, MAX_GEMS, VICTORY_REQUIREMENT
+from env.core.constants import MAX_GEMS, VICTORY_REQUIREMENT
 from env.state.base import GameState
 from env.data.data import BASE_TIER_1, BASE_TIER_2, BASE_TIER_3, NOBLES
 from env.core.actions import Action
@@ -10,6 +10,7 @@ from env.core.enums import GemColor, NodeType, ActionType
 from env.core.card import Card
 from env.core.noble import Noble
 
+from env.core.action_constants import ACTION_SPACE_SIZE
 
 from env.observation.encoder import ObservationEncoder
 from itertools import combinations
@@ -652,29 +653,35 @@ class SplendorEnv(gym.Env):
 
     def clone(self):
         return deepcopy(self) 
-    # def get_reward(player_id = None):
-    #     #TOOD
-    #     return None 
 
-    # def clone(self):
-    #     #TODO
-    #     return None 
+    def action_to_id(self, action: Action) -> int:
 
-    # def current_player(self):
-    #     #TODO
-    #     return None
+        if action.action_type == ActionType.TAKE_GEMS:
+            return self._take_gems_to_id(action)
 
-    # def is_terminal(self):
-    #     #TODO
-    #     return None
-    
-    # def render(self):
-    #     #TODO
-    #     return None
+        elif action.action_type == ActionType.RESERVE_VISIBLE:
+            return 20 + (action.tier * 4) + action.slot
 
-    # def get_winners(self):
-    #     #TODO
-    #     return None
+        elif action.action_type == ActionType.RESERVE_TOP_DECK:
+            return 32 + action.tier
+
+        elif action.action_type == ActionType.BUY_VISIBLE:
+            return 35 + (action.tier * 4) + action.slot
+
+        elif action.action_type == ActionType.BUY_RESERVED:
+            return 47 + action.reserved_index
+
+        elif action.action_type == ActionType.DISCARD_GEM:
+            return 50 + self._gem_color_to_index(
+                action.gem_colors
+            )
+
+        elif action.action_type == ActionType.TAKE_NOBLE:
+            return 56 + action.noble_index
+
+        raise ValueError(f"Unknown action: {action}")
+
+
     
 #TODO NEED TO WORK ON ACTION MASKING
 
