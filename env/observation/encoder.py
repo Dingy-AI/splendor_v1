@@ -1,12 +1,12 @@
-from state.base import GameState
+from env.state.base import GameState
 import numpy as np
-from core.player import Player
-from core.enums import GemColor, CardColor
-from core.card import Card
+from env.core.player import Player
+from env.core.enums import GemColor, CardColor
+from env.core.card import Card
 from env.core.noble import Noble
 
 FOUR_PLAYER_GEM_NORM = 7
-from core.constants import GEM_SCALE_NORM, BONUS_NORM, MAX_RESERVES, CARD_COST_SCALE_NORM, CARD_POINTS_NORM, POINT_SCALE_NORM, MAX_PLAYER_COUNT, TWO_PLAYER_GEM_NORM, THREE_PLAYER_GEM_NORM, MAX_DECK_SIZE_NORM, NOBLE_SCALE_NORM
+from env.core.constants import GEM_SCALE_NORM, BONUS_NORM, MAX_RESERVES, CARD_COST_SCALE_NORM, CARD_POINTS_NORM, POINT_SCALE_NORM, MAX_PLAYER_COUNT, TWO_PLAYER_GEM_NORM, THREE_PLAYER_GEM_NORM, MAX_DECK_SIZE_NORM, NOBLE_SCALE_NORM
 
 class ObservationEncoder:
     def __init__(self):

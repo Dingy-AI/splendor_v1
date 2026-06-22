@@ -11,7 +11,7 @@ from env.core.card import Card
 from env.core.noble import Noble
 
 
-from observation.encoder import ObservationEncoder
+from env.observation.encoder import ObservationEncoder
 from itertools import combinations
 import random
 from copy import deepcopy
@@ -649,6 +649,9 @@ class SplendorEnv(gym.Env):
 
         player.gems[GemColor.GOLD] = remaining_gold
 
+
+    def clone(self):
+        return deepcopy(self) 
     # def get_reward(player_id = None):
     #     #TOOD
     #     return None 

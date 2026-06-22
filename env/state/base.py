@@ -4,7 +4,7 @@ from env.core.player import Player
 from env.core.noble import Noble
 from env.core.card import Card
 
-@dataclass(frozen=True)
+@dataclass
 class GameState:
     node_type: NodeType
     players: list[Player]
@@ -14,6 +14,6 @@ class GameState:
     decks: dict[int, list[Card]]
     current_player: int
     turn_number: int
+    winners: list[int]
     game_over: bool = False
-    winners: list[int] = []
     end_triggered: bool = False

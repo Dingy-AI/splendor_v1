@@ -1,6 +1,6 @@
-from core.card import Card
-from core.noble import Noble
-from core.enums import CardColor
+from env.core.card import Card
+from env.core.noble import Noble
+from env.core.enums import CardColor
 
 
 BASE_TIER_1 = [

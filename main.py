@@ -8,3 +8,10 @@ print(np.__version__)
 splendor = SplendorEnv()
 
 
+clone = splendor.clone()
+
+
+clone.seed += 100
+
+print(splendor.seed)
+print(clone.seed)

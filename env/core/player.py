@@ -3,7 +3,7 @@ from env.core.enums import GemColor, CardColor
 from env.core.card import Card
 from env.core.noble import Noble
 
-@dataclass(frozen=True)
+@dataclass
 class Player:
     id: int
     gems: dict[GemColor, int]
