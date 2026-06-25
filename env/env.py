@@ -2,7 +2,7 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 from env.core.constants import MAX_GEMS, VICTORY_REQUIREMENT
-from env.core.action_constants import GEM_ACTION_TO_ID, DISCARD_COLOR_TO_ID, TAKE_GEMS_START, RESERVE_START, RESERVE_DECK_START, BUY_START, BUY_RESERVED_START, DISCARD_START, NOBLE_START
+from env.core.action_constants import GEM_ACTION_TO_ID, DISCARD_COLOR_TO_ID, TAKE_GEMS_START, RESERVE_START, RESERVE_DECK_START, BUY_START, BUY_RESERVED_START, DISCARD_START, NOBLE_START, GEM_ACTIONS
 
 from env.state.base import GameState
 from env.data.data import BASE_TIER_1, BASE_TIER_2, BASE_TIER_3, NOBLES
@@ -705,6 +705,87 @@ class SplendorEnv(gym.Env):
 
         raise ValueError(action_id)
         
+
+    def _id_to_take_gems(self, action_id: int) -> Action:
+
+        gem_colors = GEM_ACTIONS[action_id]
+
+        return Action(
+            action_type=ActionType.TAKE_GEMS,
+            gem_colors=gem_colors,
+        )
+    
+    def _id_to_reserve(self, action_id: int) -> Action:
+
+        reserve_id = action_id - 20
+
+        # Reserve visible card
+        if reserve_id < 12:
+
+            tier = reserve_id // 4
+            slot = reserve_id % 4
+
+            return Action(
+                action_type=ActionType.RESERVE_VISIBLE,
+                tier=tier,
+                slot=slot,
+            )
+
+        # Reserve top deck
+        return Action(
+            action_type=ActionType.RESERVE_TOP_DECK,
+            tier=(reserve_id - 12),
+        )
+    
+    def _id_to_buy(self, action_id: int) -> Action:
+
+        buy_id = action_id - 35
+
+        # Buy visible card
+        if buy_id < 12:
+
+            tier = buy_id // 4
+            slot = buy_id % 4
+
+            return Action(
+                action_type=ActionType.BUY_VISIBLE,
+                tier=tier,
+                slot=slot,
+            )
+
+        # Buy reserved card
+        return Action(
+            action_type=ActionType.BUY_RESERVED,
+            reserved_index=buy_id - 12,
+        )
+
+    def _id_to_discard(self, action_id: int) -> Action:
+
+        discard_id = action_id - 50
+
+        return Action(
+            action_type=ActionType.DISCARD_GEM,
+            gem_colors=(GemColor[discard_id],),
+        )
+
+    def _id_to_noble(self, action_id: int) -> Action:
+
+        return Action(
+            action_type=ActionType.TAKE_NOBLE,
+            noble_index=action_id - 56,
+        )   
+        
+    def action_mask(self, state):
+
+        mask = np.zeros(self.ACTION_SPACE_SIZE, dtype=np.int8)
+
+        for action in self._legal_actions(state):
+
+            action_id = self.action_to_id(action)
+
+            mask[action_id] = 1
+
+        return mask
 #TODO NEED TO WORK ON ACTION MASKING
 
 #    ↓

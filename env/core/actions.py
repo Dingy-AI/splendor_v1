@@ -38,3 +38,14 @@ class Action:
 #     action_type=ActionType.DISCARD_GEM,
 #     discard_color=Color.RED,
 # )
+
+# Action(
+#     action_type=ActionType.RESERVE_VISIBLE,
+#     tier=tier,
+#     slot=slot,
+# )
+
+# Action(
+#     action_type=ActionType.TAKE_NOBLE,
+#     noble_index=4,
+# )
