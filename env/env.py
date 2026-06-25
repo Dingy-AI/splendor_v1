@@ -1,7 +1,7 @@
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
-from env.core.constants import MAX_GEMS, VICTORY_REQUIREMENT
+from splendor_v1.env.core.constants import MAX_GEMS, VICTORY_REQUIREMENT
 from env.core.action_constants import GEM_ACTION_TO_ID, DISCARD_COLOR_TO_ID, TAKE_GEMS_START, RESERVE_START, RESERVE_DECK_START, BUY_START, BUY_RESERVED_START, DISCARD_START, NOBLE_START, GEM_ACTIONS
 
 from env.state.base import GameState
