@@ -8,7 +8,7 @@ from splendor_v1.env.state.base import GameState
 from splendor_v1.env.data.data import BASE_TIER_1, BASE_TIER_2, BASE_TIER_3, NOBLES
 from splendor_v1.env.core.actions import Action
 from splendor_v1.env.core.player import Player
-from splendor_v1.env.core.enums import GemColor, NodeType, ActionType
+from splendor_v1.env.core.enums import GemColor, NodeType, ActionType, CardColor
 from splendor_v1.env.core.card import Card
 from splendor_v1.env.core.noble import Noble
 
@@ -68,6 +68,10 @@ class SplendorEnv(gym.Env):
     
     def _build_initial_state(self):
         decks = self._init_decks()
+        print(decks[2][-1])
+        print(decks[2][-1].cost)
+        print(decks[2][-1].cost[CardColor.WHITE])
+        print(decks[2][-1].cost[CardColor.BLACK])
         visible_cards, decks = self._deal_visible_cards(decks)
         players = self._init_players()
         bank = self._init_bank()
@@ -174,7 +178,6 @@ class SplendorEnv(gym.Env):
 
         for tier, cards in state.visible_cards.items():
             for slot, card in enumerate(cards):
-
                 if self._can_afford(player, card):
                     actions.append(
                         Action(
@@ -370,6 +373,7 @@ class SplendorEnv(gym.Env):
 
             # Missing gems must be covered by gold
             gold_needed += max(0, discounted_cost - available)
+
 
         return gold_needed <= player.gems.get(GemColor.GOLD, 0)
     
