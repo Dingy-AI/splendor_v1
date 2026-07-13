@@ -2,21 +2,21 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 from splendor_v1.env.core.constants import MAX_GEMS, VICTORY_REQUIREMENT
-from env.core.action_constants import GEM_ACTION_TO_ID, DISCARD_COLOR_TO_ID, TAKE_GEMS_START, RESERVE_START, RESERVE_DECK_START, BUY_START, BUY_RESERVED_START, DISCARD_START, NOBLE_START, GEM_ACTIONS
+from splendor_v1.env.core.action_constants import GEM_ACTION_TO_ID, DISCARD_COLOR_TO_ID, TAKE_GEMS_START, RESERVE_START, RESERVE_DECK_START, BUY_START, BUY_RESERVED_START, DISCARD_START, NOBLE_START, GEM_ACTIONS
 
-from env.state.base import GameState
-from env.data.data import BASE_TIER_1, BASE_TIER_2, BASE_TIER_3, NOBLES
-from env.core.actions import Action
-from env.core.player import Player
-from env.core.enums import GemColor, NodeType, ActionType
-from env.core.card import Card
-from env.core.noble import Noble
+from splendor_v1.env.state.base import GameState
+from splendor_v1.env.data.data import BASE_TIER_1, BASE_TIER_2, BASE_TIER_3, NOBLES
+from splendor_v1.env.core.actions import Action
+from splendor_v1.env.core.player import Player
+from splendor_v1.env.core.enums import GemColor, NodeType, ActionType
+from splendor_v1.env.core.card import Card
+from splendor_v1.env.core.noble import Noble
 
 
 
-from env.core.action_constants import ACTION_SPACE_SIZE
+from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 
-from env.observation.encoder import ObservationEncoder
+from splendor_v1.env.observation.encoder import ObservationEncoder
 from itertools import combinations
 import random
 from copy import deepcopy
@@ -53,6 +53,7 @@ class SplendorEnv(gym.Env):
         self.num_players = num_players
         self.game_state = None
         self.seed = seed
+        self.state = None
         return None 
     
     
@@ -62,7 +63,7 @@ class SplendorEnv(gym.Env):
 
 
         obs = self.observation_encoder.encoder(self.state)
-        info = self._get_info(self.state)
+        info = self._get_info()
         return obs, info
     
     def _build_initial_state(self):
@@ -82,7 +83,8 @@ class SplendorEnv(gym.Env):
             decks=decks,
             current_player = 0,
             turn_number=0,
-            game_over = False
+            game_over = False,
+            winners = []
         )
         return state 
 
@@ -104,7 +106,7 @@ class SplendorEnv(gym.Env):
 
     def _init_players(self):
         return [
-            Player(id=i) for i in range(self.num_players)
+            Player(i, {}, {}, [], [], []) for i in range(self.num_players)
         ]
 
     def _init_bank(self):
@@ -115,6 +117,9 @@ class SplendorEnv(gym.Env):
             base = 5 
 
         bank = {color: base for color in GemColor}
+      
+
+
         bank[GemColor.GOLD] = 5
 
         return bank 

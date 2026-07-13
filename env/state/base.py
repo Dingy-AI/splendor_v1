@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from env.core.enums import NodeType, GemColor
-from env.core.player import Player
-from env.core.noble import Noble
-from env.core.card import Card
+from splendor_v1.env.core.enums import NodeType, GemColor
+from splendor_v1.env.core.player import Player
+from splendor_v1.env.core.noble import Noble
+from splendor_v1.env.core.card import Card
 
 @dataclass
 class GameState:

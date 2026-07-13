@@ -1,4 +1,4 @@
-from env.core.enums import GemColor
+from splendor_v1.env.core.enums import GemColor
 
 
 ACTION_SPACE_SIZE = 128

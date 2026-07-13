@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from env.core.enums import ActionType
+from splendor_v1.env.core.enums import ActionType
 
 from typing import Optional, Tuple
 

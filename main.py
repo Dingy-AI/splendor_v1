@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from env.env import SplendorEnv
+from splendor_v1.env.env import SplendorEnv
 print(torch.__version__)
 print(np.__version__)
 

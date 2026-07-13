@@ -1,6 +1,6 @@
-from env.core.card import Card
-from env.core.noble import Noble
-from env.core.enums import CardColor
+from splendor_v1.env.core.card import Card
+from splendor_v1.env.core.noble import Noble
+from splendor_v1.env.core.enums import CardColor
 
 
 BASE_TIER_1 = [

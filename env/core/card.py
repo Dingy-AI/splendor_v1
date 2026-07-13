@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from env.core.enums import CardColor
+from splendor_v1.env.core.enums import CardColor
 
 @dataclass(frozen=True)
 class Card:
