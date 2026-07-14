@@ -99,7 +99,7 @@ class ObservationEncoder:
         for color in GemColor:            
             if (color in player.gems):
                 feature_gems.append(player.gems[color] / GEM_SCALE_NORM)
-            if color != GemColor.GOLD:
+            if color != GemColor.GOLD and color in player.bonuses:
                 feature_bonus.append(player.bonuses[color] / BONUS_NORM)
 
         if len(player.reserved_cards) == 0:

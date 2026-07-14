@@ -7,7 +7,7 @@ from splendor_v1.env.core.noble import Noble
 class Player:
     id: int
     gems: dict[GemColor, int] 
-    bonuses: dict[CardColor, int] 
+    bonuses: dict[GemColor, int] 
     reserved_cards: list[Card]
     purchased_cards: list[Card]
     noble: list[Noble]

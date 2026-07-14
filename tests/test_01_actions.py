@@ -21,6 +21,4 @@ def test_legal_Actions(env):
     # print(env.state.visible_cards[0][2].cost[CardColor.BLUE])
     # print(env.state.visible_cards[0][2].cost[CardColor.GREEN])
 
-    # print(len(actions))
-
     # print(actions[0].action_type)

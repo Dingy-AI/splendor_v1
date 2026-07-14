@@ -68,10 +68,6 @@ class SplendorEnv(gym.Env):
     
     def _build_initial_state(self):
         decks = self._init_decks()
-        print(decks[2][-1])
-        print(decks[2][-1].cost)
-        print(decks[2][-1].cost[CardColor.WHITE])
-        print(decks[2][-1].cost[CardColor.BLACK])
         visible_cards, decks = self._deal_visible_cards(decks)
         players = self._init_players()
         bank = self._init_bank()

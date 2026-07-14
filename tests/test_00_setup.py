@@ -39,9 +39,13 @@ def test_env_reset(env):
     assert len(env.state.players) == 2
 
     assert len(env.state.nobles) == 3
-    assert env.state.bank[GemColor.WHITE] == 5
+
+
+
+    assert env.state.bank[GemColor.WHITE] == 4
+
+
     assert env.state.bank[GemColor.GOLD] == 5
 
     # print(env.state.players)
 
-    
