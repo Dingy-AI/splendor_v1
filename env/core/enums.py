@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from enum import Enum
 
-class CardColor(Enum):
-    WHITE = 0
-    BLUE = 1
-    GREEN = 2
-    RED = 3
-    BLACK = 4
+# class CardColor(Enum):
+#     WHITE = 0
+#     BLUE = 1
+#     GREEN = 2
+#     RED = 3
+#     BLACK = 4
 
 class GemColor(Enum):
     WHITE = 0

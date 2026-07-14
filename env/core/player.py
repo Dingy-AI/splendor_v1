@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from splendor_v1.env.core.enums import GemColor, CardColor
+from splendor_v1.env.core.enums import GemColor
 from splendor_v1.env.core.card import Card
 from splendor_v1.env.core.noble import Noble
 

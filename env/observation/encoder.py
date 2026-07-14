@@ -1,7 +1,7 @@
 from splendor_v1.env.state.base import GameState
 import numpy as np
 from splendor_v1.env.core.player import Player
-from splendor_v1.env.core.enums import GemColor, CardColor
+from splendor_v1.env.core.enums import GemColor
 from splendor_v1.env.core.card import Card
 from splendor_v1.env.core.noble import Noble
 
@@ -109,8 +109,9 @@ class ObservationEncoder:
                 # need to refactor this into card encoding in the future
                 feature_reserved_cards.append(player.reserved_cards[i].points)
                 feature_bonus_color = [0] * 5
-                for color in CardColor:
-
+                for color in GemColor:
+                    if color == GemColor.GOLD:
+                        continue
                     feature_reserved_cards.append(player.reserved_cards[i].cost[color] / CARD_COST_SCALE_NORM)
                     if player.reserved_cards[i].bonus_color == color:
                         feature_bonus_color[color.value] = 1
@@ -141,8 +142,9 @@ class ObservationEncoder:
         feature = []
 
         for noble in nobles:
-            for color in CardColor:
-                
+            for color in GemColor:
+                if color == GemColor.GOLD:
+                    continue
                 feature = feature + [(noble.requirement[color] / NOBLE_SCALE_NORM)]
 
             feature = feature + [noble.points]

@@ -1,6 +1,6 @@
 import pytest
 from splendor_v1.env.env import SplendorEnv
-from splendor_v1.env.core.enums import GemColor, NodeType, ActionType, CardColor
+from splendor_v1.env.core.enums import GemColor, NodeType, ActionType, GemColor
 from splendor_v1.env.core.player import Player
 from splendor_v1.env.core.card import Card
 
@@ -78,9 +78,9 @@ def test_no_gold_action(env):
 def test_reserve_limit_reached(env):
     env.reset()
     env.state.players[0].reserved_cards = [
-            Card(10000, 2, 1, CardColor.WHITE, {CardColor.WHITE: 5}), 
-            Card(10000, 2, 1, CardColor.WHITE, {CardColor.WHITE: 5}),
-            Card(10000, 2, 1, CardColor.WHITE, {CardColor.WHITE: 5})]
+            Card(10000, 2, 1, GemColor.WHITE, {GemColor.WHITE: 5}), 
+            Card(10000, 2, 1, GemColor.WHITE, {GemColor.WHITE: 5}),
+            Card(10000, 2, 1, GemColor.WHITE, {GemColor.WHITE: 5})]
 
     actions = env._legal_actions(env.state)
 
@@ -92,3 +92,21 @@ def test_reserve_limit_reached(env):
             reserved_actions += 1
             
     assert reserved_actions == 0 
+
+def test_buy_card(env):
+    env.reset()
+
+    env.state.players[0].gems = {GemColor.WHITE:5, GemColor.RED:5, GemColor.BLACK: 5, GemColor.GREEN:5}
+
+    actions = env._legal_actions(env.state)
+
+    # print(actions)
+
+    test_card = Card(1,1,5,GemColor.RED, cost={GemColor.WHITE: 1, GemColor.RED: 1, GemColor.GREEN:1, GemColor.BLACK: 1})
+
+    # for color, cost in test_card.cost.items():
+        # print(color,cost)
+
+    is_affordable = env._can_afford(env.state.players[0], test_card)
+
+    print(is_affordable)

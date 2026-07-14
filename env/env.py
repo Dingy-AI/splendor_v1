@@ -8,7 +8,7 @@ from splendor_v1.env.state.base import GameState
 from splendor_v1.env.data.data import BASE_TIER_1, BASE_TIER_2, BASE_TIER_3, NOBLES
 from splendor_v1.env.core.actions import Action
 from splendor_v1.env.core.player import Player
-from splendor_v1.env.core.enums import GemColor, NodeType, ActionType, CardColor
+from splendor_v1.env.core.enums import GemColor, NodeType, ActionType
 from splendor_v1.env.core.card import Card
 from splendor_v1.env.core.noble import Noble
 
@@ -358,18 +358,24 @@ class SplendorEnv(gym.Env):
 
     def _can_afford(self, player: Player, card: Card) -> bool:
         gold_needed = 0
-
+        print('testing')
         for color, cost in card.cost.items():
-
             # Apply bonus discount
+            
+            print(color, cost)
             discounted_cost = max(0, cost - player.bonuses.get(color, 0))
-
+            print(discounted_cost)
             # How many colored gems do we actually have?
-            available = player.gems.get(color, 0)
 
+            # there is an issue with card color and gem color
+            # I will make a quick fix but will need to re-factor in the future
+
+
+            available = player.gems.get(color, 0)
+            print("available", available)
             # Missing gems must be covered by gold
             gold_needed += max(0, discounted_cost - available)
-
+            print(gold_needed)
 
         return gold_needed <= player.gems.get(GemColor.GOLD, 0)
     
