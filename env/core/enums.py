@@ -16,7 +16,6 @@ class GemColor(Enum):
     BLACK = 4
     GOLD = 5
 
-@dataclass(frozen=True)
 class ActionType(Enum):
     BUY_VISIBLE = 0
     BUY_RESERVED = 1
@@ -26,7 +25,6 @@ class ActionType(Enum):
     DISCARD_GEMS = 5
     TAKE_NOBLE = 6
 
-@dataclass(frozen=True)
 class NodeType(Enum):
     MAIN_DECISION = 0
     NOBLE_CLAIM = 1
