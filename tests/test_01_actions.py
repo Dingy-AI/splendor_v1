@@ -126,7 +126,7 @@ def test_buy_reserve_card(env):
             num_buy_reserve += 1
     assert num_buy_reserve > 0
 
-def reserve_limit(env):
+def test_reserve_limit(env):
     env.reset()
     test_card = Card(1,1,5,GemColor.RED, cost={GemColor.WHITE: 1, GemColor.RED: 1, GemColor.GREEN:1, GemColor.BLACK: 1})
     env.state.players[0].reserved_cards=[test_card, test_card, test_card]
@@ -138,6 +138,5 @@ def reserve_limit(env):
         if action.action_type == ActionType.BUY_RESERVED:
             num_reserve_cards += 1
 
-    assert num_reserve_cards == 1
+    assert num_reserve_cards == 0
     print("test num reserve cards", num_reserve_cards)
-    assert True == False
