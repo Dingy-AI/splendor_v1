@@ -99,14 +99,16 @@ def test_buy_card(env):
     env.state.players[0].gems = {GemColor.WHITE:5, GemColor.RED:5, GemColor.BLACK: 5, GemColor.GREEN:5}
 
     actions = env._legal_actions(env.state)
+    num_buy_visible = 0
+    for action in actions:
+        if action.action_type == ActionType.BUY_VISIBLE:
+            num_buy_visible += 1
 
-    # print(actions)
-
+    assert num_buy_visible > 0
+    
     test_card = Card(1,1,5,GemColor.RED, cost={GemColor.WHITE: 1, GemColor.RED: 1, GemColor.GREEN:1, GemColor.BLACK: 1})
 
-    # for color, cost in test_card.cost.items():
-        # print(color,cost)
 
     is_affordable = env._can_afford(env.state.players[0], test_card)
 
-    print(is_affordable)
+    assert is_affordable == True

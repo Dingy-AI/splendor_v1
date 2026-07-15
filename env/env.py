@@ -358,13 +358,10 @@ class SplendorEnv(gym.Env):
 
     def _can_afford(self, player: Player, card: Card) -> bool:
         gold_needed = 0
-        print('testing')
         for color, cost in card.cost.items():
             # Apply bonus discount
             
-            print(color, cost)
             discounted_cost = max(0, cost - player.bonuses.get(color, 0))
-            print(discounted_cost)
             # How many colored gems do we actually have?
 
             # there is an issue with card color and gem color
@@ -372,10 +369,8 @@ class SplendorEnv(gym.Env):
 
 
             available = player.gems.get(color, 0)
-            print("available", available)
             # Missing gems must be covered by gold
             gold_needed += max(0, discounted_cost - available)
-            print(gold_needed)
 
         return gold_needed <= player.gems.get(GemColor.GOLD, 0)
     
