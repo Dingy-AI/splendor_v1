@@ -350,7 +350,7 @@ class SplendorEnv(gym.Env):
         return actions
         
     def _qualifies_for_noble(self, player: Player, noble: Noble) -> bool:
-        for color, required in noble.requirements.items():
+        for color, required in noble.requirement.items():
             if player.bonuses.get(color, 0) < required:
                 return False
         return True

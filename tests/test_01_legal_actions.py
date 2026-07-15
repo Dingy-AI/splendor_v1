@@ -139,4 +139,100 @@ def test_reserve_limit(env):
             num_reserve_cards += 1
 
     assert num_reserve_cards == 0
-    print("test num reserve cards", num_reserve_cards)
+
+
+def test_gold_pile_empty(env):
+    env.reset()
+
+    env.state.bank[GemColor.GOLD] = 0
+
+    actions = env._legal_actions(env.state)
+
+
+    num_reserve_actions = 0
+    for action in actions: 
+        if action.action_type == ActionType.RESERVE_TOP_DECK or action.action_type == ActionType.RESERVE_VISIBLE:
+            num_reserve_actions += 1
+
+    assert num_reserve_actions == 15
+
+def test_overflow_state(env):
+    env.reset()
+
+    env.state.node_type = NodeType.OVERFLOW_DISCARD
+    env.state.players[0].gems = {GemColor.WHITE:5, GemColor.RED:5, GemColor.BLACK: 5, GemColor.GREEN:5}
+
+    actions = env._legal_actions(env.state)
+
+    assert len(actions) == 4
+
+def test_noble_claim_state_false(env):
+    env.reset()
+
+    env.state.node_type = NodeType.NOBLE_CLAIM
+
+    env.state.players[0].gems = {GemColor.WHITE:5, GemColor.RED:5, GemColor.BLACK: 5, GemColor.GREEN:5}
+
+    actions = env._legal_actions(env.state)
+    assert len(actions) == 0
+
+def test_noble_claim_state_true(env):
+    env.reset()
+
+    env.state.node_type = NodeType.NOBLE_CLAIM
+
+    env.state.players[0].bonuses = {GemColor.WHITE:5, GemColor.RED:5, GemColor.BLACK: 5, GemColor.GREEN:5, GemColor.BLUE: 5}
+
+    actions = env._legal_actions(env.state)
+    
+    assert len(actions) > 1
+
+def test_no_gem_in_bank(env):
+    env.reset()
+
+    env.state.bank[GemColor.WHITE] = 0
+    env.state.bank[GemColor.BLUE] = 0
+    env.state.bank[GemColor.GREEN] = 0
+    env.state.bank[GemColor.RED] = 0
+    env.state.bank[GemColor.BLACK] = 0
+    env.state.bank[GemColor.GOLD] = 0
+    
+
+    actions = env._legal_actions(env.state)
+    
+    num_take_gems = 0
+    num_reserve = 0
+    for action in actions:
+        if action.action_type == ActionType.TAKE_GEMS:
+            num_take_gems += 1
+
+        elif action.action_type == ActionType.RESERVE_TOP_DECK or action.action_type == ActionType.RESERVE_VISIBLE:
+            num_reserve += 1
+
+    assert num_take_gems == 0 
+    assert num_reserve == 15
+
+def test_two_of_a_kind_rule(env):
+    env.reset()
+
+    env.state.bank[GemColor.WHITE] = 3
+    env.state.bank[GemColor.BLUE] = 3
+    env.state.bank[GemColor.GREEN] = 3
+    env.state.bank[GemColor.RED] = 3
+    env.state.bank[GemColor.BLACK] = 3
+    env.state.bank[GemColor.GOLD] = 3
+    
+
+    actions = env._legal_actions(env.state)
+    
+    num_take_gems = 0
+    num_reserve = 0
+    for action in actions:
+        if action.action_type == ActionType.TAKE_GEMS:
+            num_take_gems += 1
+
+        elif action.action_type == ActionType.RESERVE_TOP_DECK or action.action_type == ActionType.RESERVE_VISIBLE:
+            num_reserve += 1
+
+    assert num_take_gems == 25
+    assert num_reserve == 15
