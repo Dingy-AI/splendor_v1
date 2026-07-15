@@ -112,3 +112,32 @@ def test_buy_card(env):
     is_affordable = env._can_afford(env.state.players[0], test_card)
 
     assert is_affordable == True
+
+def test_buy_reserve_card(env):
+    env.reset()
+    env.state.players[0].gems = {GemColor.WHITE:5, GemColor.RED:5, GemColor.BLACK: 5, GemColor.GREEN:5}
+    test_card = Card(1,1,5,GemColor.RED, cost={GemColor.WHITE: 1, GemColor.RED: 1, GemColor.GREEN:1, GemColor.BLACK: 1})
+    env.state.players[0].reserved_cards = [test_card]
+    actions = env._legal_actions(env.state)
+
+    num_buy_reserve = 0
+    for action in actions:
+        if action.action_type == ActionType.BUY_RESERVED:
+            num_buy_reserve += 1
+    assert num_buy_reserve > 0
+
+def reserve_limit(env):
+    env.reset()
+    test_card = Card(1,1,5,GemColor.RED, cost={GemColor.WHITE: 1, GemColor.RED: 1, GemColor.GREEN:1, GemColor.BLACK: 1})
+    env.state.players[0].reserved_cards=[test_card, test_card, test_card]
+
+    actions = env._legal_actions(env.state)
+
+    num_reserve_cards = 0 
+    for action in actions:
+        if action.action_type == ActionType.BUY_RESERVED:
+            num_reserve_cards += 1
+
+    assert num_reserve_cards == 1
+    print("test num reserve cards", num_reserve_cards)
+    assert True == False
