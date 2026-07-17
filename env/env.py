@@ -2,7 +2,7 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 from splendor_v1.env.core.constants import MAX_GEMS, VICTORY_REQUIREMENT
-from splendor_v1.env.core.action_constants import GEM_ACTION_TO_ID, DISCARD_COLOR_TO_ID, TAKE_GEMS_START, RESERVE_START, RESERVE_DECK_START, BUY_START, BUY_RESERVED_START, DISCARD_START, NOBLE_START, GEM_ACTIONS
+from splendor_v1.env.core.action_constants import GEM_ACTION_TO_ID, DISCARD_COLOR_TO_ID, TAKE_GEMS_START, RESERVE_START, RESERVE_DECK_START, BUY_START, BUY_RESERVED_START, DISCARD_START, NOBLE_START, GEM_ACTIONS, ACTION_END
 
 from splendor_v1.env.state.base import GameState
 from splendor_v1.env.data.data import BASE_TIER_1, BASE_TIER_2, BASE_TIER_3, NOBLES
@@ -667,7 +667,9 @@ class SplendorEnv(gym.Env):
     def action_to_id(self, action: Action) -> int:
 
         if action.action_type == ActionType.TAKE_GEMS:
-            return TAKE_GEMS_START + GEM_ACTION_TO_ID[action.gem_colors]
+
+            gem_colors = tuple(sorted(action.gem_colors, key=lambda x: x.value))
+            return TAKE_GEMS_START + GEM_ACTION_TO_ID[gem_colors]
         
         elif action.action_type == ActionType.RESERVE_VISIBLE:
             return RESERVE_START + (action.tier * 4) + action.slot
@@ -682,7 +684,8 @@ class SplendorEnv(gym.Env):
             return BUY_RESERVED_START + action.reserved_index
 
         elif action.action_type == ActionType.DISCARD_GEM:
-            return DISCARD_START + DISCARD_COLOR_TO_ID[action.gem_colors]
+            gem_colors = tuple(sorted(action.gem_colors, key=lambda x: x.value))
+            return DISCARD_START + DISCARD_COLOR_TO_ID[gem_colors]
 
         elif action.action_type == ActionType.TAKE_NOBLE:
             return NOBLE_START + action.noble_index
@@ -694,19 +697,19 @@ class SplendorEnv(gym.Env):
 
     def id_to_action(self, action_id: int) -> Action:
 
-        if 0 <= action_id < 20:
+        if TAKE_GEMS_START <= action_id < RESERVE_START:
             return self._id_to_take_gems(action_id)
 
-        elif 20 <= action_id < 35:
+        elif RESERVE_START <= action_id < BUY_START:
             return self._id_to_reserve(action_id)
 
-        elif 35 <= action_id < 50:
+        elif BUY_START <= action_id < DISCARD_START:
             return self._id_to_buy(action_id)
 
-        elif 50 <= action_id < 56:
+        elif DISCARD_START <= action_id < NOBLE_START:
             return self._id_to_discard(action_id)
 
-        elif 56 <= action_id < 61:
+        elif NOBLE_START <= action_id < ACTION_END:
             return self._id_to_noble(action_id)
 
         raise ValueError(action_id)
@@ -723,7 +726,7 @@ class SplendorEnv(gym.Env):
     
     def _id_to_reserve(self, action_id: int) -> Action:
 
-        reserve_id = action_id - 20
+        reserve_id = action_id - RESERVE_START
 
         # Reserve visible card
         if reserve_id < 12:
@@ -745,7 +748,7 @@ class SplendorEnv(gym.Env):
     
     def _id_to_buy(self, action_id: int) -> Action:
 
-        buy_id = action_id - 35
+        buy_id = action_id - BUY_START
 
         # Buy visible card
         if buy_id < 12:
@@ -767,7 +770,7 @@ class SplendorEnv(gym.Env):
 
     def _id_to_discard(self, action_id: int) -> Action:
 
-        discard_id = action_id - 50
+        discard_id = action_id - DISCARD_START
 
         return Action(
             action_type=ActionType.DISCARD_GEM,
@@ -778,7 +781,7 @@ class SplendorEnv(gym.Env):
 
         return Action(
             action_type=ActionType.TAKE_NOBLE,
-            noble_index=action_id - 56,
+            noble_index=action_id - NOBLE_START,
         )   
         
     def action_mask(self, state):

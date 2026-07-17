@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from splendor_v1.env.core.enums import ActionType
+from splendor_v1.env.core.enums import ActionType, GemColor
 
 from typing import Optional, Tuple
 
@@ -16,7 +16,7 @@ class Action:
     reserved_index: Optional[int] = None
 
     # gem actions
-    gem_colors: Optional[Tuple[int, ...]] = None  # or Color enum
+    gem_colors: Optional[Tuple[GemColor, ...]] = None  # or Color enum
 
     # noble actions
     noble_index: Optional[int] = None

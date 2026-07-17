@@ -1,7 +1,6 @@
 import pytest
 from splendor_v1.env.env import SplendorEnv
 from splendor_v1.env.core.enums import GemColor, NodeType, ActionType, GemColor
-from splendor_v1.env.core.player import Player
 from splendor_v1.env.core.card import Card
 
 @pytest.fixture

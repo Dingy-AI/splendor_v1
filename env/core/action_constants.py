@@ -4,7 +4,7 @@ from splendor_v1.env.core.enums import GemColor
 ACTION_SPACE_SIZE = 128
 
 GEM_ACTIONS = [
-    (GemColor.WHITE), (GemColor.BLUE), (GemColor.GREEN), (GemColor.RED), (GemColor.BLACK),
+    (GemColor.WHITE,), (GemColor.BLUE,), (GemColor.GREEN,), (GemColor.RED,), (GemColor.BLACK,),
     (GemColor.WHITE, GemColor.WHITE), (GemColor.BLUE, GemColor.BLUE), (GemColor.GREEN, GemColor.GREEN), (GemColor.RED, GemColor.RED), (GemColor.BLACK, GemColor.BLACK),
     
     (GemColor.WHITE, GemColor.BLUE), (GemColor.WHITE, GemColor.GREEN), (GemColor.WHITE, GemColor.RED),
@@ -43,10 +43,20 @@ MAX_VISIBLE_CARDS = 12
 MAX_RESERVED_CARDS = 3
 MAX_NOBLES = 5
 
+# TAKE_GEMS_START = 0
+# RESERVE_START = 20
+# RESERVE_DECK_START = 32
+# BUY_START = 35
+# BUY_RESERVED_START = 47
+# DISCARD_START = 50
+# NOBLE_START = 56
+
+
 TAKE_GEMS_START = 0
-RESERVE_START = 20
-RESERVE_DECK_START = 32
-BUY_START = 35
-BUY_RESERVED_START = 47
-DISCARD_START = 50
-NOBLE_START = 56
+RESERVE_START = 30
+RESERVE_DECK_START = 42
+BUY_START = 45
+BUY_RESERVED_START = 57
+DISCARD_START = 60
+NOBLE_START = 66
+ACTION_END = 71
