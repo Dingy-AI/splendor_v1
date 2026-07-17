@@ -31,12 +31,12 @@ class Action:
 # )
 # Action(
 #     action_type=ActionType.TAKE_GEMS,
-#     gem_colors=(Color.RED, Color.BLUE, Color.BLACK),
+#     gem_colors=(GemColor.RED, GemColor.BLUE, GemColor.BLACK),
 # )
 
 # Action(
 #     action_type=ActionType.DISCARD_GEM,
-#     discard_color=Color.RED,
+#     discard_color=GemColor.RED,
 # )
 
 # Action(

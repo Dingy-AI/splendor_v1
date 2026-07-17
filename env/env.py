@@ -106,7 +106,20 @@ class SplendorEnv(gym.Env):
 
     def _init_players(self):
         return [
-            Player(i, {}, {}, [], [], []) for i in range(self.num_players)
+            Player(i, {
+                GemColor.WHITE: 0,
+                GemColor.BLUE: 0,
+                GemColor.GREEN: 0,
+                GemColor.RED: 0,
+                GemColor.BLACK: 0,
+                GemColor.GOLD: 0,
+            }, {
+                GemColor.WHITE: 0,
+                GemColor.BLUE: 0,
+                GemColor.GREEN: 0,
+                GemColor.RED: 0,
+                GemColor.BLACK: 0,
+            }, [], [], []) for i in range(self.num_players)
         ]
 
     def _init_bank(self):
@@ -472,7 +485,7 @@ class SplendorEnv(gym.Env):
         if state.node_type != NodeType.MAIN_DECISION:
             return
 
-        state.current_player = (state.current_player + 1) % state.num_players
+        state.current_player = (state.current_player + 1) % self.num_players
         state.turn_number += 1
 
     def _resolve_transitions(self, state: GameState):
@@ -497,7 +510,7 @@ class SplendorEnv(gym.Env):
 
         player = state.players[state.current_player]
 
-        return sum(player.gems.values()) > state.max_gems
+        return sum(player.gems.values()) > MAX_GEMS
 
     def _check_nobles(self, state):
 
@@ -623,7 +636,7 @@ class SplendorEnv(gym.Env):
             player.gems[color] -= 1
 
         # AFTER applying discard → check if overflow is resolved
-        if sum(player.gems.values()) <= state.max_gems:
+        if sum(player.gems.values()) <= MAX_GEMS:
             state.node_type = NodeType.MAIN_DECISION
 
 
