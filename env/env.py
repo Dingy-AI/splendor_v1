@@ -786,7 +786,7 @@ class SplendorEnv(gym.Env):
         
     def action_mask(self, state):
 
-        mask = np.zeros(self.ACTION_SPACE_SIZE, dtype=np.int8)
+        mask = np.zeros(ACTION_SPACE_SIZE, dtype=np.int8)
 
         for action in self._legal_actions(state):
 

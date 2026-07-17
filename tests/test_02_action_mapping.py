@@ -33,3 +33,6 @@ def test_invalid_action_id(env):
     with pytest.raises(ValueError):
         env.id_to_action(-1)
 
+#tested take gems and reserve
+# TODO: have not tested buy, pick noble, discard, 
+# save this part of testing for later
