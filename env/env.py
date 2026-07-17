@@ -683,9 +683,9 @@ class SplendorEnv(gym.Env):
         elif action.action_type == ActionType.BUY_RESERVED:
             return BUY_RESERVED_START + action.reserved_index
 
-        elif action.action_type == ActionType.DISCARD_GEM:
+        elif action.action_type == ActionType.DISCARD_GEMS:
             gem_colors = tuple(sorted(action.gem_colors, key=lambda x: x.value))
-            return DISCARD_START + DISCARD_COLOR_TO_ID[gem_colors]
+            return DISCARD_START + DISCARD_COLOR_TO_ID[gem_colors[0]]
 
         elif action.action_type == ActionType.TAKE_NOBLE:
             return NOBLE_START + action.noble_index
@@ -773,7 +773,7 @@ class SplendorEnv(gym.Env):
         discard_id = action_id - DISCARD_START
 
         return Action(
-            action_type=ActionType.DISCARD_GEM,
+            action_type=ActionType.DISCARD_GEMS,
             gem_colors=(GemColor[discard_id],),
         )
 
