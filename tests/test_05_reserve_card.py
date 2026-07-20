@@ -22,6 +22,9 @@ def test_reserve_card(env):
 
     env.step(action)
 
-    print(reserved_card_copy)
-    print(env.state.visible_cards[0][0])
+    
+    assert (reserved_card_copy != env.state.visible_cards[0][0])
 
+    assert len(env.state.players[0].reserved_cards) == 1
+
+    assert env.state.players[0].reserved_cards[0] == reserved_card_copy
