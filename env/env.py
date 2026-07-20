@@ -589,6 +589,15 @@ class SplendorEnv(gym.Env):
         if player.points >= VICTORY_REQUIREMENT:
             state.end_triggered = True
 
+    def _draw_card(self, state, tier):
+        deck = state.decks[tier]
+
+        if len(deck) == 0:
+            return None
+
+        return deck.pop()
+
+
     def _reserve_visible(self, state: GameState, action: Action):
 
         player = state.players[state.current_player]

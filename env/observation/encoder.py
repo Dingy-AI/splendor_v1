@@ -35,11 +35,15 @@ class ObservationEncoder:
             #looks like I will just need to say what node it is
             # also probably just say how many turns it has been
 
-        feature = self._encode_players(state.players,state.current_player)
-        feature = feature + self._encode_bank(state.bank)
-        feature = feature + self._encode_decks(state.decks)
-        feature = feature + self._encode_nobles(state.nobles)
-        feature = feature + self._encode_board(state.visible_cards)
+        features = self._encode_players(state.players,state.current_player)
+
+        print("encode player features:", features)
+        features = features + self._encode_bank(state.bank)
+        features = features + self._encode_decks(state.decks)
+        features = features + self._encode_nobles(state.nobles)
+        features = features + self._encode_board(state.visible_cards)
+
+        # print("test", features)
         return np.array(features, dtype=np.float32)
 
 
@@ -55,16 +59,17 @@ class ObservationEncoder:
 
         #(6+5+ (11*3)) -> 44 
 
-        # do this for players in current turn order
-        # (44+1) * 4
+        # do this for players in current turn order need a 1 to track turn order
+        # (44+1) * 4 
         #board state
         # each card is 11 features there are 12 cards = 132 features
         # deck size - normalize this -> remaining_cards/max_cards 3
         # noble -> each noble has requirement(5), points (1) -> 6*5
         # need to know bank state + 6
 
-        # need to track each opponents score so +1 instead of 44 -> 45
-        #players 45 * 4 
+        # need to track each opponents score so +1
+        # 45  + 1 -> 46
+        #players 46 * 4 
         #everything else 132 + 3 + 30 + 6 
         # 354 input features
 
@@ -105,21 +110,27 @@ class ObservationEncoder:
         if len(player.reserved_cards) == 0:
             feature_reserved_cards = [0] * 33
         else:
-            for i in len(player.reserved_cards):
+            # for i in len(player.reserved_cards):
+            for reserved_index, card in enumerate(player.reserved_cards):
                 # need to refactor this into card encoding in the future
-                feature_reserved_cards.append(player.reserved_cards[i].points)
+                feature_reserved_cards.append(card.points)
                 feature_bonus_color = [0] * 5
                 for color in GemColor:
                     if color == GemColor.GOLD:
                         continue
-                    feature_reserved_cards.append(player.reserved_cards[i].cost[color] / CARD_COST_SCALE_NORM)
-                    if player.reserved_cards[i].bonus_color == color:
+                    feature_reserved_cards.append(card.cost[color] / CARD_COST_SCALE_NORM)
+                    if card.bonus_color == color:
                         feature_bonus_color[color.value] = 1
 
-                feature_reserved_cards.append(feature_bonus_color)
-                feature_reserved_cards.append([player.reserved_cards[i].points] / CARD_POINTS_NORM)
+                feature_reserved_cards.extend(feature_bonus_color)
+                feature_reserved_cards.append(card.points / CARD_POINTS_NORM)
             if len(player.reserved_cards) < MAX_RESERVES:
-                feature_reserved_cards.append([0] * 11 * (MAX_RESERVES - len(player.reserved_cards)))
+                feature_reserved_cards.extend([0] * 11 * (MAX_RESERVES - len(player.reserved_cards)))
+
+        print(feature_gems)
+        print(feature_bonus)
+        print(feature_reserved_cards)
+        print([player.points / POINT_SCALE_NORM])
 
         feature = feature_gems + feature_bonus + feature_reserved_cards + [player.points / POINT_SCALE_NORM]
         return feature
@@ -178,11 +189,18 @@ class ObservationEncoder:
 
 
 # Sections:
-# Current player gems (5)
+# Current player gems (6)
 # Current player bonuses (5)
 # Current player points (1)
-# Next player etc...
+
+# Other player gems (6*3)
+# Other player bonuses (5*3)
+# Other player points (3)
+# Next player etc... (1) 
+
+
 # Bank (6 incl gold) (6)
-# Visible cards (12 cards × features)
+# Visible cards (12 cards × features) (features = 11 = 5 colors + 5 bonuses + 1 points)
 # Nobles (max 5 × features)
 # Meta (turn, node type)
+

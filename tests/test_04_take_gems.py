@@ -125,3 +125,17 @@ def test_check_overflow(env):
     assert env.state.node_type == NodeType.OVERFLOW_DISCARD
     assert env.state.current_player == 0
     assert sum(env.state.players[0].gems.values()) > 10
+
+def test_take_gems_reward(env):
+    env.reset()
+    action = Action (
+
+        action_type=ActionType.TAKE_GEMS,
+        gem_colors=(GemColor.GREEN, GemColor.BLUE, GemColor.RED)
+    )
+
+    obs, reward, terminated, truncated, info = env.step(action)
+    assert reward == 0
+
+
+#TODO need to create a test case just for observation and really hammer that one out
