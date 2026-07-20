@@ -185,10 +185,14 @@ class ObservationEncoder:
 # Current player gems (6)
 # Current player bonuses (5)
 # Current player points (1)
+# Current player reserves (3*features +1 for visible)
+
 
 # Other player gems (6*3)
 # Other player bonuses (5*3)
 # Other player points (3)
+
+# other player reserve (3 (num reserves) * 3 (players)*(features + 1 for visible))
 # Next player etc... (1) 
 
 

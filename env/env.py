@@ -618,9 +618,7 @@ class SplendorEnv(gym.Env):
     def _reserve_top_deck(self, state: GameState, action: Action):
 
         player = state.players[state.current_player]
-
         card = state.decks[action.tier].pop()
-
         player.reserved_cards.append(card)
 
         # gold bonus (optional)
