@@ -37,13 +37,11 @@ class ObservationEncoder:
 
         features = self._encode_players(state.players,state.current_player)
 
-        print("encode player features:", features)
         features = features + self._encode_bank(state.bank)
         features = features + self._encode_decks(state.decks)
         features = features + self._encode_nobles(state.nobles)
         features = features + self._encode_board(state.visible_cards)
 
-        # print("test", features)
         return np.array(features, dtype=np.float32)
 
 
@@ -126,11 +124,6 @@ class ObservationEncoder:
                 feature_reserved_cards.append(card.points / CARD_POINTS_NORM)
             if len(player.reserved_cards) < MAX_RESERVES:
                 feature_reserved_cards.extend([0] * 11 * (MAX_RESERVES - len(player.reserved_cards)))
-
-        print(feature_gems)
-        print(feature_bonus)
-        print(feature_reserved_cards)
-        print([player.points / POINT_SCALE_NORM])
 
         feature = feature_gems + feature_bonus + feature_reserved_cards + [player.points / POINT_SCALE_NORM]
         return feature
