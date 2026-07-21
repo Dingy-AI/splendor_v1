@@ -560,14 +560,14 @@ class SplendorEnv(gym.Env):
 
     def _buy_visible(self, state: GameState, action: Action):
 
-        player = state.players[state.current_player]
-        card = state.visible_cards[action.tier][action.slot]
+        player:Player = state.players[state.current_player]
+        card:Card = state.visible_cards[action.tier][action.slot]
 
-        self._pay_for_card(player, card)
+        self._pay_for_card(state, player, card)
 
         player.purchased_cards.append(card)
         player.points += card.points
-        player.bonuses[card.bonus] += 1
+        player.bonuses[card.bonus_color] += 1
 
         # remove card from board
         state.visible_cards[action.tier][action.slot] = self._draw_card(state, action.tier)
@@ -580,7 +580,7 @@ class SplendorEnv(gym.Env):
         player = state.players[state.current_player]
         card = player.reserved_cards.pop(action.reserved_index)
 
-        self._pay_for_card(player, card)
+        self._pay_for_card(state, player, card)
 
         player.purchased_cards.append(card)
         player.points += card.points
@@ -661,8 +661,10 @@ class SplendorEnv(gym.Env):
         if player.points >= VICTORY_REQUIREMENT:
             state.end_triggered = True        
 
-    def _pay_for_card(self, player: Player, card: Card):
+    def _pay_for_card(self, state:GameState, player: Player, card: Card):
 
+        print("player test")
+        print(player)
         remaining_gold = player.gems[GemColor.GOLD]
 
         for color, cost in card.cost.items():

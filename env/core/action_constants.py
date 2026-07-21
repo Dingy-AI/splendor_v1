@@ -60,3 +60,12 @@ BUY_RESERVED_START = 57
 DISCARD_START = 60
 NOBLE_START = 66
 ACTION_END = 71
+
+# going to need to upgrade this
+# Take gems     30
+# Reserve       15
+# Buy           15
+# Discard        6
+# Noble          5
+# -------------
+# Total         71

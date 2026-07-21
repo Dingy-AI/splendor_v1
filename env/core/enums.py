@@ -30,11 +30,12 @@ class NodeType(Enum):
     NOBLE_CLAIM = 1
     OVERFLOW_DISCARD = 2
     END_TURN = 3
+    PAYMENT = 4
 
 # MAIN_ACTION
 #    ↓
-# apply action
-#    ↓
+# apply action -> If action is payment -> payment action -> apply gems taken
+#    ↓                                                          ↓
 # check overflow/noble
 #    ↓
 # if overflow:
@@ -45,3 +46,7 @@ class NodeType(Enum):
 #        back to overflow check
 #    ↓
 # end turn
+
+#payment will have to be about how many gold gems to use instead of anything else
+# there will be 5 payment options and it will depend on how many gold gems to use?
+

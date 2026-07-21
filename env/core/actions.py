@@ -21,6 +21,8 @@ class Action:
     # noble actions
     noble_index: Optional[int] = None
 
+    #payment amount actions
+    gem_payment: Optional[Tuple[GemColor, ...]] = None
 
 # EXAMPLES
 # Action(
