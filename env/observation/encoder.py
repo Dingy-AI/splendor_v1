@@ -5,6 +5,8 @@ from splendor_v1.env.core.enums import GemColor
 from splendor_v1.env.core.card import Card
 from splendor_v1.env.core.noble import Noble
 
+#TODO NEED TO DO A COMPLETE REWRITE OF THE ENCODER
+
 FOUR_PLAYER_GEM_NORM = 7
 from splendor_v1.env.core.constants import GEM_SCALE_NORM, BONUS_NORM, MAX_RESERVES, CARD_COST_SCALE_NORM, CARD_POINTS_NORM, POINT_SCALE_NORM, MAX_PLAYER_COUNT, TWO_PLAYER_GEM_NORM, THREE_PLAYER_GEM_NORM, MAX_DECK_SIZE_NORM, NOBLE_SCALE_NORM
 
