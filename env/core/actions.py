@@ -23,6 +23,8 @@ class Action:
 
     #payment amount actions
     payment_id: int |None = None
+    
+    gold_payment: Optional[tuple[int, int, int, int, int]] = None
 
     
 # EXAMPLES

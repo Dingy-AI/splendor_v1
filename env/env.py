@@ -14,6 +14,9 @@ from splendor_v1.env.core.noble import Noble
 
 from splendor_v1.env.core.const_payment_lookup_table import COST_TYPE_PAYMENTS
 
+from splendor_v1.env.core.cost_lookup_table_v3 import T1_PAYMENT_LOOKUP, T2_PAYMENT_LOOKUP, T3_PAYMENT_LOOKUP
+from splendor_v1.env.core.cost_lookup_table_v2 import PAYMENT_TABLE
+
 
 from splendor_v1.env.core.cost_lookup_table import ID_TO_COST, COST_TO_ID
 
@@ -209,42 +212,48 @@ class SplendorEnv(gym.Env):
 
         for tier, cards in state.visible_cards.items():
 
-            for slot, card in enumerate(cards):
+            payment_lookup = self._get_tier_payment_lookup(tier)
 
-                card_type = self.get_card_type(card)
+            for slot, card in enumerate(cards):
 
                 color_mapping = self.get_color_mapping(card)
 
-
-                payments = PAYMENT_TABLE[card_type]
-
-
-                for payment_id, canonical_payment in enumerate(payments):
+                for payment_id, canonical_payment in enumerate(payment_lookup):
 
                     actual_payment = self.map_payment_to_card(
                         canonical_payment,
                         color_mapping
                     )
 
-
-                    action = Action(
-                        action_type=ActionType.BUY_VISIBLE,
-                        tier=tier,
-                        slot=slot,
-                        payment_id=payment_id,
-                        gold_payment=actual_payment
-                    )
-
-
                     if self._can_pay(
                         player,
                         card,
                         actual_payment
                     ):
-                        actions.append(action)
-
+                        actions.append(
+                            Action(
+                                action_type=ActionType.BUY_VISIBLE,
+                                tier=tier,
+                                slot=slot,
+                                payment_id=payment_id,
+                                gold_payment=actual_payment,
+                            )
+                        )
 
         return actions
+
+    def _get_tier_payment_lookup(self, tier: int):
+
+        if tier == 1:
+            return T1_PAYMENT_LOOKUP
+
+        if tier == 2:
+            return T2_PAYMENT_LOOKUP
+
+        if tier == 3:
+            return T3_PAYMENT_LOOKUP
+
+        raise ValueError(f"Unknown tier {tier}")
 
     def get_card_type(card) -> CardType:
         """
@@ -378,19 +387,45 @@ class SplendorEnv(gym.Env):
         return COST_TO_ID[cost]
 
     def _legal_buy_reserved(self, state: GameState) -> list[Action]:
+
         actions = []
 
         player = state.players[state.current_player]
 
         for reserved_index, card in enumerate(player.reserved_cards):
 
-            if self._can_afford(player, card):
-                actions.append(
-                    Action(
-                        action_type=ActionType.BUY_RESERVED,
-                        reserved_index=reserved_index,
-                    )
+            card_type = self.get_card_type(card)
+
+            color_mapping = self.get_color_mapping(card)
+
+            # Only generate payments that apply to this card type
+            payments = PAYMENT_TABLE[card_type]
+
+            payment_lookup = self._get_tier_payment_lookup(card.tier)
+
+            for canonical_payment in payments:
+
+                actual_payment = self.map_payment_to_card(
+                    canonical_payment,
+                    color_mapping
                 )
+
+                if self._can_pay(
+                    player,
+                    card,
+                    actual_payment
+                ):
+
+                    payment_id = payment_lookup.index(canonical_payment)
+
+                    actions.append(
+                        Action(
+                            action_type=ActionType.BUY_RESERVED,
+                            reserved_index=reserved_index,
+                            payment_id=payment_id,
+                            gold_payment=actual_payment,
+                        )
+                    )
 
         return actions
 
@@ -787,11 +822,10 @@ class SplendorEnv(gym.Env):
 
         card: Card = state.visible_cards[action.tier][action.slot]
 
-        # Get the canonical card type
-        card_type = self.get_card_type(card)
+        # Get canonical payment from tier lookup
+        payment_lookup = self._get_tier_payment_lookup(card.tier)
 
-        # Get the canonical payment pattern chosen by the action
-        canonical_payment = PAYMENT_TABLE[card_type][action.payment_id]
+        canonical_payment = payment_lookup[action.payment_id]
 
         # Convert canonical payment to actual card colors
         color_mapping = self.get_color_mapping(card)
@@ -832,11 +866,10 @@ class SplendorEnv(gym.Env):
 
         card: Card = player.reserved_cards[action.reserved_index]
 
-        # Determine the card's canonical payment table
-        card_type = self.get_card_type(card)
+        # Get canonical payment from tier lookup
+        payment_lookup = self._get_tier_payment_lookup(card.tier)
 
-        # Get the selected canonical payment
-        canonical_payment = PAYMENT_TABLE[card_type][action.payment_id]
+        canonical_payment = payment_lookup[action.payment_id]
 
         # Convert canonical payment to actual card colors
         color_mapping = self.get_color_mapping(card)
@@ -854,7 +887,6 @@ class SplendorEnv(gym.Env):
             gold_payment
         )
 
-        # Remove from reserve and add to purchased
         player.reserved_cards.pop(action.reserved_index)
 
         player.purchased_cards.append(card)
@@ -863,7 +895,6 @@ class SplendorEnv(gym.Env):
 
         player.bonuses[card.bonus_color] += 1
 
-        # Check victory
         if player.points >= VICTORY_REQUIREMENT:
             state.end_triggered = True
 
