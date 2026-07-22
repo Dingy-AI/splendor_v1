@@ -12,6 +12,8 @@ from splendor_v1.env.core.enums import GemColor, NodeType, ActionType
 from splendor_v1.env.core.card import Card
 from splendor_v1.env.core.noble import Noble
 
+from splendor_v1.env.core.const_payment_lookup_table import COST_TYPE_PAYMENTS
+
 
 from splendor_v1.env.core.cost_lookup_table import ID_TO_COST, COST_TO_ID
 
@@ -666,7 +668,7 @@ class SplendorEnv(gym.Env):
         player:Player = state.players[state.current_player]
         card:Card = state.visible_cards[action.tier][action.slot]
 
-        self._pay_for_card(state, player, card)
+        self._pay_for_card(state, player, card, action)
 
         player.purchased_cards.append(card)
         player.points += card.points
@@ -683,7 +685,7 @@ class SplendorEnv(gym.Env):
         player = state.players[state.current_player]
         card = player.reserved_cards.pop(action.reserved_index)
 
-        self._pay_for_card(state, player, card)
+        self._pay_for_card(state, player, card, action)
 
         player.purchased_cards.append(card)
         player.points += card.points
@@ -764,26 +766,26 @@ class SplendorEnv(gym.Env):
         if player.points >= VICTORY_REQUIREMENT:
             state.end_triggered = True        
 
-    def _pay_for_card(self, state:GameState, player: Player, card: Card):
+    def _pay_for_card(self, state:GameState, player: Player, card: Card, action:Action):
 
-        print("player test")
-        print(player)
-        remaining_gold = player.gems[GemColor.GOLD]
+        gold_payment = action.gold_payment
 
-        for color, cost in card.cost.items():
+        if gold_payment is None:
+            raise ValueError("Buy action missing gold_payment.")
 
-            discount = player.bonuses.get(color, 0)
-            needed = max(0, cost - discount)
+        total_gold_used = sum(gold_payment)
 
-            available = player.gems.get(color, 0)
+        # Spend colored gems
+        for color, gold_used in zip(GemColor, gold_payment):
 
-            use = min(available, needed)
-            player.gems[color] -= use
-            needed -= use
+            colored_cost = card.cost[color] - gold_used
 
-            remaining_gold -= needed
+            player.gems[color] -= colored_cost
+            state.bank[color] += colored_cost
 
-        player.gems[GemColor.GOLD] = remaining_gold
+        # Spend gold gems
+        player.gems[GemColor.GOLD] -= total_gold_used
+        state.bank[GemColor.GOLD] += total_gold_used
 
 
     def clone(self):
