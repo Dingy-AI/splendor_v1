@@ -13,6 +13,7 @@ from splendor_v1.env.core.card import Card
 from splendor_v1.env.core.noble import Noble
 
 
+from splendor_v1.env.core.cost_lookup_table import ID_TO_COST, COST_TO_ID
 
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 
@@ -243,7 +244,7 @@ class SplendorEnv(gym.Env):
 
     def _get_cost_type(self, card: Card):
 
-        cost_tuple = tuple(
+        cost = tuple(
             card.cost[color]
             for color in [
                 GemColor.WHITE,
@@ -254,7 +255,7 @@ class SplendorEnv(gym.Env):
             ]
         )
 
-        return cost_tuple
+        return COST_TO_ID[cost]
 
     def _legal_buy_reserved(self, state: GameState) -> list[Action]:
         actions = []

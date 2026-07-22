@@ -398,7 +398,7 @@ BASE_TIER_1 = [
             GemColor.BLUE: 2,
             GemColor.GREEN: 0,
             GemColor.RED: 1,
-            GemColor.BLACK: 2,
+            GemColor.BLACK: 0,
         }
     ), 
     Card(
