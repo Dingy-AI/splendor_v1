@@ -22,8 +22,9 @@ class Action:
     noble_index: Optional[int] = None
 
     #payment amount actions
-    gold_payment: Optional[Tuple[int, ...]] = None
+    payment_id: int |None = None
 
+    
 # EXAMPLES
 # Action(
 #     action_type=ActionType.BUY_VISIBLE,

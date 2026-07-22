@@ -1,3 +1,5 @@
+from splendor_v1.env.core.enums import GemColor
+
 
 MAX_GEMS = 10
 MAX_RESERVES = 3
@@ -25,3 +27,12 @@ CARD_POINTS_NORM = 3.0 #normalizing the amount of points on the card itself
 TWO_PLAYER_GEM_NORM = 4
 THREE_PLAYER_GEM_NORM = 5
 FOUR_PLAYER_GEM_NORM = 7
+
+COLOR_ORDER = [
+
+    GemColor.WHITE,
+    GemColor.BLUE,
+    GemColor.GREEN,
+    GemColor.RED,
+    GemColor.BLACK
+]

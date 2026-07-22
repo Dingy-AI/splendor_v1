@@ -8,6 +8,26 @@ from enum import Enum
 #     RED = 3
 #     BLACK = 4
 
+class CardType(Enum):
+    T1_3 = 0
+    T1_21 = 1
+    T1_4 = 2
+    T1_22 = 3
+    T1_1111 = 4
+    T1_311 = 5
+    T1_221 = 6 
+    T1_2111 = 7
+    T2_5 = 8
+    T2_6 = 9
+    T2_421 = 10
+    T2_322 = 11
+    T2_53 = 12
+    T2_332 = 13
+    T3_7 = 14
+    T3_73 = 15
+    T3_633 = 16
+    T3_5333 = 17
+
 class GemColor(Enum):
     WHITE = 0
     BLUE = 1

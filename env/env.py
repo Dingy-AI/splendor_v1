@@ -2,13 +2,13 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 from splendor_v1.env.core.constants import MAX_GEMS, VICTORY_REQUIREMENT
-from splendor_v1.env.core.action_constants import GEM_ACTION_TO_ID, DISCARD_COLOR_TO_ID, TAKE_GEMS_START, RESERVE_START, RESERVE_DECK_START, BUY_START, BUY_RESERVED_START, DISCARD_START, NOBLE_START, GEM_ACTIONS, ACTION_END
+from splendor_v1.env.core.action_constants import GEM_ACTION_TO_ID, DISCARD_COLOR_TO_ID, TAKE_GEMS_START, RESERVE_START, RESERVE_DECK_START, BUY_START, BUY_RESERVED_START, DISCARD_START, NOBLE_START, GEM_ACTIONS, ACTION_END, COLOR_ORDER
 
 from splendor_v1.env.state.base import GameState
 from splendor_v1.env.data.data import BASE_TIER_1, BASE_TIER_2, BASE_TIER_3, NOBLES
 from splendor_v1.env.core.actions import Action
 from splendor_v1.env.core.player import Player
-from splendor_v1.env.core.enums import GemColor, NodeType, ActionType
+from splendor_v1.env.core.enums import GemColor, NodeType, ActionType, CardType
 from splendor_v1.env.core.card import Card
 from splendor_v1.env.core.noble import Noble
 
@@ -202,27 +202,145 @@ class SplendorEnv(gym.Env):
     #                 )
     #     return actions
     def _legal_buy_visible(self, state: GameState) -> list[Action]:
+
         actions = []
 
         player = state.players[state.current_player]
 
         for tier, cards in state.visible_cards.items():
+
             for slot, card in enumerate(cards):
 
-                payment_options = self._get_payment_options(player, card)
+                card_type = self.get_card_type(card)
 
-                for payment in payment_options:
-                    actions.append(
-                        Action(
-                            action_type=ActionType.BUY_VISIBLE,
-                            tier=tier,
-                            slot=slot,
-                            gold_payment=payment,
-                        )
+                color_mapping = self.get_color_mapping(card)
+
+
+                payments = PAYMENT_TABLE[card_type]
+
+
+                for payment_id, canonical_payment in enumerate(payments):
+
+                    actual_payment = self.map_payment_to_card(
+                        canonical_payment,
+                        color_mapping
                     )
+
+
+                    action = Action(
+                        action_type=ActionType.BUY_VISIBLE,
+                        tier=tier,
+                        slot=slot,
+                        payment_id=payment_id,
+                        gold_payment=actual_payment
+                    )
+
+
+                    if self._can_pay(
+                        player,
+                        card,
+                        actual_payment
+                    ):
+                        actions.append(action)
+
 
         return actions
 
+    def get_card_type(card) -> CardType:
+        """
+        Returns the canonical CardType for a card.
+
+        Canonicalization:
+            1. Sort costs descending.
+            2. Break ties using
+                WHITE > BLUE > GREEN > RED > BLACK.
+            3. Remove all zero costs.
+            4. Convert to enum name.
+        """
+
+        costs = [
+            card.cost[color]
+            for color in COLOR_ORDER
+        ]
+
+        # Sort descending while preserving COLOR_ORDER for ties.
+        sorted_costs = sorted(costs, reverse=True)
+
+        # Remove zeros.
+        shape = "".join(
+            str(cost)
+            for cost in sorted_costs
+            if cost > 0
+        )
+
+        enum_name = f"T{card.tier}_{shape}"
+
+        return CardType[enum_name]
+
+
+
+    def get_color_mapping(card):
+        """
+        Returns mapping from canonical color positions
+        to actual card colors.
+
+        Example:
+            canonical WHITE -> actual GREEN
+        """
+
+        # Pair each color with its cost
+        color_costs = [
+            (color, card.cost[color])
+            for color in COLOR_ORDER
+        ]
+
+        # Sort:
+        # 1. highest cost first
+        # 2. COLOR_ORDER breaks ties
+        sorted_colors = sorted(
+            color_costs,
+            key=lambda x: (-x[1], GemColor.index(x[0]))
+        )
+
+        # Only colors that matter
+        actual_colors = [
+            color
+            for color, cost in sorted_colors
+            if cost > 0
+        ]
+
+        # Add zero colors at the end
+        actual_colors += [
+            color
+            for color, cost in sorted_colors
+            if cost == 0
+        ]
+
+        return actual_colors
+
+
+    def map_payment_to_card(
+        canonical_payment,
+        color_mapping
+    ):
+
+        payment = {
+            color:0
+            for color in COLOR_ORDER
+        }
+
+        for idx, gold_amount in enumerate(canonical_payment):
+
+            if gold_amount > 0:
+
+                actual_color = color_mapping[idx]
+
+                payment[actual_color] = gold_amount
+
+        return tuple(
+            payment[color]
+            for color in COLOR_ORDER
+        )
     def _get_payment_options(self, player, card):
 
         #This converts the GemColor.WHITE:1, etc... into 
@@ -665,32 +783,87 @@ class SplendorEnv(gym.Env):
 
     def _buy_visible(self, state: GameState, action: Action):
 
-        player:Player = state.players[state.current_player]
-        card:Card = state.visible_cards[action.tier][action.slot]
+        player: Player = state.players[state.current_player]
 
-        self._pay_for_card(state, player, card, action)
+        card: Card = state.visible_cards[action.tier][action.slot]
 
+        # Get the canonical card type
+        card_type = self.get_card_type(card)
+
+        # Get the canonical payment pattern chosen by the action
+        canonical_payment = PAYMENT_TABLE[card_type][action.payment_id]
+
+        # Convert canonical payment to actual card colors
+        color_mapping = self.get_color_mapping(card)
+
+        gold_payment = self.map_payment_to_card(
+            canonical_payment,
+            color_mapping
+        )
+
+        # Pay for the card
+        self._pay_for_card(
+            state,
+            player,
+            card,
+            gold_payment
+        )
+
+        # Gain the card
         player.purchased_cards.append(card)
+
         player.points += card.points
+
         player.bonuses[card.bonus_color] += 1
 
-        # remove card from board
-        state.visible_cards[action.tier][action.slot] = self._draw_card(state, action.tier)
+        # Replace bought card
+        state.visible_cards[action.tier][action.slot] = self._draw_card(
+            state,
+            action.tier
+        )
 
+        # Trigger end game
         if player.points >= VICTORY_REQUIREMENT:
             state.end_triggered = True
 
     def _buy_reserved(self, state: GameState, action: Action):
 
-        player = state.players[state.current_player]
-        card = player.reserved_cards.pop(action.reserved_index)
+        player: Player = state.players[state.current_player]
 
-        self._pay_for_card(state, player, card, action)
+        card: Card = player.reserved_cards[action.reserved_index]
+
+        # Determine the card's canonical payment table
+        card_type = self.get_card_type(card)
+
+        # Get the selected canonical payment
+        canonical_payment = PAYMENT_TABLE[card_type][action.payment_id]
+
+        # Convert canonical payment to actual card colors
+        color_mapping = self.get_color_mapping(card)
+
+        gold_payment = self.map_payment_to_card(
+            canonical_payment,
+            color_mapping
+        )
+
+        # Pay for the card
+        self._pay_for_card(
+            state,
+            player,
+            card,
+            gold_payment
+        )
+
+        # Remove from reserve and add to purchased
+        player.reserved_cards.pop(action.reserved_index)
 
         player.purchased_cards.append(card)
-        player.points += card.points
-        player.bonuses[card.bonus] += 1
 
+        player.points += card.points
+
+        player.bonuses[card.bonus_color] += 1
+
+        # Check victory
         if player.points >= VICTORY_REQUIREMENT:
             state.end_triggered = True
 
@@ -766,27 +939,31 @@ class SplendorEnv(gym.Env):
         if player.points >= VICTORY_REQUIREMENT:
             state.end_triggered = True        
 
-    def _pay_for_card(self, state:GameState, player: Player, card: Card, action:Action):
+    def _pay_for_card(
+        self,
+        state: GameState,
+        player: Player,
+        card: Card,
+        gold_payment: tuple[int,...]
+    ):
 
-        gold_payment = action.gold_payment
+        gold_used = sum(gold_payment)
 
-        if gold_payment is None:
-            raise ValueError("Buy action missing gold_payment.")
+        for color in GEM_COLORS:
 
-        total_gold_used = sum(gold_payment)
+            required = card.cost[color]
 
-        # Spend colored gems
-        for color, gold_used in zip(GemColor, gold_payment):
+            gold_substitute = gold_payment[color.value]
 
-            colored_cost = card.cost[color] - gold_used
+            normal_required = required - gold_substitute
 
-            player.gems[color] -= colored_cost
-            state.bank[color] += colored_cost
+            if normal_required > 0:
+                player.gems[color] -= normal_required
+                state.bank[color] += normal_required
 
-        # Spend gold gems
-        player.gems[GemColor.GOLD] -= total_gold_used
-        state.bank[GemColor.GOLD] += total_gold_used
-
+        # Remove gold
+        player.gems[GemColor.GOLD] -= gold_used
+        state.bank[GemColor.GOLD] += gold_used
 
     def clone(self):
         return deepcopy(self) 
