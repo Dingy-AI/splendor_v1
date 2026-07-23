@@ -18,8 +18,6 @@ from splendor_v1.env.core.cost_lookup_table_v3 import T1_PAYMENT_LOOKUP, T2_PAYM
 from splendor_v1.env.core.cost_lookup_table_v2 import PAYMENT_TABLE
 
 
-from splendor_v1.env.core.cost_lookup_table import ID_TO_COST, COST_TO_ID
-
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 
 from splendor_v1.env.observation.encoder import ObservationEncoder
@@ -244,18 +242,18 @@ class SplendorEnv(gym.Env):
 
     def _get_tier_payment_lookup(self, tier: int):
 
-        if tier == 1:
+        if tier == 0:
             return T1_PAYMENT_LOOKUP
 
-        if tier == 2:
+        if tier == 1:
             return T2_PAYMENT_LOOKUP
 
-        if tier == 3:
+        if tier == 2:
             return T3_PAYMENT_LOOKUP
 
         raise ValueError(f"Unknown tier {tier}")
 
-    def get_card_type(card) -> CardType:
+    def get_card_type(self, card) -> CardType:
         """
         Returns the canonical CardType for a card.
 
@@ -268,7 +266,7 @@ class SplendorEnv(gym.Env):
         """
 
         costs = [
-            card.cost[color]
+            card.cost.get(color,0)
             for color in COLOR_ORDER
         ]
 
@@ -288,7 +286,7 @@ class SplendorEnv(gym.Env):
 
 
 
-    def get_color_mapping(card):
+    def get_color_mapping(self, card):
         """
         Returns mapping from canonical color positions
         to actual card colors.
@@ -299,7 +297,7 @@ class SplendorEnv(gym.Env):
 
         # Pair each color with its cost
         color_costs = [
-            (color, card.cost[color])
+            (color, card.cost.get(color, 0))
             for color in COLOR_ORDER
         ]
 
@@ -308,7 +306,7 @@ class SplendorEnv(gym.Env):
         # 2. COLOR_ORDER breaks ties
         sorted_colors = sorted(
             color_costs,
-            key=lambda x: (-x[1], GemColor.index(x[0]))
+            key=lambda x: (-x[1], COLOR_ORDER.index(x[0]))
         )
 
         # Only colors that matter
@@ -328,7 +326,7 @@ class SplendorEnv(gym.Env):
         return actual_colors
 
 
-    def map_payment_to_card(
+    def map_payment_to_card(self,
         canonical_payment,
         color_mapping
     ):
@@ -595,6 +593,8 @@ class SplendorEnv(gym.Env):
         gold_used = sum(gold_payment)
 
         # Player does not have enough gold
+        # print("gemcheck", player.gems)
+        # print("checker for gold", player.gems[GemColor.GOLD])
         if player.gems[GemColor.GOLD] < gold_used:
             return False
 
@@ -980,7 +980,7 @@ class SplendorEnv(gym.Env):
 
         gold_used = sum(gold_payment)
 
-        for color in GEM_COLORS:
+        for color in COLOR_ORDER:
 
             required = card.cost[color]
 

@@ -17,7 +17,7 @@ def test_buy_visible_card(env):
         GemColor.BLUE: 3,
         GemColor.GREEN: 3,
         GemColor.RED: 3,
-        GemColor.BLACK: 3,
+        GemColor.BLACK: 4,
         GemColor.GOLD: 5
     }
 
@@ -31,7 +31,8 @@ def test_buy_visible_card(env):
             GemColor.WHITE: 1,
             GemColor.BLUE: 1,
             GemColor.RED: 1,
-            GemColor.GREEN: 1
+            GemColor.GREEN: 1,
+            GemColor.BLACK:0
         }
     )
 
@@ -40,6 +41,7 @@ def test_buy_visible_card(env):
             GemColor.BLUE: 1,
             GemColor.RED: 1,
             GemColor.GREEN: 1,
+            GemColor.BLACK: 0,
             GemColor.GOLD: 0
     }
 
@@ -52,14 +54,17 @@ def test_buy_visible_card(env):
             GemColor.WHITE: 1,
             GemColor.BLUE: 1,
             GemColor.RED: 1,
-            GemColor.GREEN: 1
+            GemColor.GREEN: 1,
+            GemColor.BLACK: 0
         }
     )
 
     action = Action(
         action_type = ActionType.BUY_VISIBLE,
         tier=0,
-        slot=0
+        slot=0,
+        payment_id=0,
+        gold_payment=(0,0,0,0,0)
     )
 
     env.step(action)

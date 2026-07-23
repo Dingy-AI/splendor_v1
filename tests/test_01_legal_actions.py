@@ -95,7 +95,7 @@ def test_reserve_limit_reached(env):
 def test_buy_card(env):
     env.reset()
 
-    env.state.players[0].gems = {GemColor.WHITE:5, GemColor.RED:5, GemColor.BLACK: 5, GemColor.GREEN:5}
+    env.state.players[0].gems = {GemColor.BLUE: 1, GemColor.WHITE:5, GemColor.RED:5, GemColor.BLACK: 5, GemColor.GREEN:5, GemColor.GOLD: 0}
 
     actions = env._legal_actions(env.state)
     num_buy_visible = 0
@@ -105,17 +105,17 @@ def test_buy_card(env):
 
     assert num_buy_visible > 0
     
-    test_card = Card(1,1,5,GemColor.RED, cost={GemColor.WHITE: 1, GemColor.RED: 1, GemColor.GREEN:1, GemColor.BLACK: 1})
+    test_card = Card(1,1,5,GemColor.RED, cost={GemColor.BLUE: 0, GemColor.WHITE: 1, GemColor.RED: 1, GemColor.GREEN:1, GemColor.BLACK: 1})
 
 
-    is_affordable = env._can_afford(env.state.players[0], test_card)
+    is_affordable = env._can_pay(env.state.players[0], test_card, (0,0,0,0,0))
 
     assert is_affordable == True
 
 def test_buy_reserve_card(env):
     env.reset()
-    env.state.players[0].gems = {GemColor.WHITE:5, GemColor.RED:5, GemColor.BLACK: 5, GemColor.GREEN:5}
-    test_card = Card(1,1,5,GemColor.RED, cost={GemColor.WHITE: 1, GemColor.RED: 1, GemColor.GREEN:1, GemColor.BLACK: 1})
+    env.state.players[0].gems = {GemColor.GOLD:0, GemColor.BLUE:1, GemColor.WHITE:5, GemColor.RED:5, GemColor.BLACK: 5, GemColor.GREEN:5}
+    test_card = Card(1,1,5,GemColor.RED, cost={GemColor.BLUE: 0, GemColor.WHITE: 1, GemColor.RED: 1, GemColor.GREEN:1, GemColor.BLACK: 1})
     env.state.players[0].reserved_cards = [test_card]
     actions = env._legal_actions(env.state)
 
