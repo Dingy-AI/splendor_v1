@@ -674,7 +674,7 @@ class SplendorEnv(gym.Env):
         # 4.5 Check end triggered
 
         # 5. Check termination
-        terminated = self._check_terminated(state)   # game ended naturally
+        terminated = self._check_terminated(state, actor)   # game ended naturally
 
         # 6. Check truncation
         truncated = False #ptional time limit
@@ -705,13 +705,12 @@ class SplendorEnv(gym.Env):
         reward = curr_points - prev_points
         return reward
 
-    def _check_terminated(self, state):
+    def _check_terminated(self, state, actor):
 
         if not state.end_triggered:
             return False
-
         # end when we return to start player of final round
-        if state.current_player == len(state.players)-1:
+        if actor == len(state.players)-1:
             state.winners = self._compute_winners(state)
             return True
 
