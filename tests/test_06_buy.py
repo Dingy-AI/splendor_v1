@@ -22,9 +22,9 @@ def test_buy_visible_card(env):
     }
 
 
-    env.state.visible_cards[0][0] = Card(
+    env.state.visible_cards[1][0] = Card(
         id=500,
-        tier=0,
+        tier=1,
         points=2,
         bonus_color=GemColor.RED,
         cost={ 
@@ -48,7 +48,7 @@ def test_buy_visible_card(env):
 
     action = Action(
         action_type = ActionType.BUY_VISIBLE,
-        tier=0,
+        tier=1,
         slot=0,
         payment_id=0,
         gold_payment=(0,0,0,0,0)
@@ -62,7 +62,7 @@ def test_buy_visible_card(env):
     assert env.state.players[0].points == 2
 
     assert sum(env.state.bank.values()) == 25
-    assert env.state.visible_cards[0][0].id != 500
+    assert env.state.visible_cards[1][0].id != 500
     #TODO running into an issue with buying a card. 
     # you have to also 'choose' which gems you want to get rid depending on if you have gold or not
     

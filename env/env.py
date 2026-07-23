@@ -95,9 +95,9 @@ class SplendorEnv(gym.Env):
     def _init_decks(self):
         return {
 
-            0: deepcopy(BASE_TIER_1),
-            1: deepcopy(BASE_TIER_2),
-            2: deepcopy(BASE_TIER_3)
+            1: deepcopy(BASE_TIER_1),
+            2: deepcopy(BASE_TIER_2),
+            3: deepcopy(BASE_TIER_3)
         }
 
     def _deal_visible_cards(self, decks):
@@ -242,13 +242,13 @@ class SplendorEnv(gym.Env):
 
     def _get_tier_payment_lookup(self, tier: int):
 
-        if tier == 0:
+        if tier == 1:
             return T1_PAYMENT_LOOKUP
 
-        if tier == 1:
+        if tier == 2:
             return T2_PAYMENT_LOOKUP
 
-        if tier == 2:
+        if tier == 3:
             return T3_PAYMENT_LOOKUP
 
         raise ValueError(f"Unknown tier {tier}")
@@ -412,8 +412,7 @@ class SplendorEnv(gym.Env):
                     player,
                     card,
                     actual_payment
-                ):
-
+                ):                
                     payment_id = payment_lookup.index(canonical_payment)
 
                     actions.append(
@@ -1007,13 +1006,13 @@ class SplendorEnv(gym.Env):
             return TAKE_GEMS_START + GEM_ACTION_TO_ID[gem_colors]
         
         elif action.action_type == ActionType.RESERVE_VISIBLE:
-            return RESERVE_START + (action.tier * 4) + action.slot
+            return RESERVE_START + ((action.tier-1) * 4) + action.slot
 
         elif action.action_type == ActionType.RESERVE_TOP_DECK:
-            return RESERVE_DECK_START + action.tier
+            return RESERVE_DECK_START + (action.tier-1)
 
         elif action.action_type == ActionType.BUY_VISIBLE:
-            return BUY_START + (action.tier * 4) + action.slot
+            return BUY_START + ((action.tier-1) * 4) + action.slot
 
         elif action.action_type == ActionType.BUY_RESERVED:
             return BUY_RESERVED_START + action.reserved_index
@@ -1066,7 +1065,7 @@ class SplendorEnv(gym.Env):
         # Reserve visible card
         if reserve_id < 12:
 
-            tier = reserve_id // 4
+            tier = 1+ (reserve_id // 4)
             slot = reserve_id % 4
 
             return Action(
@@ -1078,7 +1077,7 @@ class SplendorEnv(gym.Env):
         # Reserve top deck
         return Action(
             action_type=ActionType.RESERVE_TOP_DECK,
-            tier=(reserve_id - 12),
+            tier=(1 + reserve_id - 12),
         )
     
     def _id_to_buy(self, action_id: int) -> Action:

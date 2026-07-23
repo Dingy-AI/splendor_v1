@@ -42,19 +42,14 @@ def test_first_turn_actions(env):
     assert discard_gems == 0
     assert take_noble == 0    
 
-    # print(actions)
-    # print(len(actions))
+
 
 def test_no_white_gem_action(env):
     env.reset()
 
-    # print(env.state.bank)
     env.state.bank[GemColor.WHITE] = 0
     actions = env._legal_actions(env.state)
-    # print(env.state.bank)
 
-    # print((actions))
-    # print(len(actions))
 
     non_white_actions = 0
     for action in actions:

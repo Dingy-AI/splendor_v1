@@ -47,5 +47,3 @@ def test_env_reset(env):
 
     assert env.state.bank[GemColor.GOLD] == 5
 
-    # print(env.state.players)
-

@@ -12,18 +12,18 @@ def env():
 def test_reserve_card(env):
 
     env.reset()
-    reserved_card_copy = deepcopy(env.state.visible_cards[0][0])
+    reserved_card_copy = deepcopy(env.state.visible_cards[1][0])
     action = Action(
 
         action_type=ActionType.RESERVE_VISIBLE,
-        tier=0,
+        tier=1,
         slot=0,
     )
 
     obs, reward, terminated, truncated, info = env.step(action)
 
     assert reward == 0 
-    assert (reserved_card_copy != env.state.visible_cards[0][0])
+    assert (reserved_card_copy != env.state.visible_cards[1][0])
 
     assert len(env.state.players[0].reserved_cards) == 1
     assert env.state.players[0].gems[GemColor.GOLD] == 1
@@ -36,16 +36,16 @@ def test_reserve_card(env):
 
 def test_reserve_card_top_deck(env):
     env.reset()
-    reserved_card_copy = deepcopy(env.state.decks[0][-1])
+    reserved_card_copy = deepcopy(env.state.decks[1][-1])
     action = Action(
 
         action_type=ActionType.RESERVE_TOP_DECK,
-        tier=0
+        tier=1
     )
 
     env.step(action)
 
-    assert (reserved_card_copy != env.state.visible_cards[0][0])
+    assert (reserved_card_copy != env.state.visible_cards[1][0])
 
     assert env.state.players[0].reserved_cards[0] == reserved_card_copy
     
@@ -56,13 +56,13 @@ def test_reserve_card_top_deck(env):
 def test_no_gold_available(env):
 
     env.reset()
-    reserved_card_copy = deepcopy(env.state.visible_cards[0][0])
+    reserved_card_copy = deepcopy(env.state.visible_cards[1][0])
 
     env.state.bank[GemColor.GOLD] = 0
     action = Action(
 
         action_type=ActionType.RESERVE_VISIBLE,
-        tier=0,
+        tier=1,
         slot=0,
     )
     env.step(action)
@@ -80,11 +80,10 @@ def test_empty_deck(env):
 
 def test_gold_overflow(env):
     env.reset()
-    reserved_card_copy = deepcopy(env.state.visible_cards[0][0])
     action = Action(
 
         action_type=ActionType.RESERVE_VISIBLE,
-        tier=0,
+        tier=1,
         slot=0,
     )
 

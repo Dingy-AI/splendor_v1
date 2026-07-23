@@ -138,7 +138,7 @@ class ObservationEncoder:
     
     def _encode_decks(self, decks):
         feature = []
-        for tier in (0, 1, 2):
+        for tier in (1, 2, 3):
             cards = decks[tier]
             feature.append(len(cards) / MAX_DECK_SIZE_NORM[tier])
         return feature
@@ -162,7 +162,7 @@ class ObservationEncoder:
     
     def _encode_board(self, visible_cards:  dict[int, list[Card]]):    
         feature = []
-        for tier in (0, 1, 2):
+        for tier in (1, 2, 3):
             cards = visible_cards[tier]
 
             for card in cards:
