@@ -727,11 +727,11 @@ class SplendorEnv(gym.Env):
         ]
 
         # Splendor rule: FEWEST cards wins
-        min_cards = min(len(p.cards) for _, p in candidates)
+        min_cards = min(len(p.purchased_cards) for _, p in candidates)
 
         winnerss = [
             i for i, p in candidates
-            if len(p.cards) == min_cards
+            if len(p.purchased_cards) == min_cards
         ]
 
         return winnerss

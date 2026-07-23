@@ -115,4 +115,12 @@ def test_legal_reserved_buy(env):
         if action.action_type == ActionType.BUY_RESERVED:
             actions_list.append(action)
 
-    print(actions_list)
+    assert len(actions_list) == 5
+
+    env.step(actions_list[4])
+
+
+    assert sum(env.state.bank.values()) == 24
+    assert len(env.state.players[0].purchased_cards) == 1
+    assert env.state.players[0].points == 2
+    assert env.state.players[0].gems[GemColor.WHITE] == 1
