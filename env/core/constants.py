@@ -4,8 +4,8 @@ from splendor_v1.env.core.enums import GemColor
 MAX_GEMS = 10
 MAX_RESERVES = 3
 VICTORY_REQUIREMENT = 15
-MAX_PLAYER_COUNT = 4
-MAX_NOBLE_COUNT = 5
+MAX_PLAYER_COUNT = 2
+MAX_NOBLE_COUNT = 3
 
 GEM_SCALE_NORM = 10.0 #normalize the number of gems of each type in the hand
 

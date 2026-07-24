@@ -108,7 +108,7 @@ class ObservationEncoder:
                 feature_bonus.append(player.bonuses[color] / BONUS_NORM)
 
         if len(player.reserved_cards) == 0:
-            feature_reserved_cards = [0] * 33
+            feature_reserved_cards = [0] * 33 #TODO might need to change this 
         else:
             # for i in len(player.reserved_cards):
             for reserved_index, card in enumerate(player.reserved_cards):

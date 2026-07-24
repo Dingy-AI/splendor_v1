@@ -2,7 +2,7 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 from splendor_v1.env.core.constants import MAX_GEMS, VICTORY_REQUIREMENT, COLOR_ORDER
-from splendor_v1.env.core.action_constants import GEM_ACTION_TO_ID, DISCARD_COLOR_TO_ID, TAKE_GEMS_START, RESERVE_START, RESERVE_DECK_START, BUY_START, BUY_RESERVED_START, DISCARD_START, NOBLE_START, GEM_ACTIONS, ACTION_END
+from splendor_v1.env.core.action_constants import GEM_ACTION_TO_ID, DISCARD_COLOR_TO_ID, TAKE_GEMS_START, RESERVE_START, RESERVE_DECK_START, BUY_START, BUY_RESERVED_START, DISCARD_START, NOBLE_START, GEM_ACTIONS, ACTION_END, T1_PAYMENT_COUNT, T2_PAYMENT_COUNT, T3_PAYMENT_COUNT, BUY_T1_START, BUY_T2_START, BUY_T3_START, BUY_END
 
 from splendor_v1.env.state.base import GameState
 from splendor_v1.env.data.data import BASE_TIER_1, BASE_TIER_2, BASE_TIER_3, NOBLES
@@ -397,11 +397,11 @@ class SplendorEnv(gym.Env):
             color_mapping = self.get_color_mapping(card)
 
             # Only generate payments that apply to this card type
-            payments = PAYMENT_TABLE[card_type]
+            # payments = PAYMENT_TABLE[card_type]
 
-            payment_lookup = self._get_tier_payment_lookup(card.tier)
-
-            for canonical_payment in payments:
+            # payment_lookup = self._get_tier_payment_lookup(card.tier)
+            payment_lookup = T3_PAYMENT_LOOKUP
+            for payment_id, canonical_payment in enumerate(payment_lookup):
 
                 actual_payment = self.map_payment_to_card(
                     canonical_payment,
@@ -412,9 +412,7 @@ class SplendorEnv(gym.Env):
                     player,
                     card,
                     actual_payment
-                ):                
-                    payment_id = payment_lookup.index(canonical_payment)
-
+                ):
                     actions.append(
                         Action(
                             action_type=ActionType.BUY_RESERVED,
@@ -865,9 +863,9 @@ class SplendorEnv(gym.Env):
         card: Card = player.reserved_cards[action.reserved_index]
 
         # Get canonical payment from tier lookup
-        payment_lookup = self._get_tier_payment_lookup(card.tier)
+        # payment_lookup = self._get_tier_payment_lookup(card.tier)
 
-        canonical_payment = payment_lookup[action.payment_id]
+        canonical_payment = T3_PAYMENT_LOOKUP[action.payment_id]
 
         # Convert canonical payment to actual card colors
         color_mapping = self.get_color_mapping(card)
@@ -1011,11 +1009,34 @@ class SplendorEnv(gym.Env):
             return RESERVE_DECK_START + (action.tier-1)
 
         elif action.action_type == ActionType.BUY_VISIBLE:
-            return BUY_START + ((action.tier-1) * 4) + action.slot
+
+            payment_counts = {
+                1: T1_PAYMENT_COUNT,
+                2: T2_PAYMENT_COUNT,
+                3: T3_PAYMENT_COUNT,
+            }
+
+            tier_starts = {
+                1: BUY_T1_START,
+                2: BUY_T2_START,
+                3: BUY_T3_START,
+            }
+
+            payment_count = payment_counts[action.tier]
+
+            return (
+                tier_starts[action.tier]
+                + action.slot * payment_count
+                + action.payment_id
+            )
+
 
         elif action.action_type == ActionType.BUY_RESERVED:
-            return BUY_RESERVED_START + action.reserved_index
-
+            return (
+                BUY_RESERVED_START
+                + action.reserved_index * T3_PAYMENT_COUNT
+                + action.payment_id
+            )
         elif action.action_type == ActionType.DISCARD_GEMS:
             gem_colors = tuple(sorted(action.gem_colors, key=lambda x: x.value))
             return DISCARD_START + DISCARD_COLOR_TO_ID[gem_colors[0]]
@@ -1058,47 +1079,74 @@ class SplendorEnv(gym.Env):
         )
     
     def _id_to_reserve(self, action_id: int) -> Action:
+        offset = action_id - BUY_RESERVED_START
 
-        reserve_id = action_id - RESERVE_START
+        reserved_index = offset // T3_PAYMENT_COUNT
+        payment_id = offset % T3_PAYMENT_COUNT
 
-        # Reserve visible card
-        if reserve_id < 12:
-
-            tier = 1+ (reserve_id // 4)
-            slot = reserve_id % 4
-
-            return Action(
-                action_type=ActionType.RESERVE_VISIBLE,
-                tier=tier,
-                slot=slot,
-            )
-
-        # Reserve top deck
         return Action(
-            action_type=ActionType.RESERVE_TOP_DECK,
-            tier=(1 + reserve_id - 12),
+            action_type=ActionType.BUY_RESERVED,
+            reserved_index=reserved_index,
+            payment_id=payment_id,
         )
     
     def _id_to_buy(self, action_id: int) -> Action:
 
-        buy_id = action_id - BUY_START
+        # ---------- Visible Tier 1 ----------
+        if BUY_T1_START <= action_id < BUY_T2_START:
 
-        # Buy visible card
-        if buy_id < 12:
+            offset = action_id - BUY_T1_START
 
-            tier = buy_id // 4
-            slot = buy_id % 4
+            slot = offset // T1_PAYMENT_COUNT
+            payment_id = offset % T1_PAYMENT_COUNT
 
             return Action(
                 action_type=ActionType.BUY_VISIBLE,
-                tier=tier,
+                tier=1,
                 slot=slot,
+                payment_id=payment_id,
             )
 
-        # Buy reserved card
+        # ---------- Visible Tier 2 ----------
+        if BUY_T2_START <= action_id < BUY_T3_START:
+
+            offset = action_id - BUY_T2_START
+
+            slot = offset // T2_PAYMENT_COUNT
+            payment_id = offset % T2_PAYMENT_COUNT
+
+            return Action(
+                action_type=ActionType.BUY_VISIBLE,
+                tier=2,
+                slot=slot,
+                payment_id=payment_id,
+            )
+
+        # ---------- Visible Tier 3 ----------
+        if BUY_T3_START <= action_id < BUY_RESERVED_START:
+
+            offset = action_id - BUY_T3_START
+
+            slot = offset // T3_PAYMENT_COUNT
+            payment_id = offset % T3_PAYMENT_COUNT
+
+            return Action(
+                action_type=ActionType.BUY_VISIBLE,
+                tier=3,
+                slot=slot,
+                payment_id=payment_id,
+            )
+
+        # ---------- Reserved (All Tiers) ----------
+        offset = action_id - BUY_RESERVED_START
+
+        reserved_index = offset // T3_PAYMENT_COUNT
+        payment_id = offset % T3_PAYMENT_COUNT
+
         return Action(
             action_type=ActionType.BUY_RESERVED,
-            reserved_index=buy_id - 12,
+            reserved_index=reserved_index,
+            payment_id=payment_id,
         )
 
     def _id_to_discard(self, action_id: int) -> Action:

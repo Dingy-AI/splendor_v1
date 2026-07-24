@@ -278,4 +278,5 @@ def print_unique_payment_statistics():
 
 # print_unique_payment_statistics()
 
-run_script()
+# run_script()
+

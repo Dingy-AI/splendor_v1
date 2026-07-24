@@ -32,7 +32,9 @@ def test_action_mask_illegal(env):
     buy_action = Action(
             action_type=ActionType.BUY_VISIBLE,
             tier = 3,
-            slot = 3
+            slot = 3,
+        payment_id=0,
+        gold_payment=(0,0,0,0,0)
     )
 
     action_id = env.action_to_id(buy_action)
