@@ -1077,18 +1077,37 @@ class SplendorEnv(gym.Env):
             action_type=ActionType.TAKE_GEMS,
             gem_colors=gem_colors,
         )
-    
+        
     def _id_to_reserve(self, action_id: int) -> Action:
-        offset = action_id - BUY_RESERVED_START
 
-        reserved_index = offset // T3_PAYMENT_COUNT
-        payment_id = offset % T3_PAYMENT_COUNT
+        # ---------- Reserve Visible ----------
+        if RESERVE_START <= action_id < RESERVE_DECK_START:
 
-        return Action(
-            action_type=ActionType.BUY_RESERVED,
-            reserved_index=reserved_index,
-            payment_id=payment_id,
-        )
+            offset = action_id - RESERVE_START
+
+            tier = (offset // 4) + 1
+            slot = offset % 4
+
+            return Action(
+                action_type=ActionType.RESERVE_VISIBLE,
+                tier=tier,
+                slot=slot,
+            )
+
+        # ---------- Reserve Top Deck ----------
+        if RESERVE_DECK_START <= action_id < BUY_START:
+
+            offset = action_id - RESERVE_DECK_START
+
+            tier = offset + 1
+
+            return Action(
+                action_type=ActionType.RESERVE_TOP_DECK,
+                tier=tier,
+            )
+
+        raise ValueError(f"Invalid reserve action id: {action_id}")
+
     
     def _id_to_buy(self, action_id: int) -> Action:
 

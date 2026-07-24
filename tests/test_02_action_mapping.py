@@ -17,7 +17,14 @@ def test_action_to_id_round_trip(env):
 
         action_id = env.action_to_id(action)
         recovered_action = env.id_to_action(action_id)
+        if action != recovered_action:
+
+            print(action_id)
+            print(action)
+            print(recovered_action)
+        
         assert action == recovered_action
+        
 
 
 
