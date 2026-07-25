@@ -129,4 +129,5 @@ def test_noble_end_game_trigger(env):
     assert terminated == True
     assert env.state.game_over == True
     assert env.state.winners[0] == 0
-    
+
+#TODO need to do a discard/noble qualification at the same time
