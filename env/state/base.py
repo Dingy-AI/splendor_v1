@@ -17,3 +17,4 @@ class GameState:
     winners: list[int]
     game_over: bool = False
     end_triggered: bool = False
+    noble_taken: bool = False

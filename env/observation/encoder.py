@@ -148,9 +148,14 @@ class ObservationEncoder:
         feature = []
 
         for noble in nobles:
+            if noble == None:
+                feature.extend([0] * 6)
+                continue
+
             for color in GemColor:
                 if color == GemColor.GOLD:
                     continue
+
                 feature = feature + [(noble.requirement[color] / NOBLE_SCALE_NORM)]
 
             feature = feature + [noble.points]

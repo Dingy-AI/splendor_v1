@@ -80,7 +80,8 @@ BUY_END = BUY_RESERVED_START  + (RESERVED_SLOTS * T3_PAYMENT_COUNT)
 # BUY_RESERVED_START = 57
 DISCARD_START = BUY_END
 NOBLE_START = DISCARD_START + 6
-ACTION_END = NOBLE_START + 5
+ACTION_END = NOBLE_START + 3
+
 
 
 # going to need to upgrade this
@@ -105,4 +106,4 @@ ACTION_SPACE_SIZE = (
         len(DISCARD_COLORS) + #number of discord actions
         NOBLE_2_PLAYER #number of nobles for two player
 
-)
+) #1139 total action space size in a two player game

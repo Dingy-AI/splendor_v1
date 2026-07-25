@@ -10,7 +10,7 @@ class Player:
     bonuses: dict[GemColor, int] 
     reserved_cards: list[Card]
     purchased_cards: list[Card]
-    noble: list[Noble]
+    nobles: list[Noble]
 
     points: int = 0
 

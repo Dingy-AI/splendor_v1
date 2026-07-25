@@ -710,6 +710,8 @@ class SplendorEnv(gym.Env):
         # end when we return to start player of final round
         if actor == len(state.players)-1:
             state.winners = self._compute_winners(state)
+            state.game_over = True
+            
             return True
 
         return False
@@ -752,12 +754,13 @@ class SplendorEnv(gym.Env):
             return
 
         # 2. nobles next priority
-        if self._check_nobles(state):
+        if self._check_nobles(state) and state.noble_taken == False:
             state.node_type = NodeType.NOBLE_CLAIM
             return
 
         # 3. otherwise continue normal gameplay
         state.node_type = NodeType.MAIN_DECISION
+        state.noble_taken = False
         return
 
     def _check_overflow(self, state):
@@ -961,6 +964,8 @@ class SplendorEnv(gym.Env):
         player.points += noble.points # standard Splendor noble value
 
         state.nobles[action.noble_index] = None
+
+        state.noble_taken = True
 
         state.node_type = NodeType.MAIN_DECISION
         if player.points >= VICTORY_REQUIREMENT:

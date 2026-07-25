@@ -2,7 +2,7 @@ import pytest
 from splendor_v1.env.env import SplendorEnv
 from splendor_v1.env.core.enums import GemColor, NodeType, ActionType, GemColor
 from splendor_v1.env.core.card import Card
-from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE, BUY_T1_START, BUY_T2_START, BUY_T3_START,BUY_RESERVED_START
+from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE, BUY_T1_START, BUY_T2_START, BUY_T3_START,BUY_RESERVED_START, ACTION_END
 
 from copy import deepcopy
 @pytest.fixture
@@ -31,11 +31,9 @@ def test_id_to_action_round_trip(env):
     env.reset()
     
     action = env.id_to_action(5)
-    print(action)
     recovered = env.action_to_id(action)
 
 
-    print("teresr")
     assert 5 == recovered 
 
 def test_invalid_action_id(env):
@@ -102,12 +100,12 @@ def test_action_buy_reserved(env):
     assert action.payment_id == 0
     assert action.reserved_index == 0
 
-
     action = env.id_to_action(BUY_RESERVED_START+222)
-
-    print(action)
 
     assert action.action_type == ActionType.BUY_RESERVED
     assert action.tier == None
     assert action.payment_id == 0
     assert action.reserved_index == 2
+
+def test_check_action_size_equal(env):
+    assert ACTION_SPACE_SIZE == ACTION_END
