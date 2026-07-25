@@ -2,7 +2,7 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 from splendor_v1.env.core.constants import MAX_GEMS, VICTORY_REQUIREMENT, COLOR_ORDER
-from splendor_v1.env.core.action_constants import GEM_ACTION_TO_ID, DISCARD_COLOR_TO_ID, TAKE_GEMS_START, RESERVE_START, RESERVE_DECK_START, BUY_START, BUY_RESERVED_START, DISCARD_START, NOBLE_START, GEM_ACTIONS, ACTION_END, T1_PAYMENT_COUNT, T2_PAYMENT_COUNT, T3_PAYMENT_COUNT, BUY_T1_START, BUY_T2_START, BUY_T3_START, BUY_END
+from splendor_v1.env.core.action_constants import GEM_ACTION_TO_ID, DISCARD_COLOR_TO_ID, TAKE_GEMS_START, RESERVE_START, RESERVE_DECK_START, BUY_START, BUY_RESERVED_START, DISCARD_START, NOBLE_START, GEM_ACTIONS, ACTION_END, T1_PAYMENT_COUNT, T2_PAYMENT_COUNT, T3_PAYMENT_COUNT, BUY_T1_START, BUY_T2_START, BUY_T3_START, BUY_END, DISCARD_COLORS
 
 from splendor_v1.env.state.base import GameState
 from splendor_v1.env.data.data import BASE_TIER_1, BASE_TIER_2, BASE_TIER_3, NOBLES
@@ -1108,7 +1108,7 @@ class SplendorEnv(gym.Env):
 
         raise ValueError(f"Invalid reserve action id: {action_id}")
 
-    
+
     def _id_to_buy(self, action_id: int) -> Action:
 
         # ---------- Visible Tier 1 ----------
@@ -1171,10 +1171,9 @@ class SplendorEnv(gym.Env):
     def _id_to_discard(self, action_id: int) -> Action:
 
         discard_id = action_id - DISCARD_START
-
         return Action(
             action_type=ActionType.DISCARD_GEMS,
-            gem_colors=(GemColor[discard_id],),
+            gem_colors=(DISCARD_COLORS[discard_id],),
         )
 
     def _id_to_noble(self, action_id: int) -> Action:
