@@ -1,0 +1,21 @@
+Starting benchmark
+------------------
+clone()
+  Total: 76.6872s
+  Avg:   766.87 microseconds
+  FPS:   1,304.00
+
+legal_actions()
+  Total: 0.6489s
+  Avg:   6.49 microseconds
+  FPS:   154,113.86
+
+action_mask()
+  Total: 1.2486s
+  Avg:   12.49 microseconds
+  FPS:   80,088.42
+
+observation()
+  Total: 7.5012s
+  Avg:   75.01 microseconds
+  FPS:   13,331.14

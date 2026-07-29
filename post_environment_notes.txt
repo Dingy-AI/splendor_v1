@@ -1,0 +1,142 @@
+1. Environment validation
+
+Run a few thousand random games and collect statistics such as:
+
+Average game length
+Maximum game length
+Average score of winner
+Distribution of action types
+Average number of legal actions
+
+This will catch odd behavior like:
+
+games consistently taking 600 turns,
+players almost never buying reserved cards,
+nobles never being claimed.
+2. Performance profiling
+
+Benchmark the core operations.
+
+For example:
+
+clone()
+step()
+legal_actions()
+action_mask()
+observation()
+
+Time each one over 100,000 iterations.
+
+You'll quickly discover where your bottleneck is.
+
+3. Verify clone independence
+
+This is probably the most important test before MCTS.
+
+clone = env.clone()
+
+clone.step(action)
+
+assert env.state != clone.state
+
+Also verify nested objects:
+
+cards
+players
+bank
+visible cards
+reserved cards
+
+No shared references.
+
+4. Decide on your MCTS interface
+
+I'd define it now.
+
+Something like
+
+root = Node(state)
+
+while budget:
+    leaf = select(root)
+    child = expand(leaf)
+    value = evaluate(child)
+    backup(child, value)
+
+return best_action(root)
+
+Your environment already supports this nicely.
+
+5. Build a random MCTS first
+
+Don't involve a neural network yet.
+
+Use
+
+value = random rollout reward
+
+This lets you verify
+
+expansion
+backup
+UCB
+tree reuse
+
+without wondering whether the network is wrong.
+
+6. Neural network
+
+Only after random MCTS is stable.
+
+Start with something extremely small.
+
+Input:
+
+354 features
+
+Output:
+
+1139-policy logits
+1 value
+
+Simple MLP:
+
+354
+ ↓
+512
+ ↓
+512
+ ↓
+policy head
+value head
+
+You can always replace it with a Transformer later.
+
+One thing I'd strongly recommend
+
+Before writing MCTS, build a simple heuristic agent.
+
+For example:
+
+Buy if possible.
+Otherwise reserve the highest-point affordable-looking card.
+Otherwise take gems toward the cheapest visible card.
+
+This takes maybe an hour to write and gives you:
+
+a stronger baseline than random,
+something to play against,
+a debugging tool for MCTS,
+a way to generate initial self-play data if needed.
+
+When your MCTS starts outperforming this heuristic agent, you'll know it's actually learning something instead of merely beating random play.
+
+At this stage, my roadmap would be:
+
+Performance profiling
+Heuristic agent
+Random-rollout MCTS
+Neural network
+AlphaZero-style self-play training
+
+That's a natural progression and keeps each new component isolated and easier to debug.

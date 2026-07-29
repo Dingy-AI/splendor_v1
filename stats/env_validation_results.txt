@@ -1,0 +1,23 @@
+RANDOM Action 2026.07.29
+
+Games: 1000
+Average turns: 116.05
+Min turns: 23
+Max turns: 170
+
+Average winner points: 15.79
+Average winner cards: 17.37
+
+Average nobles taken: 1.24
+Average cards bought: 31.60
+Average reserved cards bought: 4.36
+Average overflow events: 21.97
+
+Action counts:
+TAKE_GEMS               51241 (44.16%)
+BUY_VISIBLE             27241 (23.47%)
+DISCARD_GEMS            21974 (18.94%)
+RESERVE_VISIBLE          8080 (6.96%)
+BUY_RESERVED             4355 (3.75%)
+RESERVE_TOP_DECK         1915 (1.65%)
+TAKE_NOBLE               1240 (1.07%)
