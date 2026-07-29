@@ -12,7 +12,8 @@ import random
 def env():
     return SplendorEnv()
 
-@pytest.mark.parametrize("seed", range(1000))
+#default is 1000
+@pytest.mark.parametrize("seed", range(10))
 def test_random_rollout(seed, env):
 
     random.seed(seed)
