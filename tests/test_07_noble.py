@@ -1,4 +1,5 @@
 import pytest
+from splendor_v1.env.core.constants import VICTORY_REQUIREMENT
 from splendor_v1.env.env import SplendorEnv
 from splendor_v1.env.core.enums import GemColor, NodeType, ActionType, GemColor
 from splendor_v1.env.core.card import Card
@@ -106,7 +107,7 @@ def test_noble_end_game_trigger(env):
         GemColor.BLACK:4
     }   
 
-    env.state.players[0].points = 14
+    env.state.players[0].points = VICTORY_REQUIREMENT-1
 
     action = Action (
 

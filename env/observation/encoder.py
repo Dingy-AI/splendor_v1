@@ -171,19 +171,24 @@ class ObservationEncoder:
             cards = visible_cards[tier]
 
             for card in cards:
+
                 feature.extend(self._encode_card(card))
         return feature
     
     def _encode_card(self, card):
         vec = []
-        # 3. cost vector
-        for color in GemColor:
-            vec.append(card.cost.get(color, 0))
-        # 2. bonus color one-hot
-        for color in GemColor:
-            vec.append(1.0 if card.bonus_color == color else 0.0)
-        # 1. points
-        vec.append(card.points)
+        if card != None:
+            # 3. cost vector
+            for color in GemColor:
+                vec.append(card.cost.get(color, 0))
+            # 2. bonus color one-hot
+            for color in GemColor:
+                vec.append(1.0 if card.bonus_color == color else 0.0)
+
+            # 1. points
+            vec.append(card.points)
+        else:
+            vec = [0.0 * 13]
         return vec
 
 

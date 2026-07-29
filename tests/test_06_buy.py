@@ -4,6 +4,8 @@ from splendor_v1.env.core.enums import GemColor, NodeType, ActionType, GemColor
 from splendor_v1.env.core.card import Card
 from splendor_v1.env.core.actions import Action
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE, DISCARD_START, NOBLE_START
+from splendor_v1.env.core.constants import VICTORY_REQUIREMENT
+
 from copy import deepcopy
 @pytest.fixture
 def env():
@@ -157,7 +159,7 @@ def test_end_game_trigger_second_player(env):
             GemColor.GOLD: 0
     }
     env.state.current_player = 1
-    env.state.players[1].points = 14
+    env.state.players[1].points = VICTORY_REQUIREMENT - 1
 
     action = Action(
         action_type = ActionType.BUY_VISIBLE,
@@ -208,8 +210,8 @@ def test_end_game_first_trigger_second_end_tie(env):
             GemColor.GOLD: 0
     }
 
-    env.state.players[0].points = 14
-    env.state.players[1].points = 14
+    env.state.players[0].points = VICTORY_REQUIREMENT - 1
+    env.state.players[1].points = VICTORY_REQUIREMENT - 1
     action = Action(
         action_type = ActionType.BUY_VISIBLE,
         tier=1,
@@ -307,8 +309,8 @@ def test_end_game_first_trigger_second_end_tie(env):
             GemColor.GOLD: 0
     }
 
-    env.state.players[0].points = 14
-    env.state.players[1].points = 14
+    env.state.players[0].points = VICTORY_REQUIREMENT -1
+    env.state.players[1].points = VICTORY_REQUIREMENT -1
     action = Action(
         action_type = ActionType.BUY_VISIBLE,
         tier=1,

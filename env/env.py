@@ -213,30 +213,30 @@ class SplendorEnv(gym.Env):
             payment_lookup = self._get_tier_payment_lookup(tier)
 
             for slot, card in enumerate(cards):
+                if card != None:
+                    color_mapping = self.get_color_mapping(card)
 
-                color_mapping = self.get_color_mapping(card)
+                    for payment_id, canonical_payment in enumerate(payment_lookup):
 
-                for payment_id, canonical_payment in enumerate(payment_lookup):
-
-                    actual_payment = self.map_payment_to_card(
-                        canonical_payment,
-                        color_mapping
-                    )
-
-                    if self._can_pay(
-                        player,
-                        card,
-                        actual_payment
-                    ):
-                        actions.append(
-                            Action(
-                                action_type=ActionType.BUY_VISIBLE,
-                                tier=tier,
-                                slot=slot,
-                                payment_id=payment_id,
-                                gold_payment=actual_payment,
-                            )
+                        actual_payment = self.map_payment_to_card(
+                            canonical_payment,
+                            color_mapping
                         )
+
+                        if self._can_pay(
+                            player,
+                            card,
+                            actual_payment
+                        ):
+                            actions.append(
+                                Action(
+                                    action_type=ActionType.BUY_VISIBLE,
+                                    tier=tier,
+                                    slot=slot,
+                                    payment_id=payment_id,
+                                    gold_payment=actual_payment,
+                                )
+                            )
 
         return actions
 
@@ -607,17 +607,17 @@ class SplendorEnv(gym.Env):
             gold_payment,
         ):
 
-            # Original cost
-            required = card.cost[color]
+            # Cost after permanent bonuses
+            required = max(
+                0,
+                card.cost[color] - player.bonuses[color]
+            )
 
-            # Gold covers part of this color
             remaining = required - gold_substitute
 
-            # If gold covers more than needed
             if remaining < 0:
                 return False
 
-            # Need enough colored gems
             if player.gems[color] < remaining:
                 return False
 
@@ -949,6 +949,7 @@ class SplendorEnv(gym.Env):
 
         for color in action.gem_colors:
             player.gems[color] -= 1
+            state.bank[color] += 1
 
         # AFTER applying discard → check if overflow is resolved
         if sum(player.gems.values()) <= MAX_GEMS:
@@ -976,26 +977,43 @@ class SplendorEnv(gym.Env):
         state: GameState,
         player: Player,
         card: Card,
-        gold_payment: tuple[int,...]
+        gold_payment: tuple[int, ...]
     ):
 
         gold_used = sum(gold_payment)
-
         for color in COLOR_ORDER:
 
-            required = card.cost[color]
+            # Effective cost after permanent bonuses
+            required = max(
+                0,
+                card.cost[color] - player.bonuses[color]
+            )
 
             gold_substitute = gold_payment[color.value]
 
-            normal_required = required - gold_substitute
+            # Gold cannot substitute for more than the remaining cost
+            if gold_substitute > required:
+                raise ValueError(
+                    f"Invalid gold payment: {gold_substitute} gold used for "
+                    f"{required} remaining {color.name} cost."
+                )
 
+            normal_required = required - gold_substitute
             if normal_required > 0:
                 player.gems[color] -= normal_required
                 state.bank[color] += normal_required
 
-        # Remove gold
+
+            if state.players[0].gems[color] + state.players[1].gems[color] + state.bank[color] != 4:
+                raise ValueError(
+                    f"Invalid gem sum {color} and {state.players[0].gems[color] + state.players[1].gems[color] + state.bank[color]} "
+                )
+
+        # Pay gold gems
         player.gems[GemColor.GOLD] -= gold_used
         state.bank[GemColor.GOLD] += gold_used
+
+
 
     def clone(self):
         return deepcopy(self) 
