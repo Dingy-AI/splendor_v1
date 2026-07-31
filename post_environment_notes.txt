@@ -140,3 +140,10 @@ Neural network
 AlphaZero-style self-play training
 
 That's a natural progression and keeps each new component isolated and easier to debug.
+
+###
+
+Random rollout MCTS
+Verify it beats random player
+Add heuristics
+Replace rollout with your neural network
