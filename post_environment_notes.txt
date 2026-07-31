@@ -147,3 +147,53 @@ Random rollout MCTS
 Verify it beats random player
 Add heuristics
 Replace rollout with your neural network
+
+
+How I think you should implement it
+
+I would build it in these milestones:
+
+Phase 1
+Node
+
+Just stores data.
+
+Phase 2
+Random rollout
+
+Given a state
+
+↓
+
+Play randomly
+
+↓
+
+Return winner
+
+No tree yet.
+
+Phase 3
+Expansion
+
+Given
+
+Node
+
+create one child.
+
+Phase 4
+Selection
+
+Implement UCB.
+
+Phase 5
+Backup
+
+Update visits and values.
+
+Phase 6
+
+Combine everything into
+
+search()

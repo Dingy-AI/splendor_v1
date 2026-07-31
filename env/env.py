@@ -643,8 +643,10 @@ class SplendorEnv(gym.Env):
     #     return gold_needed <= player.gems.get(GemColor.GOLD, 0)
     
 
-    def step(self, action: Action):
-        state = self.state
+    def step(self, action: Action, state:GameState = None):
+
+        if state is None:
+            state = self.state
 
         actor = state.current_player   # FREEZE actor here
         prev_points = state.players[actor].points
@@ -662,7 +664,7 @@ class SplendorEnv(gym.Env):
 
 
         # 3. Compute observation
-        obs = self.observation_encoder.encoder(self.state)
+        obs = self.observation_encoder.encoder(state)
 
 
 
@@ -672,7 +674,7 @@ class SplendorEnv(gym.Env):
         # 4.5 Check end triggered
 
         # 5. Check termination
-        terminated = self._check_terminated(state, actor)   # game ended naturally
+        terminated = self._check_terminated(state)   # game ended naturally
 
         # 6. Check truncation
         truncated = False #ptional time limit
@@ -696,6 +698,9 @@ class SplendorEnv(gym.Env):
 
         return obs, reward, terminated, truncated, info
 
+    def reward(self):
+        return None
+
     def _compute_reward(self, state, actor, prev_points):
 
         curr_points = state.players[actor].points
@@ -703,12 +708,12 @@ class SplendorEnv(gym.Env):
         reward = curr_points - prev_points
         return reward
 
-    def _check_terminated(self, state, actor):
+    def _check_terminated(self, state):
 
         if not state.end_triggered:
             return False
         # end when we return to start player of final round
-        if actor == len(state.players)-1:
+        if state.current_player == len(state.players)-1:
             state.winners = self._compute_winners(state)
             state.game_over = True
             

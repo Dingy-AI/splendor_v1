@@ -76,3 +76,14 @@ def test_clone_step_does_not_modify_original():
 
     # Clone should now be different
     assert env.state != clone.state
+
+def test_clone_independence():
+    env = SplendorEnv()
+    env.reset()
+
+    clone_game_state = env.state.clone()
+
+    clone_game_state.game_over = True
+
+    assert env.state != clone_game_state
+
