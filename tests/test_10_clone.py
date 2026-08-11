@@ -13,9 +13,8 @@ def env():
     return SplendorEnv()
 
 
-def test_clone_independence():
+def test_clone_independence(env):
 
-    env = SplendorEnv()
     env.reset()
 
     clone = env.clone()
@@ -60,9 +59,7 @@ def test_clone_independence():
             is not clone.state.visible_cards[tier]
         )
 
-def test_clone_step_does_not_modify_original():
-
-    env = SplendorEnv()
+def test_clone_step_does_not_modify_original(env):
     env.reset()
 
     clone = env.clone()
@@ -77,8 +74,7 @@ def test_clone_step_does_not_modify_original():
     # Clone should now be different
     assert env.state != clone.state
 
-def test_clone_independence():
-    env = SplendorEnv()
+def test_clone_independence(env):
     env.reset()
 
     clone_game_state = env.state.clone()

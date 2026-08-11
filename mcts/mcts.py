@@ -45,30 +45,34 @@ class MCTS:
 
         pass
 
-    def random_rollout(self, env, state):
+    def random_rollout(self, env):
 
-        rollout_state = state.clone()
+        rollout_env = env.clone()
 
-        root_player = rollout_state.current_player
+        root_player = rollout_env.state.current_player
 
-        while not env._check_terminated(state):
+        terminated = False
+        steps = 0
 
-            actions = env._legal_actions(rollout_state)
+        while not terminated:
 
+            actions = rollout_env._legal_actions(rollout_env.state)
 
-            if len(actions) == 0:
-                # early termination due to no legal moves
-                # return 0
+            if not actions:
                 raise RuntimeError(
-                    f"Rollout deadlock at turn {rollout_state.turn}"
+                    "Rollout reached state with no legal actions"
                 )
 
             action = random.choice(actions)
 
+            obs, reward, terminated, truncated, info = rollout_env.step(action)
+            steps += 1
 
-            env.step(action, state=rollout_state)
+            if steps > 500:
+                terminated = True
+                return 0.0
 
-        winners = env._compute_winners(rollout_state)
+        winners = info['winners']
 
         return 1.0 if root_player in winners else 0.0
 

@@ -118,9 +118,7 @@ def test_noble_end_game_trigger(env):
     env.step(action)
 
     actions = env._legal_actions(env.state)
-
     obs, reward, terminated, truncated, info = env.step(actions[0])
-
     assert terminated == False 
     assert env.state.end_triggered == True
     assert env.state.current_player == 1

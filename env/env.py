@@ -709,11 +709,11 @@ class SplendorEnv(gym.Env):
         return reward
 
     def _check_terminated(self, state):
-
         if not state.end_triggered:
             return False
         # end when we return to start player of final round
-        if state.current_player == len(state.players)-1:
+        # we are hardcoding this to 2 for a 2 player game
+        if state.current_player == len(state.players)-2:
             state.winners = self._compute_winners(state)
             state.game_over = True
             

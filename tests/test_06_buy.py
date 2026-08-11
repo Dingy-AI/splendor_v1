@@ -117,7 +117,11 @@ def test_end_game_trigger_first_player(env):
         gold_payment=(0,0,0,0,0)
     )
 
+
+    print("winnder count:", len(env.state.winners))
     assert len(env.state.winners) == 0
+
+
     obs, reward, terminated, truncated, info = env.step(action)
     assert len(env.state.winners) == 0
     assert env.state.winners == []
