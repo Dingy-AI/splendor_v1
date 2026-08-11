@@ -5,7 +5,7 @@ from splendor_v1.env.core.card import Card
 from splendor_v1.env.core.actions import Action
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE, DISCARD_START, NOBLE_START, DISCARD_COLORS
 from copy import deepcopy
-
+from splendor_v1.mcts.node import Node
 
 from splendor_v1.mcts.mcts import MCTS
 
@@ -18,18 +18,24 @@ def env():
 def mcts(env):
     return MCTS(env)
 
+@pytest.fixture
+def node(env):
+    return Node(state = env.state)
+    
 
 
-def test_random_rollout_does_not_mutate(env, mcts):
+
+def test_random_rollout_does_not_mutate(env, mcts, node):
 
     random.seed(1)
 
     env.reset()
+    node.state = env.state
 
     original = env.clone()
     try:
 
-        reward = mcts.random_rollout(env)
+        reward = mcts.random_rollout(env, node)
 
     except Exception as e:
         pytest.fail(
@@ -39,3 +45,32 @@ def test_random_rollout_does_not_mutate(env, mcts):
 
 
     assert env.state == original.state
+
+def test_random_rollout_reward_range(env, mcts, node):
+    env.reset()
+    node.state = env.state
+
+    for _ in range(10):
+        reward = mcts.random_rollout(env, node)
+
+        assert reward in [-1,0,1]
+
+def test_rollout_finishes_game(env, mcts, node):
+    env.reset()
+    node.state = env.state
+
+    final_state = mcts.random_rollout(env, node, return_state=True)
+
+    assert final_state.game_over == True
+
+def test_random_rollout_many_games(env, mcts, node):
+    # did not have an issue with 100
+    for seed in range(10):
+        random.seed(seed)
+
+        env.reset()
+        node.state = env.state
+
+        reward = mcts.random_rollout(env, node)
+
+        assert reward is not None

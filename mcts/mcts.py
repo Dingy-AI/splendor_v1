@@ -41,14 +41,41 @@ class MCTS:
 
         pass
 
-    def expand(self):
+    def expand(self, env, node):
 
-        pass
+        if len(node.untried_actions) == 0:
+            return None
 
-    def random_rollout(self, env):
+
+        action = node.untried_actions.pop()
+
+        # Clone environment so parent/game isn't modified
+        child_env = env.clone()
+
+        # Start the cloned environment from this node's state
+        child_env.state = node.state.clone()
+
+        # Apply action
+        child_env.step(action)
+
+        # Fetch resulting state
+        child_state = child_env.state
+
+        child = Node(
+            state=child_state,
+            parent=node,
+            action=action,
+        )
+
+        node.children.append(child)
+
+        return child
+
+    def random_rollout(self, env, child, return_state=False):
 
         rollout_env = env.clone()
-
+        rollout_child = child.state.clone()
+        rollout_env.state = rollout_child
         root_player = rollout_env.state.current_player
 
         terminated = False
@@ -59,9 +86,13 @@ class MCTS:
             actions = rollout_env._legal_actions(rollout_env.state)
 
             if not actions:
-                raise RuntimeError(
-                    "Rollout reached state with no legal actions"
-                )
+
+                return -1
+                # raise RuntimeError(
+                #     "Rollout reached state with no legal actions"
+                # )
+
+                 
 
             action = random.choice(actions)
 
@@ -73,6 +104,9 @@ class MCTS:
                 return 0.0
 
         winners = info['winners']
+
+        if return_state:
+            return rollout_env.state
 
         return 1.0 if root_player in winners else 0.0
 
