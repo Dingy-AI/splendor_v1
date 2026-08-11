@@ -1,6 +1,8 @@
 import random 
 from splendor_v1.mcts.node import Node
 
+import math
+
 class MCTS:
 
     def __init__(self, env, simulations=1000):
@@ -37,9 +39,50 @@ class MCTS:
 
         return self.best_action(root)
 
-    def select(self):
+    def ucb_score(
+        self,
+        parent,
+        child,
+        exploration_constant=math.sqrt(2)
+    ) -> float:
 
-        pass
+        # Every child should be explored at least once
+        if child.visits == 0:
+            return float("inf")
+
+        exploitation = child.value_sum / child.visits
+
+        exploration = exploration_constant * math.sqrt(
+            math.log(parent.visits) / child.visits
+        )
+
+        return exploitation + exploration
+
+
+
+    def select(self, node):
+
+        current = node
+
+        while True:
+
+            # If this node still has actions we haven't expanded,
+            # stop here. Expansion should happen next.
+            if current.untried_actions:
+                return current
+
+            # Terminal / dead-end node
+            if not current.children:
+                return current
+
+            # Otherwise move down the most promising branch
+            current = max(
+                current.children,
+                key=lambda child: self.ucb_score(
+                    current,
+                    child
+                )
+            )
 
     def expand(self, env, node):
 
