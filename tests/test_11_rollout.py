@@ -31,11 +31,12 @@ def test_random_rollout_does_not_mutate(env, mcts, node):
 
     env.reset()
     node.state = env.state
+    root_player = env.state.current_player
 
     original = env.clone()
     try:
 
-        reward = mcts.random_rollout(env, node)
+        reward = mcts.random_rollout(env, node, root_player)
 
     except Exception as e:
         pytest.fail(
@@ -49,17 +50,19 @@ def test_random_rollout_does_not_mutate(env, mcts, node):
 def test_random_rollout_reward_range(env, mcts, node):
     env.reset()
     node.state = env.state
+    root_player = env.state.current_player
 
     for _ in range(10):
-        reward = mcts.random_rollout(env, node)
+        reward = mcts.random_rollout(env, node, root_player)
 
         assert reward in [-1,0,1]
 
 def test_rollout_finishes_game(env, mcts, node):
     env.reset()
     node.state = env.state
+    root_player = env.state.current_player
 
-    final_state = mcts.random_rollout(env, node, return_state=True)
+    final_state = mcts.random_rollout(env, node, root_player, return_state=True)
 
     assert final_state.game_over == True
 
@@ -69,8 +72,10 @@ def test_random_rollout_many_games(env, mcts, node):
         random.seed(seed)
 
         env.reset()
+        root_player = env.state.current_player
+
         node.state = env.state
 
-        reward = mcts.random_rollout(env, node)
+        reward = mcts.random_rollout(env, node, root_player)
 
         assert reward is not None

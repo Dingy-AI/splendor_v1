@@ -11,33 +11,62 @@ class MCTS:
 
         self.simulations = simulations
 
-    def search(self, state):
+    def search(self, env, state):
 
+        # Player whose decision we are trying to improve
+        root_player = state.current_player
+
+        # Root node starts from the current game state
         root = Node(
-            state=state.clone()
+            state=state.clone(),
+            untried_actions=env.legal_actions(state)
         )
 
-        for _ in range(self.simulations):
+        for _ in range(self.num_simulations):
 
+            # -------------------------
+            # 1. Selection
+            # -------------------------
+            leaf = self.select(root)
 
-            try:
-                leaf = self.select(root)
+            # -------------------------
+            # 2. Expansion
+            # -------------------------
+            if leaf.untried_actions:
+                child = self.expand(env, leaf)
+            else:
+                child = leaf
 
-                child = self.expand(leaf)
+            # -------------------------
+            # 3. Rollout
+            # -------------------------
+            value = self.random_rollout(
+                env,
+                child,
+                root_player=root_player
+            )
 
-                value = self.random_rollout(
-                    self.env,
-                    child.state
-                )
+            # -------------------------
+            # 4. Backup
+            # -------------------------
+            self.backup(
+                child,
+                value
+            )
 
-                self.backup(child, value)
+        # -------------------------
+        # 5. Choose final action
+        # -------------------------
+        if not root.children:
+            return None
 
+        best_child = max(
+            root.children,
+            key=lambda child: child.visits
+        )
 
-            except Exception as e:
-                print(f"MCTS simulation failed: {e}")
-                continue
+        return best_child.action
 
-        return self.best_action(root)
 
     def ucb_score(
         self,
@@ -114,12 +143,11 @@ class MCTS:
 
         return child
 
-    def random_rollout(self, env, child, return_state=False):
+    def random_rollout(self, env, child, root_player, return_state=False):
 
         rollout_env = env.clone()
         rollout_child = child.state.clone()
         rollout_env.state = rollout_child
-        root_player = rollout_env.state.current_player
 
         terminated = False
         steps = 0
@@ -154,6 +182,13 @@ class MCTS:
         return 1.0 if root_player in winners else 0.0
 
 
-    def backup(self):
+    def backup(self, node, value):
 
-        pass
+        current = node
+
+        while current is not None:
+
+            current.visits += 1
+            current.value_sum += value
+
+            current = current.parent
