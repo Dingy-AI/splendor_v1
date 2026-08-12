@@ -15,8 +15,8 @@ def env():
     return SplendorEnv()
 
 @pytest.fixture
-def mcts(env):
-    return MCTS(env)
+def mcts():
+    return MCTS()
 
 @pytest.fixture
 def node(env):

@@ -15,8 +15,8 @@ def env():
     return SplendorEnv()
 
 @pytest.fixture
-def mcts(env):
-    return MCTS(env)
+def mcts():
+    return MCTS()
 
 def test_expand_creates_child(env, mcts):
     env.reset()

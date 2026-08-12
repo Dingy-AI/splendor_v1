@@ -16,8 +16,8 @@ def env():
     return SplendorEnv()
 
 @pytest.fixture
-def mcts(env):
-    return MCTS(env)
+def mcts():
+    return MCTS()
 
 
 def test_ucb_unvisited_child_is_infinite(env, mcts):
@@ -39,11 +39,11 @@ def test_ucb_prefers_higher_average_value_when_visits_equal(env, mcts):
 
     child_a = Node(state=None, parent=parent)
     child_a.visits = 10
-    child_a.value_sum = 8.0   # average = 0.8
+    child_a.value = 8.0   # average = 0.8
 
     child_b = Node(state=None, parent=parent)
     child_b.visits = 10
-    child_b.value_sum = 4.0   # average = 0.4
+    child_b.value = 4.0   # average = 0.4
 
     score_a = mcts.ucb_score(parent, child_a)
     score_b = mcts.ucb_score(parent, child_b)
@@ -57,11 +57,11 @@ def test_ucb_prefers_less_visited_child_when_values_equal(env, mcts):
 
     child_a = Node(state=None, parent=parent)
     child_a.visits = 50
-    child_a.value_sum = 25.0   # average = 0.5
+    child_a.value = 25.0   # average = 0.5
 
     child_b = Node(state=None, parent=parent)
     child_b.visits = 5
-    child_b.value_sum = 2.5    # average = 0.5
+    child_b.value = 2.5    # average = 0.5
 
     score_a = mcts.ucb_score(parent, child_a)
     score_b = mcts.ucb_score(parent, child_b)
@@ -76,7 +76,7 @@ def test_ucb_exact_value(env, mcts):
 
     child = Node(state=None, parent=parent)
     child.visits = 10
-    child.value_sum = 6.0
+    child.value = 6.0
 
     c = math.sqrt(2)
 
@@ -120,12 +120,12 @@ def test_select_chooses_highest_ucb_child(env, mcts):
 
     child_a = Node(state=None, parent=root)
     child_a.visits = 50
-    child_a.value_sum = 10
+    child_a.value = 10
     child_a.untried_actions = ["expand_me"]
 
     child_b = Node(state=None, parent=root)
     child_b.visits = 50
-    child_b.value_sum = 40
+    child_b.value = 40
     child_b.untried_actions = ["expand_me"]
 
     root.children = [child_a, child_b]

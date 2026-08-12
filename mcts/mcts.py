@@ -5,13 +5,11 @@ import math
 
 class MCTS:
 
-    def __init__(self, env, simulations=1000):
-
-        self.env = env
+    def __init__(self, simulations=1000):
 
         self.simulations = simulations
 
-    def search(self, env, state):
+    def search(self, env, state, return_root=False):
 
         # Player whose decision we are trying to improve
         root_player = state.current_player
@@ -19,10 +17,10 @@ class MCTS:
         # Root node starts from the current game state
         root = Node(
             state=state.clone(),
-            untried_actions=env.legal_actions(state)
+            untried_actions=env._legal_actions(state)
         )
 
-        for _ in range(self.num_simulations):
+        for _ in range(self.simulations):
 
             # -------------------------
             # 1. Selection
@@ -65,6 +63,9 @@ class MCTS:
             key=lambda child: child.visits
         )
 
+        if return_root:
+            return best_child.action, root
+
         return best_child.action
 
 
@@ -79,7 +80,7 @@ class MCTS:
         if child.visits == 0:
             return float("inf")
 
-        exploitation = child.value_sum / child.visits
+        exploitation = child.value / child.visits
 
         exploration = exploration_constant * math.sqrt(
             math.log(parent.visits) / child.visits
@@ -189,6 +190,6 @@ class MCTS:
         while current is not None:
 
             current.visits += 1
-            current.value_sum += value
+            current.value += value
 
             current = current.parent
