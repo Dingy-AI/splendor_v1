@@ -2,7 +2,7 @@ import random
 from splendor_v1.mcts.node import Node
 
 import math
-
+import time 
 class MCTS:
 
     def __init__(self, simulations=1000):
@@ -20,37 +20,51 @@ class MCTS:
             untried_actions=env._legal_actions(state)
         )
 
+        selection_time = 0
+        expansion_time = 0
+        rollout_time = 0
+        backup_time = 0
+
+
         for _ in range(self.simulations):
 
             # -------------------------
             # 1. Selection
             # -------------------------
+            start = time.perf_counter()
             leaf = self.select(root)
+            selection_time += time.perf_counter() - start
 
             # -------------------------
             # 2. Expansion
             # -------------------------
+            start = time.perf_counter()
             if leaf.untried_actions:
                 child = self.expand(env, leaf)
             else:
                 child = leaf
+            expansion_time += time.perf_counter() - start
 
             # -------------------------
             # 3. Rollout
             # -------------------------
+            start = time.perf_counter()
             value = self.random_rollout(
                 env,
                 child,
                 root_player=root_player
             )
+            rollout_time += time.perf_counter() - start
 
             # -------------------------
             # 4. Backup
             # -------------------------
+            start = time.perf_counter()
             self.backup(
                 child,
                 value
             )
+            backup_time += time.perf_counter() - start
 
         # -------------------------
         # 5. Choose final action
@@ -65,6 +79,14 @@ class MCTS:
 
         if return_root:
             return best_child.action, root
+
+
+        print(
+            f"select={selection_time:.4f}s "
+            f"expand={expansion_time:.4f}s "
+            f"rollout={rollout_time:.4f}s "
+            f"backup={backup_time:.4f}s"
+        )
 
         return best_child.action
 

@@ -3,7 +3,7 @@ from splendor_v1.agents.mcts_agent import MCTSAgent
 
 from splendor_v1.evaluation.evaluate_agents import evaluate_agents
 
-def main():
+def main_random():
 
     random_agent = RandomAgent()
     mctsagent =MCTSAgent(simulations=10)
@@ -11,7 +11,8 @@ def main():
     results = evaluate_agents(
         agent_a=random_agent,
         agent_b=random_agent,
-        num_games=1
+        num_games=10,
+        print_mode = True
     )
 
     print("\nEvaluation Results")
@@ -21,5 +22,25 @@ def main():
         print(f"{key}: {value}")
 
 
+def main_random_mcts():
+
+    random_agent = RandomAgent()
+    mctsagent =MCTSAgent(simulations=5)
+
+    results = evaluate_agents(
+        agent_a=random_agent,
+        agent_b=mctsagent,
+        num_games=1,
+        print_mode = True
+    )
+
+    print("\nEvaluation Results")
+    print("------------------")
+
+    for key, value in results.items():
+        print(f"{key}: {value}")
+
+
+
 if __name__ == "__main__":
-    main()
+    main_random_mcts()
