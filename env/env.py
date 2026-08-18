@@ -688,6 +688,7 @@ class SplendorEnv(gym.Env):
             "current_player": state.current_player,
             "legal_actions_count": len(self._legal_actions(state)),
             "turn_number": state.turn_number,
+            "state": state
         }
 
         if terminated:

@@ -5,3 +5,6 @@ Activate virtual environment: source .venv/Scripts/activate
 
 Install requirements: pip install -r requirements.txt
 
+python -m splendor_v1.evaluation.run_evaluation
+
+pytest -s

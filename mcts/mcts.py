@@ -166,41 +166,85 @@ class MCTS:
 
         return child
 
-    def random_rollout(self, env, child, root_player, return_state=False):
+    # def random_rollout(self, env, child, root_player, return_state=False):
 
-        rollout_env = env.clone()
-        rollout_child = child.state.clone()
-        rollout_env.state = rollout_child
+    #     rollout_env = env.clone()
+    #     # rollout_env = env
 
-        terminated = False
-        steps = 0
+    #     rollout_child = child.state.clone()
+    #     rollout_env.state = rollout_child
 
-        while not terminated:
+    #     terminated = False
+    #     steps = 0
 
-            actions = rollout_env._legal_actions(rollout_env.state)
+    #     while not terminated:
 
-            if not actions:
+    #         actions = rollout_env._legal_actions(rollout_env.state)
 
-                return -1
-                # raise RuntimeError(
-                #     "Rollout reached state with no legal actions"
-                # )
+    #         if not actions:
+
+    #             return -1
+    #             # raise RuntimeError(
+    #             #     "Rollout reached state with no legal actions"
+    #             # )
 
                  
 
+    #         action = random.choice(actions)
+
+    #         obs, reward, terminated, truncated, info = rollout_env.step(action)
+    #         steps += 1
+
+    #         if steps > 500:
+    #             terminated = True
+    #             return 0.0
+
+    #     winners = info['winners']
+
+    #     if return_state:
+    #         return rollout_env.state
+
+    #     return 1.0 if root_player in winners else 0.0
+
+
+    def random_rollout(
+        self,
+        env,
+        child,
+        root_player,
+        return_state=False
+    ):
+
+        rollout_state = child.state.clone()
+
+        steps = 0
+
+        while True:
+
+            actions = env._legal_actions(rollout_state)
+
+            if not actions:
+                return -1.0
+
             action = random.choice(actions)
 
-            obs, reward, terminated, truncated, info = rollout_env.step(action)
+            obs, reward, terminated, truncated, info = env.step(
+                action,
+                state=rollout_state
+            )
+
             steps += 1
 
-            if steps > 500:
-                terminated = True
+            if terminated or truncated:
+                break
+
+            if steps >= 500:
                 return 0.0
 
-        winners = info['winners']
-
         if return_state:
-            return rollout_env.state
+            return rollout_state
+
+        winners = info["winners"]
 
         return 1.0 if root_player in winners else 0.0
 
