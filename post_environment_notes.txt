@@ -197,3 +197,16 @@ Phase 6
 Combine everything into
 
 search()
+
+Evaluation Results
+------------------
+agent_a_wins: 19
+agent_b_wins: 1
+ties: 0
+deadlocks: 0
+games_played: 20
+total_steps: 3235
+completed_games: 20
+agent_a_win_rate: 0.95
+agent_b_win_rate: 0.05
+average_steps: 161.75

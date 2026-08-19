@@ -5,7 +5,7 @@ def evaluate_agents(
     agent_b,
     num_games=100,
     max_steps=500,
-    print_mode=True
+    debug_mode=True
 ):
 
     results = {
@@ -18,7 +18,7 @@ def evaluate_agents(
     }
 
     for game_index in range(num_games):
-        if print_mode:
+        if debug_mode:
             print("Starting: ", game_index)
 
         # -------------------------
@@ -60,7 +60,7 @@ def evaluate_agents(
 
         if result["deadlock"]:
             results["deadlocks"] += 1
-            if print_mode:
+            if debug_mode:
                 print("Game Deadlocked.")
                 print("Game Results: ", results)
             continue
@@ -75,7 +75,7 @@ def evaluate_agents(
 
         elif agent_b_index in winners:
             results["agent_b_wins"] += 1
-        if print_mode:
+        if debug_mode:
             print("Game Results: ", results)
     # -------------------------
     # Calculate summary stats

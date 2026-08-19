@@ -1,6 +1,6 @@
 import random 
 from splendor_v1.mcts.node import Node
-
+from collections import Counter, defaultdict
 import math
 import time 
 class MCTS:
@@ -9,7 +9,7 @@ class MCTS:
 
         self.simulations = simulations
 
-    def search(self, env, state, return_root=False):
+    def search(self, env, state, return_root=False, debug=False):
 
         # Player whose decision we are trying to improve
         root_player = state.current_player
@@ -19,6 +19,9 @@ class MCTS:
             state=state.clone(),
             untried_actions=env._legal_actions(state)
         )
+
+        initial_legal_count = len(root.untried_actions)
+
 
         selection_time = 0
         expansion_time = 0
@@ -80,20 +83,140 @@ class MCTS:
         if return_root:
             return best_child.action, root
 
+        # -------------------------
+        # 7. Diagnostics
+        # -------------------------
+        if debug:
 
-        print(
-            f"select={selection_time:.4f}s "
-            f"expand={expansion_time:.4f}s "
-            f"rollout={rollout_time:.4f}s "
-            f"backup={backup_time:.4f}s"
-        )
+            expanded_count = len(root.children)
 
-        print("Legal root actions:", len(root.untried_actions) + len(root.children))
-        print("Expanded children:", len(root.children))
-        print(
-            [(child.visits, child.value) for child in root.children]
-        )
+            revisited_count = sum(
+                1
+                for child in root.children
+                if child.visits > 1
+            )
 
+            max_visits = max(
+                child.visits
+                for child in root.children
+            )
+
+            min_visits = min(
+                child.visits
+                for child in root.children
+            )
+
+            total_child_visits = sum(
+                child.visits
+                for child in root.children
+            )
+
+            print("\nMCTS Search Diagnostics")
+            print("-----------------------")
+
+            print(f"Turn: {state.turn_number}")
+            print(f"Root player: {root_player}")
+            print(f"Simulations: {self.simulations}")
+
+            print()
+            print(f"Initial legal actions: {initial_legal_count}")
+            print(f"Expanded children: {expanded_count}")
+            print(f"Unexpanded actions: {len(root.untried_actions)}")
+            print(f"Revisited children: {revisited_count}")
+
+            print()
+            print(f"Root visits: {root.visits}")
+            print(f"Total child visits: {total_child_visits}")
+            print(f"Max child visits: {max_visits}")
+            print(f"Min child visits: {min_visits}")
+
+            print()
+            print("Timing:")
+            print(f"  Selection: {selection_time:.4f}s")
+            print(f"  Expansion: {expansion_time:.4f}s")
+            print(f"  Rollout:   {rollout_time:.4f}s")
+            print(f"  Backup:    {backup_time:.4f}s")
+
+            print()
+            print("Children:")
+
+            children_sorted = sorted(
+                root.children,
+                key=lambda child: child.visits,
+                reverse=True
+            )
+
+            for i, child in enumerate(children_sorted):
+
+                average_value = (
+                    child.value / child.visits
+                    if child.visits > 0
+                    else 0.0
+                )
+
+                print(
+                    f"{i:>2}. "
+                    f"visits={child.visits:<4} "
+                    f"value_sum={child.value:<7.2f} "
+                    f"avg={average_value:<7.3f} "
+                    f"action={child.action}"
+                )
+
+
+            type_counts = Counter(
+                child.action.action_type
+                for child in root.children
+            )
+
+            print()
+            print("Expanded Children by Action Type")
+            print("--------------------------------")
+
+            for action_type, count in type_counts.items():
+                print(
+                    f"{action_type.name:<20} "
+                    f"{count}"
+                )
+
+
+
+            print()
+            print("Visits by Action Type")
+            print("---------------------")
+
+            groups = defaultdict(list)
+
+            for child in root.children:
+                groups[child.action.action_type].append(child)
+
+            for action_type, children in groups.items():
+
+                total_visits = sum(
+                    child.visits
+                    for child in children
+                )
+
+                average_visits = (
+                    total_visits / len(children)
+                )
+
+                average_value = sum(
+                    child.value / child.visits
+                    for child in children
+                    if child.visits > 0
+                ) / len(children)
+
+                print(
+                    f"{action_type.name:<20} "
+                    f"children={len(children):<4} "
+                    f"visits={total_visits:<4} "
+                    f"avg_visits={average_visits:.2f} "
+                    f"avg_value={average_value:.3f}"
+                )
+
+
+        if return_root:
+            return best_child.action, root
         return best_child.action
 
 
@@ -176,7 +299,9 @@ class MCTS:
             return None
 
 
-        action = node.untried_actions.pop()
+        action = random.choice(node.untried_actions)
+
+        node.untried_actions.remove(action)
 
         # Clone environment so parent/game isn't modified
         child_env = env.clone()
@@ -194,6 +319,8 @@ class MCTS:
             state=child_state,
             parent=node,
             action=action,
+            untried_actions=child_env._legal_actions(child_state),
+
         )
 
         node.children.append(child)

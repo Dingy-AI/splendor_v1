@@ -11,7 +11,7 @@ def main_random():
     results = evaluate_agents(
         agent_a=random_agent,
         agent_b=random_agent,
-        num_games=10,
+        num_games=50,
         print_mode = True
     )
 
@@ -30,8 +30,27 @@ def main_random_mcts():
     results = evaluate_agents(
         agent_a=random_agent,
         agent_b=mctsagent,
-        num_games=10,
-        print_mode = False
+        num_games=20,
+        debug = False
+    )
+
+    print("\nEvaluation Results")
+    print("------------------")
+
+    for key, value in results.items():
+        print(f"{key}: {value}")
+
+
+def main_random_mcts_once_sim_5():
+
+    random_agent = RandomAgent()
+    mctsagent =MCTSAgent(simulations=5)
+
+    results = evaluate_agents(
+        agent_a=random_agent,
+        agent_b=mctsagent,
+        num_games=1,
+        debug_mode = True
     )
 
     print("\nEvaluation Results")
@@ -42,5 +61,7 @@ def main_random_mcts():
 
 
 
+
 if __name__ == "__main__":
-    main_random_mcts()
+    # main_random_mcts_once_sim_5()
+    main_random_mcts_once_sim_5()

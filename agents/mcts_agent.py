@@ -5,4 +5,4 @@ class MCTSAgent:
         self.mcts = MCTS(simulations=simulations)
 
     def select_action(self, env, state):
-        return self.mcts.search(env, state)
+        return self.mcts.search(env, state, debug=True)
