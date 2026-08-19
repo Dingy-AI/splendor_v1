@@ -197,7 +197,7 @@ Phase 6
 Combine everything into
 
 search()
-
+# Bug in agent_b mcts 
 Evaluation Results
 ------------------
 agent_a_wins: 19
@@ -210,3 +210,33 @@ completed_games: 20
 agent_a_win_rate: 0.95
 agent_b_win_rate: 0.05
 average_steps: 161.75
+
+# fixed bug in random roll out ->
+10 games 10 simulations 
+Evaluation Results
+------------------
+agent_a_wins: 3
+agent_b_wins: 7
+ties: 0
+deadlocks: 0
+games_played: 10
+total_steps: 1142
+completed_games: 10
+agent_a_win_rate: 0.3
+agent_b_win_rate: 0.7
+average_steps: 114.2
+
+# longer test ->
+20 games 20 simulations 
+Evaluation Results
+------------------
+agent_a_wins: 3
+agent_b_wins: 16
+ties: 0
+deadlocks: 1
+games_played: 20
+total_steps: 2158
+completed_games: 19
+agent_a_win_rate: 0.15789473684210525
+agent_b_win_rate: 0.8421052631578947
+average_steps: 107.9

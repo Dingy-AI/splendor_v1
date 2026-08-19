@@ -2,10 +2,14 @@ import random
 from splendor_v1.mcts.node import Node
 from collections import Counter, defaultdict
 import math
-import time 
+import time
+
+from splendor_v1.mcts.rollout import random_rollout
+
 class MCTS:
 
-    def __init__(self, simulations=1000):
+    def __init__(self, simulations=1000, rollout_type="random"):
+        self.rollout_type = rollout_type
 
         self.simulations = simulations
 
@@ -52,11 +56,13 @@ class MCTS:
             # 3. Rollout
             # -------------------------
             start = time.perf_counter()
-            value = self.random_rollout(
-                env,
-                child,
-                root_player=root_player
+
+            value = self.rollout(
+                    env,
+                    child,
+                    root_player=root_player
             )
+
             rollout_time += time.perf_counter() - start
 
             # -------------------------
@@ -220,25 +226,6 @@ class MCTS:
         return best_child.action
 
 
-    # def ucb_score(
-    #     self,
-    #     parent,
-    #     child,
-    #     exploration_constant=math.sqrt(2)
-    # ) -> float:
-
-    #     # Every child should be explored at least once
-    #     if child.visits == 0:
-    #         return float("inf")
-
-    #     exploitation = child.value / child.visits
-
-    #     exploration = exploration_constant * math.sqrt(
-    #         math.log(parent.visits) / child.visits
-    #     )
-
-    #     return exploitation + exploration
-
     def ucb_score(
         self,
         parent,
@@ -326,48 +313,6 @@ class MCTS:
         node.children.append(child)
 
         return child
-    
-
-    def random_rollout(
-        self,
-        env,
-        child,
-        root_player,
-        return_state=False
-    ):
-
-        rollout_state = child.state.clone()
-
-        steps = 0
-
-        while True:
-
-            actions = env._legal_actions(rollout_state)
-
-            if not actions:
-                return -1.0
-
-            action = random.choice(actions)
-
-            obs, reward, terminated, truncated, info = env.step(
-                action,
-                state=rollout_state
-            )
-
-            steps += 1
-
-            if terminated or truncated:
-                break
-
-            if steps >= 500:
-                return 0.0
-
-        if return_state:
-            return rollout_state
-
-        winners = info["winners"]
-
-        return 1.0 if root_player in winners else 0.0
 
 
     def backup(self, node, value):
@@ -380,3 +325,28 @@ class MCTS:
             current.value += value
 
             current = current.parent
+
+    def rollout(
+        self,
+        env,
+        child,
+        root_player
+    ):
+
+        if self.rollout_type == "random":
+            return random_rollout(
+                env,
+                child,
+                root_player
+            )
+
+        if self.rollout_type == "heuristic":
+            return heuristic_rollout(
+                env,
+                child,
+                root_player
+            )
+
+        raise ValueError(
+            f"Unknown rollout type: {self.rollout_type}"
+        )

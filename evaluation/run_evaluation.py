@@ -44,12 +44,12 @@ def main_random_mcts():
 def main_random_mcts_once_sim_5():
 
     random_agent = RandomAgent()
-    mctsagent =MCTSAgent(simulations=5)
+    mctsagent =MCTSAgent(simulations=20)
 
     results = evaluate_agents(
         agent_a=random_agent,
         agent_b=mctsagent,
-        num_games=1,
+        num_games=20,
         debug_mode = True
     )
 
