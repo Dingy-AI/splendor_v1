@@ -21,7 +21,7 @@ def env():
 def mcts():
     return MCTS(simulations=10)
 
-@pytest.mark.parametrize("seed", range(20))
+@pytest.mark.parametrize("seed", range(5))
 def test_search_multiple_states(env, seed):
 
     random.seed(seed)

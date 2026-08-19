@@ -25,13 +25,13 @@ def main_random():
 def main_random_mcts():
 
     random_agent = RandomAgent()
-    mctsagent =MCTSAgent(simulations=5)
+    mctsagent =MCTSAgent(simulations=25)
 
     results = evaluate_agents(
         agent_a=random_agent,
         agent_b=mctsagent,
-        num_games=1,
-        print_mode = True
+        num_games=10,
+        print_mode = False
     )
 
     print("\nEvaluation Results")

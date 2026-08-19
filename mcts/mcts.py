@@ -32,7 +32,7 @@ class MCTS:
             # 1. Selection
             # -------------------------
             start = time.perf_counter()
-            leaf = self.select(root)
+            leaf = self.select(root, root_player)
             selection_time += time.perf_counter() - start
 
             # -------------------------
@@ -88,31 +88,64 @@ class MCTS:
             f"backup={backup_time:.4f}s"
         )
 
+        print("Legal root actions:", len(root.untried_actions) + len(root.children))
+        print("Expanded children:", len(root.children))
+        print(
+            [(child.visits, child.value) for child in root.children]
+        )
+
         return best_child.action
 
+
+    # def ucb_score(
+    #     self,
+    #     parent,
+    #     child,
+    #     exploration_constant=math.sqrt(2)
+    # ) -> float:
+
+    #     # Every child should be explored at least once
+    #     if child.visits == 0:
+    #         return float("inf")
+
+    #     exploitation = child.value / child.visits
+
+    #     exploration = exploration_constant * math.sqrt(
+    #         math.log(parent.visits) / child.visits
+    #     )
+
+    #     return exploitation + exploration
 
     def ucb_score(
         self,
         parent,
         child,
-        exploration_constant=math.sqrt(2)
-    ) -> float:
+        root_player,
+        exploration_constant=1.414
+    ):
 
-        # Every child should be explored at least once
         if child.visits == 0:
             return float("inf")
 
-        exploitation = child.value / child.visits
+        average_value = child.value/ child.visits
 
         exploration = exploration_constant * math.sqrt(
             math.log(parent.visits) / child.visits
         )
 
+        # Root player's turn:
+        # choose outcomes that are good for root
+        if parent.state.current_player == root_player:
+            exploitation = average_value
+
+        # Opponent's turn:
+        # choose outcomes that are bad for root
+        else:
+            exploitation = -average_value
+
         return exploitation + exploration
 
-
-
-    def select(self, node):
+    def select(self, node, root_player):
 
         current = node
 
@@ -132,7 +165,8 @@ class MCTS:
                 current.children,
                 key=lambda child: self.ucb_score(
                     current,
-                    child
+                    child,
+                    root_player
                 )
             )
 
@@ -165,47 +199,7 @@ class MCTS:
         node.children.append(child)
 
         return child
-
-    # def random_rollout(self, env, child, root_player, return_state=False):
-
-    #     rollout_env = env.clone()
-    #     # rollout_env = env
-
-    #     rollout_child = child.state.clone()
-    #     rollout_env.state = rollout_child
-
-    #     terminated = False
-    #     steps = 0
-
-    #     while not terminated:
-
-    #         actions = rollout_env._legal_actions(rollout_env.state)
-
-    #         if not actions:
-
-    #             return -1
-    #             # raise RuntimeError(
-    #             #     "Rollout reached state with no legal actions"
-    #             # )
-
-                 
-
-    #         action = random.choice(actions)
-
-    #         obs, reward, terminated, truncated, info = rollout_env.step(action)
-    #         steps += 1
-
-    #         if steps > 500:
-    #             terminated = True
-    #             return 0.0
-
-    #     winners = info['winners']
-
-    #     if return_state:
-    #         return rollout_env.state
-
-    #     return 1.0 if root_player in winners else 0.0
-
+    
 
     def random_rollout(
         self,
