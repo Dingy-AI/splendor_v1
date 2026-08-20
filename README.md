@@ -9,6 +9,4 @@ python -m splendor_v1.evaluation.run_evaluation
 
 pytest -s
 
-results from 
-Random vs MCTS Random Rollout
-
+python -m pytest splendor_v1/tests/test_19_observation_size.py

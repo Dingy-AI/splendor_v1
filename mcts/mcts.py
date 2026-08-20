@@ -4,7 +4,7 @@ from collections import Counter, defaultdict
 import math
 import time
 
-from splendor_v1.mcts.rollout import random_rollout
+from splendor_v1.mcts.rollout import random_rollout, heuristic_rollout, heuristic_rollout_v2
 
 class MCTS:
 
@@ -344,6 +344,13 @@ class MCTS:
             return heuristic_rollout(
                 env,
                 child,
+                root_player
+            )
+
+        if self.rollout_type == "heuristic_v2":
+            return heuristic_rollout_v2(
+                env,
+                child, 
                 root_player
             )
 

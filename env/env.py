@@ -643,7 +643,7 @@ class SplendorEnv(gym.Env):
     #     return gold_needed <= player.gems.get(GemColor.GOLD, 0)
     
 
-    def step(self, action: Action, state:GameState = None):
+    def step(self, action: Action, state:GameState = None, compute_observation=True):
 
         if state is None:
             state = self.state
@@ -664,8 +664,10 @@ class SplendorEnv(gym.Env):
 
 
         # 3. Compute observation
-        obs = self.observation_encoder.encoder(state)
-
+        if compute_observation:
+            obs = self.observation_encoder.encoder(state)
+        else:
+            obs = None
 
 
         # 4. Compute reward

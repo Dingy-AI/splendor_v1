@@ -84,17 +84,9 @@ ACTION_END = NOBLE_START + 3
 
 
 
-# going to need to upgrade this
-# Take gems     30
-# Reserve       15
-# Buy           15
-# Discard        6
-# Noble          5
-# -------------
-# Total         71
 NOBLE_2_PLAYER = 3
 
-ACTION_SPACE_SIZE = 128
+# ACTION_SPACE_SIZE = 128
 ACTION_SPACE_SIZE = (
         len(GEM_ACTIONS) + 
         12 + #number of visible reserves 

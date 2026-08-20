@@ -41,7 +41,7 @@ def main_random_mcts():
         print(f"{key}: {value}")
 
 
-def main_random_mcts_once_sim_5():
+def main_random_vs_random_rollout_20_20():
 
     random_agent = RandomAgent()
     mctsagent =MCTSAgent(simulations=20)
@@ -59,9 +59,64 @@ def main_random_mcts_once_sim_5():
     for key, value in results.items():
         print(f"{key}: {value}")
 
+def main_random_vs_heuristic_20_20():
+    random_agent = RandomAgent()
+    mctsagent = MCTSAgent(simulations=20, rollout_type="heuristic")
+
+    results = evaluate_agents(
+        agent_a=random_agent,
+        agent_b=mctsagent,
+        num_games=20,
+        debug_mode = True
+    )
+
+    print("\nEvaluation Results")
+    print("------------------")
+
+    for key, value in results.items():
+        print(f"{key}: {value}")
+
+def main_random_vs_heuristic_20_20():
+    random_agent = RandomAgent()
+    mctsagent = MCTSAgent(simulations=20, rollout_type="heuristic")
+
+    results = evaluate_agents(
+        agent_a=random_agent,
+        agent_b=mctsagent,
+        num_games=1,
+        debug_mode = True
+    )
+
+    print("\nEvaluation Results")
+    print("------------------")
+
+    for key, value in results.items():
+        print(f"{key}: {value}")
+
+
+
+def main_random_vs_heuristic_v2_20_20():
+    random_agent = RandomAgent()
+    mctsagent = MCTSAgent(simulations=20, rollout_type="heuristic_v2")
+
+    results = evaluate_agents(
+        agent_a=random_agent,
+        agent_b=mctsagent,
+        num_games=20,
+        debug_mode = True
+    )
+
+    print("\nEvaluation Results")
+    print("------------------")
+
+    for key, value in results.items():
+        print(f"{key}: {value}")
+
+
+
 
 
 
 if __name__ == "__main__":
     # main_random_mcts_once_sim_5()
-    main_random_mcts_once_sim_5()
+    main_random_vs_heuristic_v2_20_20()

@@ -1,12 +1,13 @@
 import random 
 from splendor_v1.env.core.actions import ActionType
-
+from splendor_v1.env.core.constants import COLOR_ORDER
 def random_rollout(
 
         env,
         child,
         root_player,
-        return_state=False
+        return_state=False,
+        compute_observation=False
     ):
 
         rollout_state = child.state.clone()
@@ -24,7 +25,8 @@ def random_rollout(
 
             obs, reward, terminated, truncated, info = env.step(
                 action,
-                state=rollout_state
+                state=rollout_state,
+                compute_observation=compute_observation
             )
 
             steps += 1
@@ -47,6 +49,7 @@ def heuristic_rollout(
     child,
     root_player,
     max_steps=40,
+    compute_observation=False
 ):
 
     rollout_state = child.state.clone()
@@ -65,7 +68,8 @@ def heuristic_rollout(
 
         _, _, terminated, truncated, info = env.step(
             action,
-            state=rollout_state
+            state=rollout_state,
+            compute_observation=compute_observation
         )
 
         if terminated or truncated:
@@ -164,4 +168,181 @@ def heuristic_value(
     return max(
         -1.0,
         min(1.0, value)
+    )
+
+
+def score_buy_action(env, state, action):
+
+    player = state.players[state.current_player]
+
+    if action.action_type == ActionType.BUY_VISIBLE:
+        card = state.visible_cards[action.tier][action.slot]
+
+    elif action.action_type == ActionType.BUY_RESERVED:
+        card = player.reserved_cards[action.reserved_index]
+
+    else:
+        return float("-inf")
+
+    return card.points * 3.0 + 1.0
+
+def card_deficit(player, card):
+
+    deficit = 0
+
+    for color in COLOR_ORDER:
+
+        required = max(
+            0,
+            card.cost.get(color, 0)
+            - player.bonuses.get(color, 0)
+        )
+
+        missing = max(
+            0,
+            required
+            - player.gems.get(color, 0)
+        )
+
+        deficit += missing
+
+    return deficit
+
+def score_take_action(env, state, action):
+
+    player = state.players[state.current_player]
+
+    cards = []
+
+    for tier_cards in state.visible_cards.values():
+        cards.extend(
+            card for card in tier_cards
+            if card is not None
+        )
+
+    cards.extend(player.reserved_cards)
+
+    if not cards:
+        return 0.0
+
+    before = min(
+        card_deficit(player, card)
+        for card in cards
+    )
+
+    # Cheap temporary gem counts
+    temp_gems = player.gems.copy()
+
+    for color in action.gem_colors:
+        temp_gems[color] += 1
+
+    class TempPlayer:
+        pass
+
+    temp_player = TempPlayer()
+    temp_player.gems = temp_gems
+    temp_player.bonuses = player.bonuses
+
+    after = min(
+        card_deficit(temp_player, card)
+        for card in cards
+    )
+
+    return before - after
+
+def heuristic_action_upgraded(env, state, actions):
+
+    scored = []
+
+    for action in actions:
+
+        if action.action_type in (
+            ActionType.BUY_VISIBLE,
+            ActionType.BUY_RESERVED,
+        ):
+            score = score_buy_action(
+                env,
+                state,
+                action,
+            )
+
+        elif action.action_type == ActionType.TAKE_GEMS:
+            score = score_take_action(
+                env,
+                state,
+                action,
+            )
+
+        elif action.action_type in (
+            ActionType.RESERVE_VISIBLE,
+            ActionType.RESERVE_TOP_DECK,
+        ):
+            score = 0.5
+
+        elif action.action_type == ActionType.TAKE_NOBLE:
+            score = 10.0
+
+        elif action.action_type == ActionType.DISCARD_GEMS:
+            score = 0.0
+
+        else:
+            score = 0.0
+
+        scored.append(
+            (score, action)
+        )
+
+    # Keep some stochasticity
+    if random.random() < 0.15:
+        return random.choice(actions)
+
+    return max(
+        scored,
+        key=lambda x: x[0]
+    )[1]
+
+
+def heuristic_rollout_v2(
+    env,
+    child,
+    root_player,
+    max_steps=40,
+):
+
+    rollout_state = child.state.clone()
+
+    for _ in range(max_steps):
+
+        actions = env._legal_actions(rollout_state)
+
+        # Dead-end state
+        if not actions:
+            return -1.0
+
+        # Choose a more sensible action
+        action = heuristic_action_upgraded(
+            env,
+            rollout_state,
+            actions,
+        )
+
+        _, _, terminated, truncated, info = env.step(
+            action,
+            state=rollout_state,
+        )
+
+        if terminated or truncated:
+
+            winners = info["winners"]
+
+            return (
+                1.0
+                if root_player in winners
+                else 0.0
+            )
+
+    # No terminal result after max_steps
+    return heuristic_value(
+        rollout_state,
+        root_player,
     )

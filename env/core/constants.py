@@ -36,3 +36,61 @@ COLOR_ORDER = [
     GemColor.RED,
     GemColor.BLACK
 ]
+
+### PLAYER ###
+#player size ->
+#player gems - 6
+#player bonus - 5
+
+#player reserved cards x3
+#player card requirement - 5
+#player card bonus - 5
+#player card victory points - 1
+
+#player points - 1
+
+### PLAYER TOTAL = 45 ###
+
+### ENEMY ###
+#enemy gems - 6
+#enemy bonus - 5
+
+#enemy reserved cards x3
+#enemy card requirements - 5
+#enemy card bonus - 5
+#enemy card victory points - 1
+
+#enemy points - 1
+
+### ENEMY TOTAL = 45 ###
+
+
+### BANK ###
+#bank -> 6
+### BANK TOTAL = 6 ###
+
+### DECK ###
+#deck_size -> 3
+### DECK TOTAL = 3 ###
+
+### NOBLE ###
+#nobles x3
+#nobles requirement - 5
+#nobles points - 1
+### NOBLE TOTAL = 18 ###
+
+### BOARD ###
+
+#board -> cards x12
+#card_cost -> 5
+#card_bonus -> 5
+#card_points -> 1
+
+# board * cards = 12 * 11 = 132 
+### BOARD TOTAL = 132
+
+
+#PLAYER + ENEMY + BANK + DECK + NOBLE + BOARD
+#45 + 45 + 6 + 3 + 18 + 132 = 249 = OBSERVATION SIZE
+OBSERVATION_SIZE = 249
+

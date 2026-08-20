@@ -38,11 +38,20 @@ class ObservationEncoder:
             # also probably just say how many turns it has been
 
         features = self._encode_players(state.players,state.current_player)
+        print(len(features))
+
 
         features = features + self._encode_bank(state.bank)
+        print(len(features))
+
         features = features + self._encode_decks(state.decks)
+        print(len(features))
+
         features = features + self._encode_nobles(state.nobles)
+        print(len(features))
+
         features = features + self._encode_board(state.visible_cards)
+        print(len(features))
 
         return np.array(features, dtype=np.float32)
 
@@ -161,8 +170,8 @@ class ObservationEncoder:
             feature = feature + [noble.points]
 
             #need to do a player check and a noble count checkw
-        if len(nobles) < 5:
-            feature = feature +  (5 - len(nobles)) * [0] * 6
+        # if len(nobles) < 5:
+        #     feature = feature +  (5 - len(nobles)) * [0] * 6
         return feature
     
     def _encode_board(self, visible_cards:  dict[int, list[Card]]):    
@@ -180,15 +189,21 @@ class ObservationEncoder:
         if card != None:
             # 3. cost vector
             for color in GemColor:
+
+                if color == GemColor.GOLD:
+                    continue
+
                 vec.append(card.cost.get(color, 0))
             # 2. bonus color one-hot
             for color in GemColor:
+                if color == GemColor.GOLD:
+                    continue
                 vec.append(1.0 if card.bonus_color == color else 0.0)
 
             # 1. points
             vec.append(card.points)
         else:
-            vec = [0.0 * 13]
+            vec = [0.0 * 11]
         return vec
 
 

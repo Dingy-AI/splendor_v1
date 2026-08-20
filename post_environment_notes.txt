@@ -227,7 +227,7 @@ agent_b_win_rate: 0.7
 average_steps: 114.2
 
 # longer test ->
-20 games 20 simulations 
+20 games 20 simulations random vs random rollout
 Evaluation Results
 ------------------
 agent_a_wins: 3
@@ -240,3 +240,44 @@ completed_games: 19
 agent_a_win_rate: 0.15789473684210525
 agent_b_win_rate: 0.8421052631578947
 average_steps: 107.9
+
+
+# 20 games 20 simulations random vs heuristic
+Evaluation Results
+------------------
+agent_a_wins: 6
+agent_b_wins: 14
+ties: 0
+deadlocks: 0
+games_played: 20
+total_steps: 2237
+completed_games: 20
+agent_a_win_rate: 0.3
+agent_b_win_rate: 0.7
+average_steps: 111.85
+
+
+# 20 games 20 simulations random vs heuristic 2
+Evaluation Results
+------------------
+agent_a_wins: 5
+agent_b_wins: 14
+ties: 0
+deadlocks: 1
+games_played: 20
+total_steps: 2262
+completed_games: 19
+agent_a_win_rate: 0.2631578947368421
+agent_b_win_rate: 0.7368421052631579
+average_steps: 113.1
+
+Network model
+→ forward-pass tests
+→ policy masking
+→ value/policy losses
+→ replay buffer
+→ one supervised training test
+→ neural evaluation inside MCTS
+→ PUCT
+→ self-play
+→ full training loop
