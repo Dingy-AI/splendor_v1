@@ -38,20 +38,15 @@ class ObservationEncoder:
             # also probably just say how many turns it has been
 
         features = self._encode_players(state.players,state.current_player)
-        print(len(features))
 
 
         features = features + self._encode_bank(state.bank)
-        print(len(features))
 
         features = features + self._encode_decks(state.decks)
-        print(len(features))
 
         features = features + self._encode_nobles(state.nobles)
-        print(len(features))
 
         features = features + self._encode_board(state.visible_cards)
-        print(len(features))
 
         return np.array(features, dtype=np.float32)
 

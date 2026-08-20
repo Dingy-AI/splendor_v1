@@ -3,13 +3,13 @@ import torch.nn as nn
 
 from splendor_v1.network.network_constants import NUM_HIDDEN_LAYERS, HIDDEN_SIZE, VALUE_OUTPUT_SIZE
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
-
+from splendor_v1.env.core.constants import OBSERVATION_SIZE
 
 class SplendorNetwork(nn.Module):
 
     def __init__(
         self,
-        observation_size: int,
+        observation_size: int = OBSERVATION_SIZE,
         action_space_size: int = ACTION_SPACE_SIZE,
         hidden_size: int = HIDDEN_SIZE,
     ):
