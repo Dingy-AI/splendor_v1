@@ -20,9 +20,12 @@ def env():
     return SplendorEnv()
 
 
-def test_forward_batch():
+@pytest.fixture
+def model():
+    return SplendorNetwork()
 
-    model = SplendorNetwork()
+
+def test_forward_batch(model):
 
     batch_size = 32
 
@@ -42,3 +45,62 @@ def test_forward_batch():
         batch_size,
         1
     )
+
+def test_forward_single_observation(model):
+
+    x = torch.randn(
+        1,
+        OBSERVATION_SIZE
+    )
+
+    policy_logits, values = model(x)
+
+    assert policy_logits.shape == (
+        1,
+        ACTION_SPACE_SIZE
+    )
+
+    assert values.shape == (1, 1)
+
+def test_value_is_bounded(model):
+    x = torch.randn(
+        32,
+        OBSERVATION_SIZE
+    )
+
+    _, values = model(x)
+
+    assert torch.all(values >= -1.0)
+    assert torch.all(values <= 1.0)
+
+def test_forward_has_no_nan(model):
+
+    x = torch.randn(
+        32,
+        OBSERVATION_SIZE
+    )
+
+    policy_logits, values = model(x)
+
+    assert not torch.isnan(policy_logits).any()
+    assert not torch.isnan(values).any()
+
+
+def test_forward_real_observation(env, model):
+
+    env.reset()
+
+    obs = env.observation_encoder.encoder(
+        env.state
+    )
+
+    x = torch.tensor(
+        obs,
+        dtype=torch.float32
+    ).unsqueeze(0)
+
+    policy_logits, value = model(x)
+
+    assert x.shape == (1, OBSERVATION_SIZE)
+    assert policy_logits.shape == (1, ACTION_SPACE_SIZE)
+    assert value.shape == (1, 1)
