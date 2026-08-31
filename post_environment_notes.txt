@@ -274,7 +274,7 @@ average_steps: 113.1
 Network model
 → forward-pass tests # DONE
 → policy masking #DONE
-→ value/policy losses
+→ value/policy losses #DONE
 → replay buffer
 → one supervised training test
 → neural evaluation inside MCTS
