@@ -203,6 +203,7 @@ def test_select_with_puct_chooses_higher_score_child():
         state=env.state.clone(),
         visits=10,
         untried_actions=[],
+        expanded=True
     )
 
     child_a = Node(

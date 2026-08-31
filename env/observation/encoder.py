@@ -173,16 +173,32 @@ class ObservationEncoder:
         #     feature = feature +  (5 - len(nobles)) * [0] * 6
         return feature
     
-    def _encode_board(self, visible_cards:  dict[int, list[Card]]):    
+    def _encode_board(
+        self,
+        visible_cards: dict[int, list[Card]],
+    ):
+
         feature = []
+
         for tier in (1, 2, 3):
+
             cards = visible_cards[tier]
 
             for card in cards:
+                feature.extend(
+                    self._encode_card(card)
+                )
 
-                feature.extend(self._encode_card(card))
+            missing_cards = 4 - len(cards)
+
+            feature.extend(
+                [0] * (
+                    missing_cards * 11
+                )
+            )
+
         return feature
-    
+        
     def _encode_card(self, card):
         vec = []
         if card != None:
@@ -202,7 +218,7 @@ class ObservationEncoder:
             # 1. points
             vec.append(card.points)
         else:
-            vec = [0.0 * 11]
+            vec = [0.0] * 11
         return vec
 
 

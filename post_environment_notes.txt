@@ -278,6 +278,56 @@ Network model
 → replay buffer #DONE
 → one supervised training test #DONE
 → neural evaluation inside MCTS #DONE
-→ PUCT
+→ PUCT #DONE
+→ check if expand still chooses an untried action randomly #DONE 
+
 → self-play
 → full training loop
+
+
+SQLITE 
+
+WEBSITE-UI -> PLAY TEST
+
+
+                    ENVIRONMENT
+                        │
+                        ▼
+                  action_mask
+                 "what is legal?"
+                        │
+                        ▼
+STATE ───────► NEURAL NETWORK
+                        │
+                        ▼
+                  policy_logits
+                        │
+                 mask + softmax
+                        │
+                        ▼
+                  policy_probs
+            "what does NN prefer?"
+                        │
+                        ▼
+                  PUCT priors
+                        │
+                        ▼
+                      MCTS
+                        │
+                 search happens
+                        │
+                        ▼
+                 visit counts
+                        │
+                        ▼
+              root_visit_policy()
+                        │
+                        ▼
+                 target_policy
+              "what MCTS prefers"
+                        │
+                        ▼
+                   POLICY LOSS
+                        │
+                        ▼
+                 NEURAL NETWORK

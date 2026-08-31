@@ -29,10 +29,35 @@ class MCTS:
         # Player whose decision we are trying to improve
         root_player = state.current_player
 
+        legal_actions = env._legal_actions(state)
+
+        if not legal_actions:
+            print(
+                "No legal actions:",
+                "terminated=",
+                env._check_terminated(state),
+                "node_type=",
+                state.node_type,
+                "current_player=",
+                state.current_player,
+                "turn=",
+                state.turn_number,
+            )
+
+        # Terminal or dead-end state
+        if not legal_actions:
+            if return_root:
+                return None, Node(
+                    state=state.clone(),
+                    untried_actions=[],
+                )
+
+            return None
+
         # Root node starts from the current game state
         root = Node(
             state=state.clone(),
-            untried_actions=env._legal_actions(state)
+            untried_actions=legal_actions
         )
 
         # initial_legal_count = len(root.untried_actions)
@@ -50,17 +75,40 @@ class MCTS:
             # 1. Selection
             # -------------------------
             # start = time.perf_counter()
-            leaf = self.select(root, root_player)
+            node = self.select(root, root_player)
             # selection_time += time.perf_counter() - start
 
             # -------------------------
             # 2. Expansion
             # -------------------------
             # start = time.perf_counter()
-            if leaf.untried_actions:
-                child = self.expand(env, leaf)
-            else:
-                child = leaf
+            if self.selection_type == "ucb":
+
+                if node.untried_actions:
+                    node = self.expand(
+                        env,
+                        node,
+                    )
+
+            elif self.selection_type == "puct":
+
+                if not node.expanded:
+
+                    self.expand_all_with_priors(
+                        env,
+                        node,
+                    )
+
+                    
+                    if node.children:
+                        node = max(
+                            node.children,
+                            key=lambda child: self.puct_score(
+                                node,
+                                child,
+                                root_player,
+                            ),
+                        )
             # expansion_time += time.perf_counter() - start
 
             # -------------------------
@@ -70,7 +118,7 @@ class MCTS:
 
             value = self.rollout(
                     env,
-                    child,
+                    node,
                     root_player=root_player
             )
 
@@ -83,7 +131,7 @@ class MCTS:
 
             # start = time.perf_counter()
             self.backup(
-                child,
+                node,
                 value
             )
             # backup_time += time.perf_counter() - start
@@ -269,17 +317,16 @@ class MCTS:
 
         while True:
 
-            # If this node still has actions we haven't expanded,
-            # stop here. Expansion should happen next.
-            if current.untried_actions:
-                return current
-
-            # Terminal / dead-end node
-            if not current.children:
-                return current
-
-            # Otherwise move down the most promising branch
             if self.selection_type == "ucb":
+
+                # UCB stops when there are still
+                # unexpanded actions at this node.
+                if current.untried_actions:
+                    return current
+
+                # Terminal / dead-end node
+                if not current.children:
+                    return current
 
                 current = max(
                     current.children,
@@ -291,6 +338,15 @@ class MCTS:
                 )
 
             elif self.selection_type == "puct":
+
+                # PUCT stops when this node
+                # has not been expanded yet.
+                if not current.expanded:
+                    return current
+
+                # Terminal / dead-end node
+                if not current.children:
+                    return current
 
                 current = max(
                     current.children,
@@ -469,8 +525,67 @@ class MCTS:
         exploration = (
             c_puct
             * child.prior
-            * math.sqrt(parent.visits)
+            * math.sqrt(
+                max(parent.visits, 1)
+            )
             / (1 + child.visits)
         )
 
         return exploitation + exploration
+
+    def expand_all_with_priors(
+        self,
+        env,
+        node,
+    ):
+        if env._check_terminated(node.state):
+            node.expanded = True
+            return
+
+
+        legal_actions = env._legal_actions(
+            node.state
+        )
+
+        if not legal_actions:
+            node.expanded = True
+            return
+
+            
+        policy_probs, _ = neural_evaluate(
+            env,
+            self.model,
+            node.state,
+        )
+
+        legal_actions = env._legal_actions(
+            node.state
+        )
+
+        for action in legal_actions:
+
+            child_state = node.state.clone()
+
+            env.step(
+                action,
+                state=child_state,
+            )
+
+            action_id = env.action_to_id(
+                action
+            )
+
+            child = Node(
+                state=child_state,
+                parent=node,
+                action=action,
+                prior=policy_probs[
+                    action_id
+                ].item(),
+            )
+
+            node.children.append(
+                child
+            )
+
+        node.expanded = True
