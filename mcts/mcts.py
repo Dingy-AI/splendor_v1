@@ -5,13 +5,24 @@ import math
 import time
 
 from splendor_v1.mcts.rollout import random_rollout, heuristic_rollout, heuristic_rollout_v2
-
+from splendor_v1.mcts.neural_evaluator import neural_evaluate
 class MCTS:
 
-    def __init__(self, simulations=1000, rollout_type="random"):
+    def __init__(self, 
+                 simulations=25, 
+                 rollout_type="random",
+                 selection_type='ucb',
+                 model=None):
         self.rollout_type = rollout_type
-
         self.simulations = simulations
+        self.model = model
+        self.selection_type = selection_type
+
+
+        if (rollout_type == "neural" or selection_type == 'puct') and model is None:
+            raise ValueError(
+                "A model is required for neural rollout."
+            )
 
     def search(self, env, state, return_root=False, debug=False):
 
@@ -24,13 +35,13 @@ class MCTS:
             untried_actions=env._legal_actions(state)
         )
 
-        initial_legal_count = len(root.untried_actions)
+        # initial_legal_count = len(root.untried_actions)
 
 
-        selection_time = 0
-        expansion_time = 0
-        rollout_time = 0
-        backup_time = 0
+        # selection_time = 0
+        # expansion_time = 0
+        # rollout_time = 0
+        # backup_time = 0
 
 
         for _ in range(self.simulations):
@@ -38,24 +49,24 @@ class MCTS:
             # -------------------------
             # 1. Selection
             # -------------------------
-            start = time.perf_counter()
+            # start = time.perf_counter()
             leaf = self.select(root, root_player)
-            selection_time += time.perf_counter() - start
+            # selection_time += time.perf_counter() - start
 
             # -------------------------
             # 2. Expansion
             # -------------------------
-            start = time.perf_counter()
+            # start = time.perf_counter()
             if leaf.untried_actions:
                 child = self.expand(env, leaf)
             else:
                 child = leaf
-            expansion_time += time.perf_counter() - start
+            # expansion_time += time.perf_counter() - start
 
             # -------------------------
             # 3. Rollout
             # -------------------------
-            start = time.perf_counter()
+            # start = time.perf_counter()
 
             value = self.rollout(
                     env,
@@ -63,17 +74,19 @@ class MCTS:
                     root_player=root_player
             )
 
-            rollout_time += time.perf_counter() - start
+            # rollout_time += time.perf_counter() - start
 
             # -------------------------
             # 4. Backup
             # -------------------------
-            start = time.perf_counter()
+
+
+            # start = time.perf_counter()
             self.backup(
                 child,
                 value
             )
-            backup_time += time.perf_counter() - start
+            # backup_time += time.perf_counter() - start
 
         # -------------------------
         # 5. Choose final action
@@ -85,141 +98,136 @@ class MCTS:
             root.children,
             key=lambda child: child.visits
         )
-
-        if return_root:
-            return best_child.action, root
-
         # -------------------------
         # 7. Diagnostics
         # -------------------------
-        if debug:
+        # if debug:
 
-            expanded_count = len(root.children)
+        #     expanded_count = len(root.children)
 
-            revisited_count = sum(
-                1
-                for child in root.children
-                if child.visits > 1
-            )
+        #     revisited_count = sum(
+        #         1
+        #         for child in root.children
+        #         if child.visits > 1
+        #     )
 
-            max_visits = max(
-                child.visits
-                for child in root.children
-            )
+        #     max_visits = max(
+        #         child.visits
+        #         for child in root.children
+        #     )
 
-            min_visits = min(
-                child.visits
-                for child in root.children
-            )
+        #     min_visits = min(
+        #         child.visits
+        #         for child in root.children
+        #     )
 
-            total_child_visits = sum(
-                child.visits
-                for child in root.children
-            )
+        #     total_child_visits = sum(
+        #         child.visits
+        #         for child in root.children
+        #     )
 
-            print("\nMCTS Search Diagnostics")
-            print("-----------------------")
+        #     print("\nMCTS Search Diagnostics")
+        #     print("-----------------------")
 
-            print(f"Turn: {state.turn_number}")
-            print(f"Root player: {root_player}")
-            print(f"Simulations: {self.simulations}")
+        #     print(f"Turn: {state.turn_number}")
+        #     print(f"Root player: {root_player}")
+        #     print(f"Simulations: {self.simulations}")
 
-            print()
-            print(f"Initial legal actions: {initial_legal_count}")
-            print(f"Expanded children: {expanded_count}")
-            print(f"Unexpanded actions: {len(root.untried_actions)}")
-            print(f"Revisited children: {revisited_count}")
+        #     print()
+        #     print(f"Initial legal actions: {initial_legal_count}")
+        #     print(f"Expanded children: {expanded_count}")
+        #     print(f"Unexpanded actions: {len(root.untried_actions)}")
+        #     print(f"Revisited children: {revisited_count}")
 
-            print()
-            print(f"Root visits: {root.visits}")
-            print(f"Total child visits: {total_child_visits}")
-            print(f"Max child visits: {max_visits}")
-            print(f"Min child visits: {min_visits}")
+        #     print()
+        #     print(f"Root visits: {root.visits}")
+        #     print(f"Total child visits: {total_child_visits}")
+        #     print(f"Max child visits: {max_visits}")
+        #     print(f"Min child visits: {min_visits}")
 
-            print()
-            print("Timing:")
-            print(f"  Selection: {selection_time:.4f}s")
-            print(f"  Expansion: {expansion_time:.4f}s")
-            print(f"  Rollout:   {rollout_time:.4f}s")
-            print(f"  Backup:    {backup_time:.4f}s")
+        #     print()
+        #     print("Timing:")
+        #     print(f"  Selection: {selection_time:.4f}s")
+        #     print(f"  Expansion: {expansion_time:.4f}s")
+        #     print(f"  Rollout:   {rollout_time:.4f}s")
+        #     print(f"  Backup:    {backup_time:.4f}s")
 
-            print()
-            print("Children:")
+        #     print()
+        #     print("Children:")
 
-            children_sorted = sorted(
-                root.children,
-                key=lambda child: child.visits,
-                reverse=True
-            )
+        #     children_sorted = sorted(
+        #         root.children,
+        #         key=lambda child: child.visits,
+        #         reverse=True
+        #     )
 
-            for i, child in enumerate(children_sorted):
+        #     for i, child in enumerate(children_sorted):
 
-                average_value = (
-                    child.value / child.visits
-                    if child.visits > 0
-                    else 0.0
-                )
+        #         average_value = (
+        #             child.value / child.visits
+        #             if child.visits > 0
+        #             else 0.0
+        #         )
 
-                print(
-                    f"{i:>2}. "
-                    f"visits={child.visits:<4} "
-                    f"value_sum={child.value:<7.2f} "
-                    f"avg={average_value:<7.3f} "
-                    f"action={child.action}"
-                )
-
-
-            type_counts = Counter(
-                child.action.action_type
-                for child in root.children
-            )
-
-            print()
-            print("Expanded Children by Action Type")
-            print("--------------------------------")
-
-            for action_type, count in type_counts.items():
-                print(
-                    f"{action_type.name:<20} "
-                    f"{count}"
-                )
+        #         print(
+        #             f"{i:>2}. "
+        #             f"visits={child.visits:<4} "
+        #             f"value_sum={child.value:<7.2f} "
+        #             f"avg={average_value:<7.3f} "
+        #             f"action={child.action}"
+        #         )
 
 
+        #     type_counts = Counter(
+        #         child.action.action_type
+        #         for child in root.children
+        #     )
 
-            print()
-            print("Visits by Action Type")
-            print("---------------------")
+        #     print()
+        #     print("Expanded Children by Action Type")
+        #     print("--------------------------------")
 
-            groups = defaultdict(list)
+        #     for action_type, count in type_counts.items():
+        #         print(
+        #             f"{action_type.name:<20} "
+        #             f"{count}"
+        #         )
 
-            for child in root.children:
-                groups[child.action.action_type].append(child)
 
-            for action_type, children in groups.items():
 
-                total_visits = sum(
-                    child.visits
-                    for child in children
-                )
+        #     print()
+        #     print("Visits by Action Type")
+        #     print("---------------------")
 
-                average_visits = (
-                    total_visits / len(children)
-                )
+        #     groups = defaultdict(list)
 
-                average_value = sum(
-                    child.value / child.visits
-                    for child in children
-                    if child.visits > 0
-                ) / len(children)
+        #     for child in root.children:
+        #         groups[child.action.action_type].append(child)
 
-                print(
-                    f"{action_type.name:<20} "
-                    f"children={len(children):<4} "
-                    f"visits={total_visits:<4} "
-                    f"avg_visits={average_visits:.2f} "
-                    f"avg_value={average_value:.3f}"
-                )
+        #     for action_type, children in groups.items():
 
+        #         total_visits = sum(
+        #             child.visits
+        #             for child in children
+        #         )
+
+        #         average_visits = (
+        #             total_visits / len(children)
+        #         )
+
+        #         average_value = sum(
+        #             child.value / child.visits
+        #             for child in children
+        #             if child.visits > 0
+        #         ) / len(children)
+
+        #         print(
+        #             f"{action_type.name:<20} "
+        #             f"children={len(children):<4} "
+        #             f"visits={total_visits:<4} "
+        #             f"avg_visits={average_visits:.2f} "
+        #             f"avg_value={average_value:.3f}"
+        #         )
 
         if return_root:
             return best_child.action, root
@@ -271,14 +279,34 @@ class MCTS:
                 return current
 
             # Otherwise move down the most promising branch
-            current = max(
-                current.children,
-                key=lambda child: self.ucb_score(
-                    current,
-                    child,
-                    root_player
+            if self.selection_type == "ucb":
+
+                current = max(
+                    current.children,
+                    key=lambda child: self.ucb_score(
+                        current,
+                        child,
+                        root_player,
+                    ),
                 )
-            )
+
+            elif self.selection_type == "puct":
+
+                current = max(
+                    current.children,
+                    key=lambda child: self.puct_score(
+                        current,
+                        child,
+                        root_player,
+                    ),
+                )
+
+            else:
+                raise ValueError(
+                    f"Unknown selection type: "
+                    f"{self.selection_type}"
+                )
+
 
     def expand(self, env, node):
 
@@ -302,17 +330,51 @@ class MCTS:
         # Fetch resulting state
         child_state = child_env.state
 
+        # child = Node(
+        #     state=child_state,
+        #     parent=node,
+        #     action=action,
+        #     untried_actions=child_env._legal_actions(child_state),
+
+        # )
+
+        # node.children.append(child)
+
+        # return child
+        prior = 0.0
+
+        if self.selection_type == "puct":
+
+            policy_probs, _ = neural_evaluate(
+                env,
+                self.model,
+                node.state,
+            )
+
+            action_id = env.action_to_id(
+                action
+            )
+
+            prior = policy_probs[
+                action_id
+            ].item()
+
         child = Node(
             state=child_state,
             parent=node,
             action=action,
-            untried_actions=child_env._legal_actions(child_state),
-
+            untried_actions=child_env._legal_actions(
+                child_state
+            ),
+            prior=prior,
         )
 
-        node.children.append(child)
+        node.children.append(
+            child
+        )
 
         return child
+
 
 
     def backup(self, node, value):
@@ -330,30 +392,85 @@ class MCTS:
         self,
         env,
         child,
-        root_player
+        root_player,
     ):
 
         if self.rollout_type == "random":
             return random_rollout(
                 env,
                 child,
-                root_player
+                root_player,
             )
 
         if self.rollout_type == "heuristic":
             return heuristic_rollout(
                 env,
                 child,
-                root_player
+                root_player,
             )
 
         if self.rollout_type == "heuristic_v2":
             return heuristic_rollout_v2(
                 env,
-                child, 
-                root_player
+                child,
+                root_player,
             )
+
+        if self.rollout_type == "neural":
+
+
+            if env._check_terminated(child.state):
+
+                if root_player in child.state.winners:
+                    return 1.0
+
+                if len(child.state.winners) == 0:
+                    return 0.0
+
+                return -1.0
+
+            policy_probs, value = neural_evaluate(
+                env,
+                self.model,
+                child.state,
+            )
+
+            # Neural value is from the perspective
+            # of the player to move at child.state.
+            if child.state.current_player != root_player:
+                value = -value
+
+            return value
 
         raise ValueError(
             f"Unknown rollout type: {self.rollout_type}"
         )
+
+    def puct_score(
+        self,
+        parent,
+        child,
+        root_player,
+        c_puct=1.5,
+    ):
+
+        if child.visits == 0:
+            average_value = 0.0
+        else:
+            average_value = (
+                child.value / child.visits
+            )
+
+        if parent.state.current_player == root_player:
+            exploitation = average_value
+        else:
+            exploitation = -average_value
+
+        exploration = (
+            c_puct
+            * child.prior
+            * math.sqrt(parent.visits)
+            / (1 + child.visits)
+        )
+
+        return exploitation + exploration

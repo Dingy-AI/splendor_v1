@@ -39,14 +39,18 @@ class ObservationEncoder:
 
         features = self._encode_players(state.players,state.current_player)
 
-
+        # print(len(features))
         features = features + self._encode_bank(state.bank)
+        # print(len(features))
 
         features = features + self._encode_decks(state.decks)
+        # print(len(features))
 
         features = features + self._encode_nobles(state.nobles)
+        # print(len(features))
 
         features = features + self._encode_board(state.visible_cards)
+        # print(len(features))
 
         return np.array(features, dtype=np.float32)
 
@@ -92,6 +96,7 @@ class ObservationEncoder:
 
         for player in players:
             feature = feature + self._encode_single_player(player)
+            # print(len(feature))
 
         # each player has 45 features
 
@@ -105,7 +110,7 @@ class ObservationEncoder:
         feature_gems = []
         feature_bonus = []
         feature_reserved_cards = []
-        for color in GemColor:            
+        for color in GemColor:
             if (color in player.gems):
                 feature_gems.append(player.gems[color] / GEM_SCALE_NORM)
             if color != GemColor.GOLD and color in player.bonuses:
@@ -117,7 +122,6 @@ class ObservationEncoder:
             # for i in len(player.reserved_cards):
             for reserved_index, card in enumerate(player.reserved_cards):
                 # need to refactor this into card encoding in the future
-                feature_reserved_cards.append(card.points)
                 feature_bonus_color = [0] * 5
                 for color in GemColor:
                     if color == GemColor.GOLD:

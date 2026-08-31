@@ -275,9 +275,9 @@ Network model
 → forward-pass tests # DONE
 → policy masking #DONE
 → value/policy losses #DONE
-→ replay buffer
-→ one supervised training test
-→ neural evaluation inside MCTS
+→ replay buffer #DONE
+→ one supervised training test #DONE
+→ neural evaluation inside MCTS #DONE
 → PUCT
 → self-play
 → full training loop

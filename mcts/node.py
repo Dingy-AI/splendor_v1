@@ -20,3 +20,5 @@ class Node:
     value: float = 0.0
 
     untried_actions: list[Action] = field(default_factory=list)
+
+    prior: float = 0.0
