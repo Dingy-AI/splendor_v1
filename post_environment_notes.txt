@@ -273,7 +273,7 @@ average_steps: 113.1
 
 Network model
 → forward-pass tests # DONE
-→ policy masking #START HERE
+→ policy masking #DONE
 → value/policy losses
 → replay buffer
 → one supervised training test

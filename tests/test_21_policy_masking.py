@@ -184,3 +184,99 @@ def test_get_policy_probs_preserves_shape():
         1,
         ACTION_SPACE_SIZE,
     )
+
+def test_full_policy_flow_with_real_environment(env, model):
+
+    # -------------------------
+    # Environment
+    # -------------------------
+    env.reset()
+
+    state = env.state
+
+    # -------------------------
+    # Real observation
+    # -------------------------
+    obs = env.observation_encoder.encoder(
+        state
+    )
+
+    assert len(obs) == OBSERVATION_SIZE
+
+    obs_tensor = torch.as_tensor(
+        obs,
+        dtype=torch.float32,
+    ).unsqueeze(0)
+
+    assert obs_tensor.shape == (
+        1,
+        OBSERVATION_SIZE,
+    )
+
+    # -------------------------
+    # Neural network
+    # -------------------------
+
+    policy_logits, value = model(
+        obs_tensor
+    )
+
+    assert policy_logits.shape == (
+        1,
+        ACTION_SPACE_SIZE,
+    )
+
+    assert value.shape == (1, 1)
+
+    # -------------------------
+    # Real environment mask
+    # -------------------------
+    action_mask = env.action_mask(
+        state
+    )
+
+    assert action_mask.shape == (
+        ACTION_SPACE_SIZE,
+    )
+
+    assert action_mask.sum() > 0
+
+    # -------------------------
+    # Mask + softmax
+    # -------------------------
+    policy_probs = get_policy_probs(
+        policy_logits,
+        action_mask,
+    )
+
+    # Correct shape
+    assert policy_probs.shape == (
+        1,
+        ACTION_SPACE_SIZE,
+    )
+
+    # Sum to 1
+    assert torch.allclose(
+        policy_probs.sum(dim=-1),
+        torch.tensor([1.0]),
+        atol=1e-6,
+    )
+
+    # No NaNs
+    assert not torch.isnan(
+        policy_probs
+    ).any()
+
+    # Illegal actions have exactly 0 probability
+    illegal_ids = action_mask == 0
+
+    assert torch.all(
+        policy_probs[0][illegal_ids] == 0
+    )
+
+    # Legal actions have positive probability
+    legal_ids = action_mask == 1
+
+    assert torch.all(
+        policy_probs[0][legal_ids] > 0
+    )
