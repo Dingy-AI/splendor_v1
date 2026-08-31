@@ -272,8 +272,8 @@ agent_b_win_rate: 0.7368421052631579
 average_steps: 113.1
 
 Network model
-→ forward-pass tests
-→ policy masking
+→ forward-pass tests # DONE
+→ policy masking #START HERE
 → value/policy losses
 → replay buffer
 → one supervised training test
