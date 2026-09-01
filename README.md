@@ -10,3 +10,5 @@ python -m splendor_v1.evaluation.run_evaluation
 pytest -s
 
 python -m pytest splendor_v1/tests/test_19_observation_size.py
+
+python -m splendor_v1.scripts.run_training

@@ -4,7 +4,7 @@ from splendor_v1.network.losses import policy_value_loss
 import numpy as np
 from splendor_v1.training.self_play import play_self_play_game
 from splendor_v1.mcts.mcts import MCTS
-
+import time
 
 def run_training(
     env,
@@ -19,8 +19,13 @@ def run_training(
 ):
     history = []
 
-    for iteration in range(num_iterations):
 
+    for iteration in range(num_iterations):
+        start = time.perf_counter()
+
+
+        total_self_play_time = 0.0
+        total_mcts_time = 0.0
         mcts = MCTS(
             simulations=simulations,
             rollout_type="neural",
@@ -31,11 +36,26 @@ def run_training(
         for _ in range(
             self_play_games_per_iteration
         ):
-            play_self_play_game(
+            game_stats = play_self_play_game(
                 env,
                 mcts,
                 replay_buffer,
             )
+
+
+
+            total_self_play_time += (
+                time.perf_counter() - start
+            )
+            if  game_stats:
+                total_mcts_time += (
+                    game_stats["mcts_time"]
+                )
+            else:
+                print("Game crashed with game stats as none.")
+
+
+        train_start = time.perf_counter()
 
         stats = train_network(
             model=model,
@@ -45,7 +65,34 @@ def run_training(
             training_steps=training_steps,
         )
 
+
+
+        train_time = (
+            time.perf_counter()
+            - train_start
+        )
+
         history.append(stats)
+
+
+        print(
+            f"\nIteration {iteration + 1}"
+        )
+
+        print(
+            f"Self-play time: "
+            f"{total_self_play_time:.2f}s"
+        )
+
+        print(
+            f"MCTS search time: "
+            f"{total_mcts_time:.2f}s"
+        )
+
+        print(
+            f"Network training time: "
+            f"{train_time:.2f}s"
+        )
 
     return history
 

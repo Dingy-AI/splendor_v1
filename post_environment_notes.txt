@@ -282,7 +282,7 @@ Network model
 → check if expand still chooses an untried action randomly #DONE 
 
 → self-play #DONE
-→ full training loop
+→ full training loop # DONE 
 
        1. Generate self-play games
        2. Store (observation, target_policy, target_value)
@@ -293,10 +293,15 @@ Network model
        7. Update network weights
        8. Repeat
 
-Self-play action sampling from root visits
-Test self-play action sampling
-Run a small end-to-end training experiment
-Add basic training logging
+Self-play action sampling from root visits #DONE 
+Test self-play action sampling #DONE
+Run a small end-to-end training experiment #DONE
+Add basic training logging #DONE
+Fixing small issue in game evaluation #DONE
+
+Diagnosing issue with self play # ON-GOING
+Build Trained-model evaluation 
+compare against a fixed baseline
 Save/load model checkpoints
 Build trained-model evaluation
 Track strength across training

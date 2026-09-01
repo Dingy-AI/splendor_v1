@@ -3,7 +3,7 @@
 import numpy as np
 
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
-
+import time 
 
 def root_visit_policy(env, root):
 
@@ -49,7 +49,28 @@ def play_self_play_game(
     truncated = False
     info = {}
 
+    mcts_time = 0.0
+
+    turn_count = 0
+    MAX_TURNS = 300
+
     while not terminated and not truncated:
+        turn_count += 1
+        if turn_count > MAX_TURNS:
+            print(
+                f"Game aborted after "
+                f"{MAX_TURNS} turns"
+            )
+            break
+
+        if turn_count % 25 == 0:
+            print(
+                f"Turn {turn_count}: "
+                f"player={env.state.current_player}, "
+                f"node={env.state.node_type}"
+            )
+
+
 
         state = env.state
 
@@ -58,11 +79,18 @@ def play_self_play_game(
                 state
             )
         )
+        mcts_start = time.perf_counter()
+
 
         _, root = mcts.search(
             env,
             state,
             return_root=True,
+        )
+
+        mcts_time += (
+            time.perf_counter()
+            - mcts_start
         )
 
         if not root.children:
@@ -91,37 +119,38 @@ def play_self_play_game(
 
         
         _, _, terminated, truncated, info = env.step(action)
+        
+    if terminated:
+        winners = info["winners"]
 
-    if not terminated:
-        return
-
-    winners = info["winners"]
-
-    for (
-        observation,
-        target_policy,
-        player,
-    ) in game_history:
-
-        if len(winners) != 1:
-            target_value = 0.0
-
-        elif player in winners:
-            target_value = 1.0
-
-        else:
-            target_value = -1.0
-
-        replay_buffer.add(
+        for (
             observation,
             target_policy,
-            target_value,
-        )
+            player,
+        ) in game_history:
 
-    return {
-        "winners": winners,
-        "game_length": len(game_history),
-    }
+            if len(winners) != 1:
+                target_value = 0.0
+
+            elif player in winners:
+                target_value = 1.0
+
+            else:
+                target_value = -1.0
+
+            replay_buffer.add(
+                observation,
+                target_policy,
+                target_value,
+            )
+
+        return {
+            "winners": winners,
+            "game_length": len(game_history),
+            "mcts_time": mcts_time,
+        }
+    else:
+        return
 
 def select_self_play_action(
     root,

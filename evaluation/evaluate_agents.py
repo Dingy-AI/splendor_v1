@@ -15,6 +15,7 @@ def evaluate_agents(
         "deadlocks": 0,
         "games_played": 0,
         "total_steps": 0,
+        "aborted": 0
     }
 
     for game_index in range(num_games):
@@ -60,9 +61,20 @@ def evaluate_agents(
 
         if result["deadlock"]:
             results["deadlocks"] += 1
+
             if debug_mode:
                 print("Game Deadlocked.")
                 print("Game Results: ", results)
+
+            continue
+
+        if result["aborted"]:
+            results["aborted"] += 1
+
+            if debug_mode:
+                print("Game Aborted: Max Steps Reached.")
+                print("Game Results: ", results)
+
             continue
 
         winners = result["winners"]
@@ -142,6 +154,7 @@ def play_game(
                 "winners": [],
                 "steps": steps,
                 "deadlock": True,
+                "aborted": False,
             }
 
         current_player = env.state.current_player
@@ -167,11 +180,13 @@ def play_game(
             return {
                 "winners": [],
                 "steps": steps,
-                "deadlock": True,
+                "deadlock": False,
+                "aborted": True
             }
 
     return {
         "winners": info["winners"],
         "steps": steps,
         "deadlock": False,
+        "aborted": False
     }
