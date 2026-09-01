@@ -59,10 +59,18 @@ def play_self_play_game(
             )
         )
 
-        action, root = mcts.search(
+        _, root = mcts.search(
             env,
             state,
             return_root=True,
+        )
+
+        if not root.children:
+            break
+
+        action = select_self_play_action(
+            root,
+            temperature=1.0,
         )
 
         if action is None:
@@ -114,3 +122,51 @@ def play_self_play_game(
         "winners": winners,
         "game_length": len(game_history),
     }
+
+def select_self_play_action(
+    root,
+    temperature=1.0,
+):
+    if not root.children:
+        raise ValueError(
+            "Cannot select action from root with no children."
+        )
+
+    visits = np.array(
+        [
+            child.visits
+            for child in root.children
+        ],
+        dtype=np.float64,
+    )
+
+    if temperature == 0:
+        best_index = np.argmax(visits)
+        return root.children[best_index].action
+
+    if temperature < 0:
+        raise ValueError(
+            "Temperature must be >= 0."
+        )
+
+    adjusted_visits = (
+        visits ** (1.0 / temperature)
+    )
+
+    total = adjusted_visits.sum()
+
+    if total == 0:
+        raise ValueError(
+            "Root children have no visits."
+        )
+
+    probabilities = (
+        adjusted_visits / total
+    )
+
+    index = np.random.choice(
+        len(root.children),
+        p=probabilities,
+    )
+
+    return root.children[index].action

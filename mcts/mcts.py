@@ -51,7 +51,8 @@ class MCTS:
                     state=state.clone(),
                     untried_actions=[],
                 )
-
+            state.game_over = True
+            state.winners = []
             return None
 
         # Root node starts from the current game state
@@ -485,6 +486,15 @@ class MCTS:
 
                 return -1.0
 
+            legal_actions = env._legal_actions(
+                child.state
+            )
+
+            if not legal_actions:
+                # Deadlock
+                return 0.0                
+
+
             policy_probs, value = neural_evaluate(
                 env,
                 self.model,
@@ -548,6 +558,9 @@ class MCTS:
         )
 
         if not legal_actions:
+            node.state.game_over = True
+            node.state.winners = []
+            node.expanded = True            
             node.expanded = True
             return
 
@@ -556,10 +569,6 @@ class MCTS:
             env,
             self.model,
             node.state,
-        )
-
-        legal_actions = env._legal_actions(
-            node.state
         )
 
         for action in legal_actions:

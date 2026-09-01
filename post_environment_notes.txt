@@ -281,8 +281,30 @@ Network model
 → PUCT #DONE
 → check if expand still chooses an untried action randomly #DONE 
 
-→ self-play
+→ self-play #DONE
 → full training loop
+
+       1. Generate self-play games
+       2. Store (observation, target_policy, target_value)
+       3. Sample batches from replay buffer
+       4. Run model forward pass
+       5. Compute policy + value loss
+       6. Backpropagate
+       7. Update network weights
+       8. Repeat
+
+Self-play action sampling from root visits
+Test self-play action sampling
+Run a small end-to-end training experiment
+Add basic training logging
+Save/load model checkpoints
+Build trained-model evaluation
+Track strength across training
+Evaluate new model vs. previous model
+Tune hyperparameters
+Profile and optimize performance
+Add persistent replay storage (SQLite)
+Add advanced AlphaZero features
 
 
 SQLITE 
