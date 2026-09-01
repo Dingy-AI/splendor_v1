@@ -2,7 +2,7 @@ import torch
 
 from splendor_v1.network.losses import policy_value_loss
 import numpy as np
-from splendor_v1.training.checkpoint import save_model_if_needed
+from splendor_v1.training.checkpoint import save_model_if_needed, save_checkpoint
 from splendor_v1.training.self_play import play_self_play_game
 from splendor_v1.mcts.mcts import MCTS
 import time
@@ -124,6 +124,25 @@ def run_training(
             f"Network training time: "
             f"{train_time:.2f}s"
         )
+
+    save_checkpoint(
+        path=(
+            f"{checkpoint_dir}/"
+            f"model_{games_played}_games_last.pt"
+        ),
+        model=model,
+        optimizer=optimizer,
+        games_played=games_played,
+        history=history,
+    )
+
+    print(
+        f"Final checkpoint saved: "
+        f"{games_played} games"
+    )
+
+
+
 
     return history
 
