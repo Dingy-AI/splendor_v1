@@ -119,7 +119,7 @@ def play_self_play_game(
 
         
         _, _, terminated, truncated, info = env.step(action)
-        
+
     if terminated:
         winners = info["winners"]
 
@@ -145,12 +145,16 @@ def play_self_play_game(
             )
 
         return {
+            "completed": True,
             "winners": winners,
             "game_length": len(game_history),
             "mcts_time": mcts_time,
         }
     else:
-        return
+        return {
+            "completed": False,
+            "mcts_time": mcts_time
+        }
 
 def select_self_play_action(
     root,

@@ -297,17 +297,21 @@ Self-play action sampling from root visits #DONE
 Test self-play action sampling #DONE
 Run a small end-to-end training experiment #DONE
 Add basic training logging #DONE
+
+Diagnosing issue with self play # DONE MAYBE?
 Fixing small issue in game evaluation #DONE
 
-Diagnosing issue with self play # ON-GOING
-Build Trained-model evaluation 
-compare against a fixed baseline
-Save/load model checkpoints
-Build trained-model evaluation
+BUILD agent wrapper for Neural PUCT MODEL #DONE
+Build Trained-model evaluation #DONE
+
+compare against a random baseline 
+Save/load checkpoints #DONE
+PUCT vs random-rollout MCTS
+Performance profiling/optimization
 Track strength across training
-Evaluate new model vs. previous model
-Tune hyperparameters
-Profile and optimize performance
+Tune training/MCTS hyperparameters
+
+
 Add persistent replay storage (SQLite)
 Add advanced AlphaZero features
 
@@ -358,3 +362,96 @@ STATE ───────► NEURAL NETWORK
                         │
                         ▼
                  NEURAL NETWORK
+
+run_training(
+        env=env,
+        model=model,
+        optimizer=optimizer,
+        replay_buffer=replay_buffer,
+        num_iterations=3,
+        self_play_games_per_iteration=2,
+        simulations=5,
+        batch_size=32,
+        training_steps=10,
+)
+
+ITERATION 1
+    ↓
+Play 2 self-play games
+    ↓
+Store all positions in replay buffer
+    ↓
+Sample 32 positions
+Train
+    ↓
+Sample 32 positions
+Train
+    ↓
+... × 10 training steps
+
+ITERATION 2
+    ↓
+Play 2 games using UPDATED network
+    ↓
+Add positions to existing replay buffer
+    ↓
+10 more training steps
+
+ITERATION 3
+    ↓
+Play 2 games using UPDATED network
+    ↓
+Add positions
+    ↓
+10 more training steps
+
+simulations=5 controls how much thinking MCTS does before making one move:
+Game position
+   ↓
+5 PUCT simulations
+   ↓
+visit distribution
+   ↓
+choose move
+
+Think of one simulation as:
+
+Current Splendor position
+        ↓
+      SELECT
+PUCT chooses a promising path
+        ↓
+      EXPAND
+Reach an unexplored position
+        ↓
+     EVALUATE
+Neural network estimates its value
+        ↓
+      BACKUP
+Update visit counts + values
+
+5 simulations
+→ very cheap
+→ shallow/limited search
+
+50 simulations
+→ substantially more search
+→ more informed visit distribution
+
+200 simulations
+→ much stronger search
+→ much more expensive
+
+800 simulations
+→ very substantial search
+→ potentially extremely expensive
+
+Evaluating trained PUCT vs random...
+Evaluation complete.
+PUCT wins: 0
+Random wins: 10
+Ties: 0
+Deadlocks: 0
+Aborted: 0
+PUCT win rate: 0.00%
+Average steps: 176.1

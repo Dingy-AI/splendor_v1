@@ -2,6 +2,7 @@ import torch
 
 from splendor_v1.network.losses import policy_value_loss
 import numpy as np
+from splendor_v1.training.checkpoint import save_model_if_needed
 from splendor_v1.training.self_play import play_self_play_game
 from splendor_v1.mcts.mcts import MCTS
 import time
@@ -16,16 +17,32 @@ def run_training(
     simulations,
     batch_size,
     training_steps,
+    checkpoint_every_games=None,
+    checkpoint_dir="checkpoints",
+    starting_games_played=0,
 ):
     history = []
 
+    games_played = starting_games_played
 
+    if checkpoint_every_games is not None:
+        next_checkpoint = (
+            (
+                games_played
+                // checkpoint_every_games
+            )
+            + 1
+        ) * checkpoint_every_games
+    else:
+        next_checkpoint = None
+
+    
     for iteration in range(num_iterations):
         start = time.perf_counter()
 
-
         total_self_play_time = 0.0
         total_mcts_time = 0.0
+
         mcts = MCTS(
             simulations=simulations,
             rollout_type="neural",
@@ -47,13 +64,15 @@ def run_training(
             total_self_play_time += (
                 time.perf_counter() - start
             )
-            if  game_stats:
+            if  game_stats['completed']:
                 total_mcts_time += (
                     game_stats["mcts_time"]
                 )
-            else:
-                print("Game crashed with game stats as none.")
 
+                games_played += 1
+
+            else:
+                print("Game crashed and Terminated Early.")
 
         train_start = time.perf_counter()
 
@@ -73,6 +92,18 @@ def run_training(
         )
 
         history.append(stats)
+
+
+        if checkpoint_every_games is not None:
+            next_checkpoint = save_model_if_needed(
+                model=model,
+                optimizer=optimizer,
+                games_played=games_played,
+                history=history,
+                checkpoint_every_games=checkpoint_every_games,
+                next_checkpoint=next_checkpoint,
+                checkpoint_dir=checkpoint_dir,
+            )
 
 
         print(
