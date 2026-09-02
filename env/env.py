@@ -1,7 +1,7 @@
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
-from splendor_v1.env.core.constants import MAX_GEMS, VICTORY_REQUIREMENT, COLOR_ORDER
+from splendor_v1.env.core.constants import MAX_GEMS, VICTORY_REQUIREMENT, COLOR_ORDER, COLOR_TO_INDEX
 from splendor_v1.env.core.action_constants import GEM_ACTION_TO_ID, DISCARD_COLOR_TO_ID, TAKE_GEMS_START, RESERVE_START, RESERVE_DECK_START, BUY_START, BUY_RESERVED_START, DISCARD_START, NOBLE_START, GEM_ACTIONS, ACTION_END, T1_PAYMENT_COUNT, T2_PAYMENT_COUNT, T3_PAYMENT_COUNT, BUY_T1_START, BUY_T2_START, BUY_T3_START, BUY_END, DISCARD_COLORS
 
 from splendor_v1.env.state.base import GameState
@@ -202,7 +202,7 @@ class SplendorEnv(gym.Env):
     #                     )
     #                 )
     #     return actions
-    def _legal_buy_visible(self, state: GameState) -> list[Action]:
+    def slow_legal_buy_visible(self, state: GameState) -> list[Action]:
 
         actions = []
 
@@ -237,6 +237,49 @@ class SplendorEnv(gym.Env):
                                     gold_payment=actual_payment,
                                 )
                             )
+
+        return actions
+
+    def _legal_buy_visible(self, state: GameState) -> list[Action]:
+
+        actions = []
+
+        player = state.players[state.current_player]
+
+        for tier, cards in state.visible_cards.items():
+
+            payment_lookup = self._get_tier_payment_lookup(tier)
+
+            for slot, card in enumerate(cards):
+                if card is None:
+                    continue
+
+                if not self._can_afford_card(player, card):
+                    continue
+                
+                color_mapping = self.get_color_mapping(card)
+
+                for payment_id, canonical_payment in enumerate(payment_lookup):
+
+                    actual_payment = self.map_payment_to_card(
+                        canonical_payment,
+                        color_mapping
+                    )
+
+                    if self._can_pay(
+                        player,
+                        card,
+                        actual_payment
+                    ):
+                        actions.append(
+                            Action(
+                                action_type=ActionType.BUY_VISIBLE,
+                                tier=tier,
+                                slot=slot,
+                                payment_id=payment_id,
+                                gold_payment=actual_payment,
+                            )
+                        )
 
         return actions
 
@@ -326,7 +369,7 @@ class SplendorEnv(gym.Env):
         return actual_colors
 
 
-    def map_payment_to_card(self,
+    def slow_map_payment_to_card(self,
         canonical_payment,
         color_mapping
     ):
@@ -348,6 +391,21 @@ class SplendorEnv(gym.Env):
             payment[color]
             for color in COLOR_ORDER
         )
+
+    def map_payment_to_card(
+        self,
+        canonical_payment,
+        color_mapping,
+    ):
+        payment = [0] * len(COLOR_ORDER)
+
+        for idx, amount in enumerate(canonical_payment):
+            if amount > 0:
+                actual_color = color_mapping[idx]
+                payment[COLOR_TO_INDEX[actual_color]] = amount
+
+        return tuple(payment)
+
     def _get_payment_options(self, player, card):
 
         #This converts the GemColor.WHITE:1, etc... into 
@@ -384,7 +442,7 @@ class SplendorEnv(gym.Env):
 
         return COST_TO_ID[cost]
 
-    def _legal_buy_reserved(self, state: GameState) -> list[Action]:
+    def slow_legal_buy_reserved(self, state: GameState) -> list[Action]:
 
         actions = []
 
@@ -392,7 +450,7 @@ class SplendorEnv(gym.Env):
 
         for reserved_index, card in enumerate(player.reserved_cards):
 
-            card_type = self.get_card_type(card)
+            # card_type = self.get_card_type(card)
 
             color_mapping = self.get_color_mapping(card)
 
@@ -423,6 +481,54 @@ class SplendorEnv(gym.Env):
                     )
 
         return actions
+
+    def _legal_buy_reserved(self, state: GameState) -> list[Action]:
+
+        actions = []
+
+        player = state.players[state.current_player]
+
+        for reserved_index, card in enumerate(player.reserved_cards):
+
+            if not self._can_afford_card(
+                player,
+                card,
+            ):
+                continue
+
+            # card_type = self.get_card_type(card)
+
+            color_mapping = self.get_color_mapping(card)
+
+            # Only generate payments that apply to this card type
+            # payments = PAYMENT_TABLE[card_type]
+
+            # payment_lookup = self._get_tier_payment_lookup(card.tier)
+            payment_lookup = T3_PAYMENT_LOOKUP
+            for payment_id, canonical_payment in enumerate(payment_lookup):
+
+                actual_payment = self.map_payment_to_card(
+                    canonical_payment,
+                    color_mapping
+                )
+
+                if self._can_pay(
+                    player,
+                    card,
+                    actual_payment
+                ):
+                    actions.append(
+                        Action(
+                            action_type=ActionType.BUY_RESERVED,
+                            reserved_index=reserved_index,
+                            payment_id=payment_id,
+                            gold_payment=actual_payment,
+                        )
+                    )
+
+        return actions
+
+
 
     def _legal_reserve_visible(self, state: GameState) -> list[Action]:
         actions = []
@@ -624,23 +730,23 @@ class SplendorEnv(gym.Env):
         return True
 
 
-    # def _can_afford(self, player: Player, card: Card) -> bool:
-    #     gold_needed = 0
-    #     for color, cost in card.cost.items():
-    #         # Apply bonus discount
-            
-    #         discounted_cost = max(0, cost - player.bonuses.get(color, 0))
-    #         # How many colored gems do we actually have?
+    def _can_afford_card(self, player, card):
+        gold_needed = 0
 
-    #         # there is an issue with card color and gem color
-    #         # I will make a quick fix but will need to re-factor in the future
+        for color in COLOR_ORDER:
+            remaining_cost = max(
+                card.cost[color] - player.bonuses[color],
+                0,
+            )
 
+            shortage = max(
+                remaining_cost - player.gems[color],
+                0,
+            )
 
-    #         available = player.gems.get(color, 0)
-    #         # Missing gems must be covered by gold
-    #         gold_needed += max(0, discounted_cost - available)
+            gold_needed += shortage
 
-    #     return gold_needed <= player.gems.get(GemColor.GOLD, 0)
+        return gold_needed <= player.gems[GemColor.GOLD]
     
 
     def step(self, action: Action, state:GameState = None, compute_observation=True):

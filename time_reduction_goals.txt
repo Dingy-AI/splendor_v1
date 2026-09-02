@@ -2,7 +2,48 @@ Current
 ~138 sec/game
 ~26 games/hour
 
-Milestone 1
+slow_clone: 664.67 µs/clone, 1505 clones/sec 
+clone: 3.36 µs/clone, 297282 clones/sec 
+Speedup: 197.59x Time reduction: 99.5%
+
+slow_map_payment_to_card: 2.08 µs/call, 480917 calls/sec
+map_payment_to_card: 0.73 µs/call, 1367806 calls/sec
+map_payment_to_card_fixed ->
+Speedup: 2.84x Time reduction: 64.8%
+
+
+Legal buy actions: 0 
+slow_legal_buy_visible: 708.94 µs/call, 1411 calls/sec 
+_legal_buy_visible: 25.64 µs/call, 38994 calls/sec 
+Speedup: 27.64x Time reduction: 96.4% 
+
+Legal buy actions: 8 
+slow_legal_buy_visible: 773.37 µs/call, 1293 calls/sec 
+_legal_buy_visible: 173.92 µs/call, 5750 calls/sec 
+Speedup: 4.45x Time reduction: 77.5%
+
+Legal reserved buy actions: 0
+
+slow_legal_buy_reserved: 311.07 µs/call, 3215 calls/sec
+_legal_buy_reserved: 6.55 µs/call, 152735 calls/sec
+
+Speedup: 47.51x
+Time reduction: 97.9%
+
+Legal reserved buy actions: 1
+
+slow_legal_buy_reserved: 315.65 µs/call, 3168 calls/sec
+_legal_buy_reserved: 123.93 µs/call, 8069 calls/sec
+
+Speedup: 2.55x
+Time reduction: 60.7%
+
+
+#After speed reduction we are hitting approximately
+ 
+14 - 19.9 seconds/game
+
+Milestone 1 #ACHIEVED!
 30 sec/game
 120 games/hour
 

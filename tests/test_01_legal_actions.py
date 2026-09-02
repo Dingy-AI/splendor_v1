@@ -72,9 +72,10 @@ def test_no_gold_action(env):
 def test_reserve_limit_reached(env):
     env.reset()
     env.state.players[0].reserved_cards = [
-            Card(10000, 2, 1, GemColor.WHITE, {GemColor.WHITE: 5}), 
-            Card(10000, 2, 1, GemColor.WHITE, {GemColor.WHITE: 5}),
-            Card(10000, 2, 1, GemColor.WHITE, {GemColor.WHITE: 5})]
+            Card(10000, 2, 1, GemColor.WHITE, {GemColor.WHITE: 5, GemColor.BLUE: 0, GemColor.GREEN: 0, GemColor.RED:0, GemColor.BLACK:0}), 
+            Card(10000, 2, 1, GemColor.WHITE, {GemColor.WHITE: 5, GemColor.BLUE: 0, GemColor.GREEN: 0, GemColor.RED:0, GemColor.BLACK:0}), 
+            Card(10000, 2, 1, GemColor.WHITE, {GemColor.WHITE: 5, GemColor.BLUE: 0, GemColor.GREEN: 0, GemColor.RED:0, GemColor.BLACK:0}), 
+            ]
 
     actions = env._legal_actions(env.state)
 
@@ -122,7 +123,7 @@ def test_buy_reserve_card(env):
 
 def test_reserve_limit(env):
     env.reset()
-    test_card = Card(1,1,5,GemColor.RED, cost={GemColor.WHITE: 1, GemColor.RED: 1, GemColor.GREEN:1, GemColor.BLACK: 1})
+    test_card = Card(1,1,5,GemColor.RED, cost={GemColor.WHITE: 1, GemColor.BLUE: 0, GemColor.RED: 1, GemColor.GREEN:1, GemColor.BLACK: 1})
     env.state.players[0].reserved_cards=[test_card, test_card, test_card]
 
     actions = env._legal_actions(env.state)

@@ -37,6 +37,11 @@ COLOR_ORDER = [
     GemColor.BLACK
 ]
 
+COLOR_TO_INDEX = {
+    color: i
+    for i, color in enumerate(COLOR_ORDER)
+}
+
 ### PLAYER ###
 #player size ->
 #player gems - 6

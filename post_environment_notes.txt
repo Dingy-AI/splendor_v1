@@ -319,8 +319,14 @@ PUCT vs random-rollout MCTS #SKIPPING THIS for now -> I think need to come back
 
 Chang deep Cloning optimization # DONE 
   334 sec -> 275 sec over two games
-Performance profiling/optimization 
+Performance profiling/optimization #ON-GOING
   I looked up a dude and he was able to train 25,000 games in 12 hours
+
+increased map_payment_to_card speed # DONE
+slow_map_payment_to_card: 2.08 µs/call, 480917 calls/sec 
+map_payment_to_card: 0.73 µs/call, 1367806 calls/sec 
+Speedup: 2.84x Time reduction: 64.8%
+
 
 Add persistent replay storage (SQLite)
 Track strength across training
