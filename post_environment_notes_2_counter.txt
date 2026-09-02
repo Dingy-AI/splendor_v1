@@ -1,0 +1,334 @@
+    run_training(
+        env=env,
+        model=model,
+        optimizer=optimizer,
+        replay_buffer=replay_buffer,
+        num_iterations=3,
+        self_play_games_per_iteration=2,
+        simulations=5,
+        batch_size=32,
+        training_steps=10,
+    )
+
+Self-play action counts:
+Game total: 100 actions
+  RESERVE_VISIBLE: 6 (6.0%)
+  TAKE_GEMS: 52 (52.0%)
+  BUY_VISIBLE: 27 (27.0%)
+  DISCARD_GEMS: 13 (13.0%)
+  BUY_RESERVED: 1 (1.0%)
+  RESERVE_TOP_DECK: 1 (1.0%)
+
+Player 0: 50 actions
+  RESERVE_VISIBLE: 3 (6.0%)
+  TAKE_GEMS: 23 (46.0%)
+  BUY_VISIBLE: 16 (32.0%)
+  DISCARD_GEMS: 6 (12.0%)
+  BUY_RESERVED: 1 (2.0%)
+  RESERVE_TOP_DECK: 1 (2.0%)
+
+Player 1: 50 actions
+  RESERVE_VISIBLE: 3 (6.0%)
+  TAKE_GEMS: 29 (58.0%)
+  BUY_VISIBLE: 11 (22.0%)
+  DISCARD_GEMS: 7 (14.0%)
+
+Self-play action counts:
+Game total: 119 actions
+  TAKE_GEMS: 54 (45.4%)
+  RESERVE_VISIBLE: 6 (5.0%)
+  BUY_VISIBLE: 31 (26.1%)
+  DISCARD_GEMS: 25 (21.0%)
+  TAKE_NOBLE: 2 (1.7%)
+  BUY_RESERVED: 1 (0.8%)
+
+Player 0: 58 actions
+  TAKE_GEMS: 28 (48.3%)
+  RESERVE_VISIBLE: 3 (5.2%)
+  BUY_VISIBLE: 14 (24.1%)
+  DISCARD_GEMS: 11 (19.0%)
+  TAKE_NOBLE: 1 (1.7%)
+  BUY_RESERVED: 1 (1.7%)
+
+Player 1: 61 actions
+  TAKE_GEMS: 26 (42.6%)
+  RESERVE_VISIBLE: 3 (4.9%)
+  DISCARD_GEMS: 14 (23.0%)
+  BUY_VISIBLE: 17 (27.9%)
+  TAKE_NOBLE: 1 (1.6%)
+
+Self-play action counts:
+Game total: 277 actions
+  TAKE_GEMS: 112 (40.4%)
+  DISCARD_GEMS: 114 (41.2%)
+  RESERVE_VISIBLE: 6 (2.2%)
+  BUY_VISIBLE: 42 (15.2%)
+  TAKE_NOBLE: 3 (1.1%)
+
+Player 0: 151 actions
+  TAKE_GEMS: 66 (43.7%)
+  DISCARD_GEMS: 71 (47.0%)
+  RESERVE_VISIBLE: 3 (2.0%)
+  BUY_VISIBLE: 11 (7.3%)
+
+Player 1: 126 actions
+  TAKE_GEMS: 46 (36.5%)
+  BUY_VISIBLE: 31 (24.6%)
+  RESERVE_VISIBLE: 3 (2.4%)
+  DISCARD_GEMS: 43 (34.1%)
+  TAKE_NOBLE: 3 (2.4%)
+
+Self-play action counts:
+Game total: 300 actions
+  TAKE_GEMS: 119 (39.7%)
+  DISCARD_GEMS: 134 (44.7%)
+  BUY_VISIBLE: 38 (12.7%)
+  RESERVE_VISIBLE: 6 (2.0%)
+  TAKE_NOBLE: 3 (1.0%)
+
+Player 0: 140 actions
+  TAKE_GEMS: 52 (37.1%)
+  DISCARD_GEMS: 55 (39.3%)
+  BUY_VISIBLE: 27 (19.3%)
+  RESERVE_VISIBLE: 3 (2.1%)
+  TAKE_NOBLE: 3 (2.1%)
+
+Player 1: 160 actions
+  TAKE_GEMS: 67 (41.9%)
+  BUY_VISIBLE: 11 (6.9%)
+  RESERVE_VISIBLE: 3 (1.9%)
+  DISCARD_GEMS: 79 (49.4%)
+Game crashed and Terminated Early.
+
+Self-play action counts:
+Game total: 253 actions
+  TAKE_GEMS: 122 (48.2%)
+  RESERVE_VISIBLE: 6 (2.4%)
+  DISCARD_GEMS: 82 (32.4%)
+  BUY_VISIBLE: 40 (15.8%)
+  TAKE_NOBLE: 3 (1.2%)
+
+Player 0: 116 actions
+  TAKE_GEMS: 56 (48.3%)
+  RESERVE_VISIBLE: 3 (2.6%)
+  DISCARD_GEMS: 29 (25.0%)
+  BUY_VISIBLE: 25 (21.6%)
+  TAKE_NOBLE: 3 (2.6%)
+
+Player 1: 137 actions
+  TAKE_GEMS: 66 (48.2%)
+  RESERVE_VISIBLE: 3 (2.2%)
+  DISCARD_GEMS: 53 (38.7%)
+  BUY_VISIBLE: 15 (10.9%)
+
+Self-play action counts:
+Game total: 300 actions
+  TAKE_GEMS: 154 (51.3%)
+  RESERVE_VISIBLE: 6 (2.0%)
+  DISCARD_GEMS: 133 (44.3%)
+  BUY_VISIBLE: 7 (2.3%)
+
+Player 0: 141 actions
+  TAKE_GEMS: 76 (53.9%)
+  RESERVE_VISIBLE: 3 (2.1%)
+  DISCARD_GEMS: 57 (40.4%)
+  BUY_VISIBLE: 5 (3.5%)
+
+Player 1: 159 actions
+  TAKE_GEMS: 78 (49.1%)
+  RESERVE_VISIBLE: 3 (1.9%)
+  DISCARD_GEMS: 76 (47.8%)
+  BUY_VISIBLE: 2 (1.3%)
+Game crashed and Terminated Early.
+
+    run_training(
+        env=env,
+        model=model,
+        optimizer=optimizer,
+        replay_buffer=replay_buffer,
+        num_iterations=3,
+        self_play_games_per_iteration=2,
+        simulations=20,
+        batch_size=32,
+        training_steps=10,
+    )
+
+Self-play action counts:
+Game total: 116 actions
+  TAKE_GEMS: 46 (39.7%)
+  RESERVE_VISIBLE: 9 (7.8%)
+  RESERVE_TOP_DECK: 4 (3.4%)
+  BUY_VISIBLE: 23 (19.8%)
+  DISCARD_GEMS: 25 (21.6%)
+  BUY_RESERVED: 8 (6.9%)
+  TAKE_NOBLE: 1 (0.9%)
+
+Player 0: 55 actions
+  TAKE_GEMS: 23 (41.8%)
+  RESERVE_VISIBLE: 3 (5.5%)
+  RESERVE_TOP_DECK: 3 (5.5%)
+  BUY_VISIBLE: 13 (23.6%)
+  DISCARD_GEMS: 9 (16.4%)
+  BUY_RESERVED: 3 (5.5%)
+  TAKE_NOBLE: 1 (1.8%)
+
+Player 1: 61 actions
+  TAKE_GEMS: 23 (37.7%)
+  RESERVE_VISIBLE: 6 (9.8%)
+  RESERVE_TOP_DECK: 1 (1.6%)
+  BUY_VISIBLE: 10 (16.4%)
+  BUY_RESERVED: 5 (8.2%)
+  DISCARD_GEMS: 16 (26.2%)
+
+Self-play action counts:
+Game total: 88 actions
+  TAKE_GEMS: 36 (40.9%)
+  BUY_VISIBLE: 21 (23.9%)
+  RESERVE_VISIBLE: 6 (6.8%)
+  BUY_RESERVED: 7 (8.0%)
+  RESERVE_TOP_DECK: 6 (6.8%)
+  DISCARD_GEMS: 10 (11.4%)
+  TAKE_NOBLE: 2 (2.3%)
+
+Player 0: 46 actions
+  TAKE_GEMS: 18 (39.1%)
+  BUY_VISIBLE: 12 (26.1%)
+  RESERVE_VISIBLE: 2 (4.3%)
+  BUY_RESERVED: 3 (6.5%)
+  RESERVE_TOP_DECK: 3 (6.5%)
+  DISCARD_GEMS: 7 (15.2%)
+  TAKE_NOBLE: 1 (2.2%)
+
+Player 1: 42 actions
+  RESERVE_VISIBLE: 4 (9.5%)
+  TAKE_GEMS: 18 (42.9%)
+  RESERVE_TOP_DECK: 3 (7.1%)
+  BUY_VISIBLE: 9 (21.4%)
+  BUY_RESERVED: 4 (9.5%)
+  DISCARD_GEMS: 3 (7.1%)
+  TAKE_NOBLE: 1 (2.4%)
+
+Iteration 1
+Self-play time: 457.37s
+MCTS search time: 293.84s
+Network training time: 0.04s
+
+Self-play action counts:
+Game total: 209 actions
+  RESERVE_VISIBLE: 5 (2.4%)
+  RESERVE_TOP_DECK: 3 (1.4%)
+  TAKE_GEMS: 87 (41.6%)
+  DISCARD_GEMS: 79 (37.8%)
+  BUY_VISIBLE: 31 (14.8%)
+  BUY_RESERVED: 2 (1.0%)
+  TAKE_NOBLE: 2 (1.0%)
+
+Player 0: 115 actions
+  RESERVE_VISIBLE: 2 (1.7%)
+  RESERVE_TOP_DECK: 1 (0.9%)
+  TAKE_GEMS: 49 (42.6%)
+  DISCARD_GEMS: 51 (44.3%)
+  BUY_VISIBLE: 12 (10.4%)
+
+Player 1: 94 actions
+  RESERVE_VISIBLE: 3 (3.2%)
+  TAKE_GEMS: 38 (40.4%)
+  RESERVE_TOP_DECK: 2 (2.1%)
+  DISCARD_GEMS: 28 (29.8%)
+  BUY_VISIBLE: 19 (20.2%)
+  BUY_RESERVED: 2 (2.1%)
+  TAKE_NOBLE: 2 (2.1%)
+
+  Self-play action counts:
+Game total: 189 actions
+  TAKE_GEMS: 86 (45.5%)
+  RESERVE_VISIBLE: 7 (3.7%)
+  RESERVE_TOP_DECK: 2 (1.1%)
+  BUY_VISIBLE: 28 (14.8%)
+  DISCARD_GEMS: 61 (32.3%)
+  BUY_RESERVED: 3 (1.6%)
+  TAKE_NOBLE: 2 (1.1%)
+
+Player 0: 101 actions
+  TAKE_GEMS: 46 (45.5%)
+  RESERVE_VISIBLE: 3 (3.0%)
+  RESERVE_TOP_DECK: 1 (1.0%)
+  BUY_VISIBLE: 12 (11.9%)
+  DISCARD_GEMS: 38 (37.6%)
+  BUY_RESERVED: 1 (1.0%)
+
+Player 1: 88 actions
+  TAKE_GEMS: 40 (45.5%)
+  RESERVE_VISIBLE: 4 (4.5%)
+  RESERVE_TOP_DECK: 1 (1.1%)
+  DISCARD_GEMS: 23 (26.1%)
+  BUY_VISIBLE: 16 (18.2%)
+  BUY_RESERVED: 2 (2.3%)
+  TAKE_NOBLE: 2 (2.3%)
+
+Iteration 2
+Self-play time: 835.34s
+MCTS search time: 547.55s
+Network training time: 0.04s
+
+Self-play action counts:
+Game total: 197 actions
+  TAKE_GEMS: 89 (45.2%)
+  BUY_VISIBLE: 40 (20.3%)
+  RESERVE_VISIBLE: 3 (1.5%)
+  DISCARD_GEMS: 58 (29.4%)
+  RESERVE_TOP_DECK: 2 (1.0%)
+  BUY_RESERVED: 2 (1.0%)
+  TAKE_NOBLE: 3 (1.5%)
+
+Player 0: 103 actions
+  TAKE_GEMS: 47 (45.6%)
+  BUY_VISIBLE: 19 (18.4%)
+  RESERVE_VISIBLE: 2 (1.9%)
+  DISCARD_GEMS: 35 (34.0%)
+
+Player 1: 94 actions
+  TAKE_GEMS: 42 (44.7%)
+  BUY_VISIBLE: 21 (22.3%)
+  DISCARD_GEMS: 23 (24.5%)
+  RESERVE_TOP_DECK: 2 (2.1%)
+  BUY_RESERVED: 2 (2.1%)
+  TAKE_NOBLE: 3 (3.2%)
+  RESERVE_VISIBLE: 1 (1.1%)
+
+Self-play action counts:
+Game total: 300 actions
+  TAKE_GEMS: 139 (46.3%)
+  BUY_VISIBLE: 39 (13.0%)
+  RESERVE_TOP_DECK: 4 (1.3%)
+  DISCARD_GEMS: 105 (35.0%)
+  BUY_RESERVED: 7 (2.3%)
+  RESERVE_VISIBLE: 3 (1.0%)
+  TAKE_NOBLE: 3 (1.0%)
+
+Player 0: 157 actions
+  TAKE_GEMS: 71 (45.2%)
+  BUY_VISIBLE: 17 (10.8%)
+  RESERVE_TOP_DECK: 3 (1.9%)
+  DISCARD_GEMS: 59 (37.6%)
+  BUY_RESERVED: 4 (2.5%)
+  RESERVE_VISIBLE: 1 (0.6%)
+  TAKE_NOBLE: 2 (1.3%)
+
+Player 1: 143 actions
+  TAKE_GEMS: 68 (47.6%)
+  DISCARD_GEMS: 46 (32.2%)
+  RESERVE_VISIBLE: 2 (1.4%)
+  BUY_VISIBLE: 22 (15.4%)
+  TAKE_NOBLE: 1 (0.7%)
+  BUY_RESERVED: 3 (2.1%)
+  RESERVE_TOP_DECK: 1 (0.7%)
+
+Iteration 3
+Self-play time: 1070.36s
+MCTS search time: 803.24s
+Network training time: 0.04s
+Final checkpoint saved: 6 games
+
+Step=99, Player=0, Agent=NeuralPUCTAgent, Action=Action(action_type=<ActionType.TAKE_GEMS: 4>, tier=None, slot=None, reserved_index=None, gem_colors=(<GemColor.GREEN: 2>,), noble_index=None, payment_id=None, gold_payment=None), Scores=[1, 4]
+Step=100, Player=0, Agent=NeuralPUCTAgent, Action=Action(action_type=<ActionType.DISCARD_GEMS: 5>, tier=None, slot=None, reserved_index=None, gem_colors=(<GemColor.GREEN: 2>,), noble_index=None, payment_id=None, gold_payment=None), Scores=[1, 4]

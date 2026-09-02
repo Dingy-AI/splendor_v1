@@ -304,15 +304,18 @@ Fixing small issue in game evaluation #DONE
 BUILD agent wrapper for Neural PUCT MODEL #DONE
 Build Trained-model evaluation #DONE
 
-compare against a random baseline 
+compare against a random baseline #DONE 
 Save/load checkpoints #DONE
+
+NEED TO TUNE #DONE
+Tested different simulations amounts and bug is still here #DONE
+
+Look into issue/bug that is causing take into discard 
 PUCT vs random-rollout MCTS
 Performance profiling/optimization
+Add persistent replay storage (SQLite)
 Track strength across training
 Tune training/MCTS hyperparameters
-
-
-Add persistent replay storage (SQLite)
 Add advanced AlphaZero features
 
 
@@ -455,3 +458,82 @@ Deadlocks: 0
 Aborted: 0
 PUCT win rate: 0.00%
 Average steps: 176.1
+
+Evaluation complete.
+PUCT wins: 0
+Random wins: 8
+Ties: 0
+Deadlocks: 0
+Aborted: 2
+PUCT win rate: 0.00%
+Average steps: 159.4
+
+
+Self-play decision counts:
+Game total: 107 decisions
+  MAIN_DECISION: 86 (80.4%)
+  OVERFLOW_DISCARD: 20 (18.7%)
+  NOBLE_CLAIM: 1 (0.9%)
+
+Player 0: 57 decisions
+  MAIN_DECISION: 43 (75.4%)
+  OVERFLOW_DISCARD: 13 (22.8%)
+  NOBLE_CLAIM: 1 (1.8%)
+
+Player 1: 50 decisions
+  MAIN_DECISION: 43 (86.0%)
+  OVERFLOW_DISCARD: 7 (14.0%)
+
+Self-play decision counts:
+Game total: 300 decisions
+  MAIN_DECISION: 186 (62.0%)
+  OVERFLOW_DISCARD: 111 (37.0%)
+  NOBLE_CLAIM: 3 (1.0%)
+
+Player 0: 149 decisions
+  MAIN_DECISION: 93 (62.4%)
+  OVERFLOW_DISCARD: 55 (36.9%)
+  NOBLE_CLAIM: 1 (0.7%)
+
+Player 1: 151 decisions
+  MAIN_DECISION: 93 (61.6%)
+  OVERFLOW_DISCARD: 56 (37.1%)
+  NOBLE_CLAIM: 2 (1.3%)
+
+
+Self-play decision counts:
+Game total: 212 decisions
+  MAIN_DECISION: 150 (70.8%)
+  OVERFLOW_DISCARD: 61 (28.8%)
+  NOBLE_CLAIM: 1 (0.5%)
+
+Player 0: 111 decisions
+  MAIN_DECISION: 75 (67.6%)
+  OVERFLOW_DISCARD: 36 (32.4%)
+
+Player 1: 101 decisions
+  MAIN_DECISION: 75 (74.3%)
+  OVERFLOW_DISCARD: 25 (24.8%)
+  NOBLE_CLAIM: 1 (1.0%)
+
+
+Self-play decision counts:
+Game total: 250 decisions
+  MAIN_DECISION: 163 (65.2%)
+  OVERFLOW_DISCARD: 85 (34.0%)
+  NOBLE_CLAIM: 2 (0.8%)
+
+Player 0: 117 decisions
+  MAIN_DECISION: 82 (70.1%)
+  OVERFLOW_DISCARD: 33 (28.2%)
+  NOBLE_CLAIM: 2 (1.7%)
+
+Player 1: 133 decisions
+  MAIN_DECISION: 81 (60.9%)
+  OVERFLOW_DISCARD: 52 (39.1%)
+
+Iteration 3
+Self-play time: 223.49s
+MCTS search time: 151.63s
+Network training time: 0.10s
+Final checkpoint saved: 5 games

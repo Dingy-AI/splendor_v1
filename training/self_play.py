@@ -4,7 +4,7 @@ import numpy as np
 
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 import time 
-
+from collections import Counter
 def root_visit_policy(env, root):
 
     target_policy = np.zeros(
@@ -40,6 +40,11 @@ def play_self_play_game(
     mcts,
     replay_buffer,
 ):
+
+    action_counts = {
+        0: Counter(),
+        1: Counter(),
+    }
 
     env.reset()
 
@@ -109,11 +114,17 @@ def play_self_play_game(
             root,
         )
 
+        player = state.current_player
+
+        action_counts[player][
+            action.action_type
+        ] += 1
+
         game_history.append(
             (
                 observation,
                 target_policy,
-                state.current_player,
+                player,
             )
         )
 
@@ -123,11 +134,7 @@ def play_self_play_game(
     if terminated:
         winners = info["winners"]
 
-        for (
-            observation,
-            target_policy,
-            player,
-        ) in game_history:
+        for (observation,target_policy,player) in game_history:
 
             if len(winners) != 1:
                 target_value = 0.0
@@ -144,6 +151,70 @@ def play_self_play_game(
                 target_value,
             )
 
+        print("\nSelf-play action counts:")
+
+        game_action_counts = Counter()
+
+        for counts in action_counts.values():
+            game_action_counts.update(counts)
+
+        game_total = sum(
+            game_action_counts.values()
+        )
+
+        print(
+            f"Game total: "
+            f"{game_total} actions"
+        )
+
+        for action_type, count in (
+            game_action_counts.items()
+        ):
+            percentage = (
+                count / game_total * 100
+                if game_total > 0
+                else 0
+            )
+
+            print(
+                f"  {action_type.name}: "
+                f"{count} "
+                f"({percentage:.1f}%)"
+            )
+
+
+        # Per-player breakdown
+
+        for player in (0, 1):
+
+            total = sum(
+                action_counts[player].values()
+            )
+
+            print(
+                f"\nPlayer {player}: "
+                f"{total} actions"
+            )
+
+            for action_type, count in (
+                action_counts[player].items()
+            ):
+                percentage = (
+                    count / total * 100
+                    if total > 0
+                    else 0
+                )
+
+                print(
+                    f"  {action_type.name}: "
+                    f"{count} "
+                    f"({percentage:.1f}%)"
+                )
+
+
+
+
+
         return {
             "completed": True,
             "winners": winners,
@@ -151,6 +222,70 @@ def play_self_play_game(
             "mcts_time": mcts_time,
         }
     else:
+
+
+        print("\nSelf-play action counts:")
+
+        game_action_counts = Counter()
+
+        for counts in action_counts.values():
+            game_action_counts.update(counts)
+
+        game_total = sum(
+            game_action_counts.values()
+        )
+
+        print(
+            f"Game total: "
+            f"{game_total} actions"
+        )
+
+        for action_type, count in (
+            game_action_counts.items()
+        ):
+            percentage = (
+                count / game_total * 100
+                if game_total > 0
+                else 0
+            )
+
+            print(
+                f"  {action_type.name}: "
+                f"{count} "
+                f"({percentage:.1f}%)"
+            )
+
+
+        # Per-player breakdown
+
+        for player in (0, 1):
+
+            total = sum(
+                action_counts[player].values()
+            )
+
+            print(
+                f"\nPlayer {player}: "
+                f"{total} actions"
+            )
+
+            for action_type, count in (
+                action_counts[player].items()
+            ):
+                percentage = (
+                    count / total * 100
+                    if total > 0
+                    else 0
+                )
+
+                print(
+                    f"  {action_type.name}: "
+                    f"{count} "
+                    f"({percentage:.1f}%)"
+                )
+
+
+        
         return {
             "completed": False,
             "mcts_time": mcts_time

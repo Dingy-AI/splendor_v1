@@ -172,6 +172,15 @@ def play_game(
                 f"illegal action: {action}"
             )
 
+        print(
+            f"Step={steps}, "
+            f"Player={current_player}, "
+            f"Agent={type(agent).__name__}, "
+            f"Action={action}, "
+            f"Scores="
+            f"{[p.points for p in env.state.players]}"
+        )
+
         obs, reward, terminated, truncated, info = env.step(action)
 
         steps += 1

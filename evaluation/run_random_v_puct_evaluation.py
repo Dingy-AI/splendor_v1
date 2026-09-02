@@ -46,7 +46,7 @@ def main_random_vs_puct():
         replay_buffer=replay_buffer,
         num_iterations=3,
         self_play_games_per_iteration=2,
-        simulations=5,
+        simulations=20,
         batch_size=32,
         training_steps=10,
     )
@@ -71,7 +71,7 @@ def main_random_vs_puct():
     results = evaluate_agents(
         agent_a=trained_agent,
         agent_b=random_agent,
-        num_games=10,
+        num_games=1,
         max_steps=300,
         debug_mode=True,
     )

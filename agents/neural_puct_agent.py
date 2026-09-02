@@ -6,7 +6,7 @@ class NeuralPUCTAgent:
     def __init__(
         self,
         model,
-        simulations=5,
+        simulations=20,
     ):
         self.model = model
 

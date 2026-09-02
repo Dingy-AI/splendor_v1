@@ -30,7 +30,7 @@ def main():
 
     checkpoint_path = None
 
-    # checkpoint_path = ("checkpoints/model_500_games.pt")
+    # checkpoint_path = ("checkpoints/model_4_games.pt")
 
     if checkpoint_path is not None:
 
@@ -49,7 +49,7 @@ def main():
         )
 
     print(f"{starting_games_played} games")
-    
+
     replay_buffer = ReplayBuffer(
         max_size=100_000,
     )
@@ -78,7 +78,7 @@ def main():
         batch_size=32,
         training_steps=2,
         checkpoint_every_games=2,
-        starting_games_played=starting_games_played
+        starting_games_played=starting_games_played,
     )
 
     print("\nTraining complete.")
