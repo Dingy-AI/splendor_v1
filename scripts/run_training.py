@@ -74,7 +74,7 @@ def main():
         replay_buffer=replay_buffer,
         num_iterations=2,
         self_play_games_per_iteration=2,
-        simulations=2,
+        simulations=20,
         batch_size=32,
         training_steps=2,
         checkpoint_every_games=2,

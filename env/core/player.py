@@ -15,6 +15,23 @@ class Player:
     points: int = 0
 
 
+    def clone(self):
+        return Player(
+            id=self.id,
+
+            gems=self.gems.copy(),
+
+            bonuses=self.bonuses.copy(),
+
+            reserved_cards=self.reserved_cards.copy(),
+
+            purchased_cards=self.purchased_cards.copy(),
+
+            nobles=self.nobles.copy(),
+
+            points=self.points,
+        )
+
     # gems: dict = field(default_factory=dict)
     # bonuses: dict = field(default_factory=dict)
     # reserved_cards: list = field(default_factory=list)
