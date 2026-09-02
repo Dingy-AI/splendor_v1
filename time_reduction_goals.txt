@@ -1,0 +1,52 @@
+Current
+~138 sec/game
+~26 games/hour
+
+Milestone 1
+30 sec/game
+120 games/hour
+
+Milestone 2
+10 sec/game
+360 games/hour
+
+Milestone 3
+3–5 sec/game
+720–1200 games/hour
+
+Stretch target
+~1.7 sec/game
+~2083 games/hour
+
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+175488818  431.626    0.000 1089.278    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:329(map_payment_to_card)
+1052932908  192.388    0.000  384.526    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:347(<genexpr>)
+175451094   85.949    0.000  164.867    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:582(_can_pay)
+   172221   56.004    0.000 1000.326    0.006 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:205(_legal_buy_visible)
+   172221   19.091    0.000  352.502    0.002 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:387(_legal_buy_reserved)
+  2273100   11.687    0.000   23.851    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\observation\encoder.py:202(_encode_card)
+   378850    8.058    0.000   13.940    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\observation\encoder.py:109(_encode_single_player)
+  2518258    5.455    0.000   19.326    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:289(get_color_mapping)
+   172221    3.670    0.000    6.864    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:477(_legal_take_gems)
+ 12591290    3.222    0.000    4.718    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:309(<lambda>)
+    10281    2.150    0.000 1288.142    0.125 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\mcts\mcts.py:546(expand_all_with_priors)
+   189425    1.942    0.000    3.194    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\observation\encoder.py:155(_encode_nobles)
+   189425    1.244    0.000   25.805    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\observation\encoder.py:176(_encode_board)
+   189425    1.061    0.000   47.854    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\observation\encoder.py:18(encoder)
+   413882    0.994    0.000    3.199    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:256(get_card_type)
+   168540    0.976    0.000    2.551    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\state\base.py:26(clone)
+   172221    0.957    0.000    1.962    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:427(_legal_reserve_visible)
+   168540    0.819    0.000 1153.159    0.007 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:646(step)
+   337080    0.797    0.000    1.197    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\core\player.py:18(clone)
+   189425    0.686    0.000   14.646    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\observation\encoder.py:92(_encode_players)
+   189425    0.597    0.000    1.057    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\observation\encoder.py:141(_encode_bank)
+   172221    0.562    0.000 1363.088    0.008 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:165(_legal_main_actions)
+203670/20367    0.436    0.000    6.121    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\.venv\Lib\site-packages\torch\nn\modules\module.py:1774(_wrapped_call_impl)
+  1478231    0.427    0.000    0.427    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:277(<genexpr>)
+   505484    0.427    0.000    1.068    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:1029(action_to_id)
+   172221    0.423    0.000    0.695    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:453(_legal_reserve_top_deck)
+203670/20367    0.353    0.000    6.073    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\.venv\Lib\site-packages\torch\nn\modules\module.py:1782(_call_impl)
+    37724    0.352    0.000    0.741    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:983(_pay_for_card)
+    20363    0.345    0.000    1.451    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\network\policy.py:5(apply_action_mask)
+   407112    0.331    0.000    0.791    0.000 C:\Users\Ding\Desktop\Worky OwO\CowCreates\Splendor_V1\splendor_v1\env\env.py:575(_qualifies_for_noble)

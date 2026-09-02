@@ -316,8 +316,10 @@ Look into issue/bug that is causing take into discard #DONE
 
 PUCT vs random-rollout MCTS #SKIPPING THIS for now -> I think need to come back
   once I have an actually trained agent.
-  
-Performance profiling/optimization
+
+Chang deep Cloning optimization # DONE 
+  334 sec -> 275 sec over two games
+Performance profiling/optimization 
   I looked up a dude and he was able to train 25,000 games in 12 hours
 
 Add persistent replay storage (SQLite)

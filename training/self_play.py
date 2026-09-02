@@ -316,77 +316,77 @@ def play_self_play_game(
             )
 
 
-        print("Winners:", winners)
+        # print("Winners:", winners)
 
-        for _, _, player in game_history[:10]:
-            target_value = (
-                1.0 if player in winners else -1.0
-            )
+        # for _, _, player in game_history[:10]:
+        #     target_value = (
+        #         1.0 if player in winners else -1.0
+        #     )
 
-            print(
-                f"Player={player}, "
-                f"Target value={target_value}"
-            )
+        #     print(
+        #         f"Player={player}, "
+        #         f"Target value={target_value}"
+        #     )
 
-        print("\nSelf-play action counts:")
+        # print("\nSelf-play action counts:")
 
-        game_action_counts = Counter()
+        # game_action_counts = Counter()
 
-        for counts in action_counts.values():
-            game_action_counts.update(counts)
+        # for counts in action_counts.values():
+        #     game_action_counts.update(counts)
 
-        game_total = sum(
-            game_action_counts.values()
-        )
+        # game_total = sum(
+        #     game_action_counts.values()
+        # )
 
-        print(
-            f"Game total: "
-            f"{game_total} actions"
-        )
+        # print(
+        #     f"Game total: "
+        #     f"{game_total} actions"
+        # )
 
-        for action_type, count in (
-            game_action_counts.items()
-        ):
-            percentage = (
-                count / game_total * 100
-                if game_total > 0
-                else 0
-            )
+        # for action_type, count in (
+        #     game_action_counts.items()
+        # ):
+        #     percentage = (
+        #         count / game_total * 100
+        #         if game_total > 0
+        #         else 0
+        #     )
 
-            print(
-                f"  {action_type.name}: "
-                f"{count} "
-                f"({percentage:.1f}%)"
-            )
+        #     print(
+        #         f"  {action_type.name}: "
+        #         f"{count} "
+        #         f"({percentage:.1f}%)"
+        #     )
 
 
-        # Per-player breakdown
+        # # Per-player breakdown
 
-        for player in (0, 1):
+        # for player in (0, 1):
 
-            total = sum(
-                action_counts[player].values()
-            )
+        #     total = sum(
+        #         action_counts[player].values()
+        #     )
 
-            print(
-                f"\nPlayer {player}: "
-                f"{total} actions"
-            )
+        #     print(
+        #         f"\nPlayer {player}: "
+        #         f"{total} actions"
+        #     )
 
-            for action_type, count in (
-                action_counts[player].items()
-            ):
-                percentage = (
-                    count / total * 100
-                    if total > 0
-                    else 0
-                )
+        #     for action_type, count in (
+        #         action_counts[player].items()
+        #     ):
+        #         percentage = (
+        #             count / total * 100
+        #             if total > 0
+        #             else 0
+        #         )
 
-                print(
-                    f"  {action_type.name}: "
-                    f"{count} "
-                    f"({percentage:.1f}%)"
-                )
+        #         print(
+        #             f"  {action_type.name}: "
+        #             f"{count} "
+        #             f"({percentage:.1f}%)"
+        #         )
 
 
 
@@ -401,65 +401,65 @@ def play_self_play_game(
     else:
 
 
-        print("\nSelf-play action counts:")
+        # print("\nSelf-play action counts:")
 
-        game_action_counts = Counter()
+        # game_action_counts = Counter()
 
-        for counts in action_counts.values():
-            game_action_counts.update(counts)
+        # for counts in action_counts.values():
+        #     game_action_counts.update(counts)
 
-        game_total = sum(
-            game_action_counts.values()
-        )
+        # game_total = sum(
+        #     game_action_counts.values()
+        # )
 
-        print(
-            f"Game total: "
-            f"{game_total} actions"
-        )
+        # print(
+        #     f"Game total: "
+        #     f"{game_total} actions"
+        # )
 
-        for action_type, count in (
-            game_action_counts.items()
-        ):
-            percentage = (
-                count / game_total * 100
-                if game_total > 0
-                else 0
-            )
+        # for action_type, count in (
+        #     game_action_counts.items()
+        # ):
+        #     percentage = (
+        #         count / game_total * 100
+        #         if game_total > 0
+        #         else 0
+        #     )
 
-            print(
-                f"  {action_type.name}: "
-                f"{count} "
-                f"({percentage:.1f}%)"
-            )
+        #     print(
+        #         f"  {action_type.name}: "
+        #         f"{count} "
+        #         f"({percentage:.1f}%)"
+        #     )
 
 
-        # Per-player breakdown
+        # # Per-player breakdown
 
-        for player in (0, 1):
+        # for player in (0, 1):
 
-            total = sum(
-                action_counts[player].values()
-            )
+        #     total = sum(
+        #         action_counts[player].values()
+        #     )
 
-            print(
-                f"\nPlayer {player}: "
-                f"{total} actions"
-            )
+        #     print(
+        #         f"\nPlayer {player}: "
+        #         f"{total} actions"
+        #     )
 
-            for action_type, count in (
-                action_counts[player].items()
-            ):
-                percentage = (
-                    count / total * 100
-                    if total > 0
-                    else 0
-                )
+        #     for action_type, count in (
+        #         action_counts[player].items()
+        #     ):
+        #         percentage = (
+        #             count / total * 100
+        #             if total > 0
+        #             else 0
+        #         )
 
-                print(
-                    f"  {action_type.name}: "
-                    f"{count} "
-                    f"({percentage:.1f}%)"
-                )
+        #         print(
+        #             f"  {action_type.name}: "
+        #             f"{count} "
+        #             f"({percentage:.1f}%)"
+        #         )
 
 
         

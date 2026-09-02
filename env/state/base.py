@@ -20,8 +20,8 @@ class GameState:
     end_triggered: bool = False
     noble_taken: bool = False
 
-    # def clone(self):
-    #     return deepcopy(self)
+    def slow_clone(self):
+        return deepcopy(self)
 
     def clone(self):
         return GameState(
