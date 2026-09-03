@@ -8,12 +8,12 @@ from splendor_v1.env.core.noble import Noble
 #TODO NEED TO DO A COMPLETE REWRITE OF THE ENCODER
 
 FOUR_PLAYER_GEM_NORM = 7
-from splendor_v1.env.core.constants import GEM_SCALE_NORM, BONUS_NORM, MAX_RESERVES, CARD_COST_SCALE_NORM, CARD_POINTS_NORM, POINT_SCALE_NORM, MAX_PLAYER_COUNT, TWO_PLAYER_GEM_NORM, THREE_PLAYER_GEM_NORM, MAX_DECK_SIZE_NORM, NOBLE_SCALE_NORM
+from splendor_v1.env.core.constants import COLOR_ORDER, GEM_SCALE_NORM, BONUS_NORM, MAX_RESERVES, CARD_COST_SCALE_NORM, CARD_POINTS_NORM, POINT_SCALE_NORM, MAX_PLAYER_COUNT, TWO_PLAYER_GEM_NORM, THREE_PLAYER_GEM_NORM, MAX_DECK_SIZE_NORM, NOBLE_SCALE_NORM
 
 class ObservationEncoder:
     def __init__(self):
-
-        pass
+        self._card_encoding_cache = {}
+        self._empty_card_encoding = [0.0] * 11
 
     def encoder(self, state:GameState):
 
@@ -106,7 +106,7 @@ class ObservationEncoder:
 
         return feature
 
-    def _encode_single_player(self, player:Player):
+    def slow_encode_single_player(self, player:Player):
         feature_gems = []
         feature_bonus = []
         feature_reserved_cards = []
@@ -126,17 +126,63 @@ class ObservationEncoder:
                 for color in GemColor:
                     if color == GemColor.GOLD:
                         continue
-                    feature_reserved_cards.append(card.cost[color] / CARD_COST_SCALE_NORM)
+                    # feature_reserved_cards.append(card.cost[color] / CARD_COST_SCALE_NORM)
+                    feature_reserved_cards.append(card.cost[color])
+
                     if card.bonus_color == color:
                         feature_bonus_color[color.value] = 1
 
                 feature_reserved_cards.extend(feature_bonus_color)
-                feature_reserved_cards.append(card.points / CARD_POINTS_NORM)
+                # feature_reserved_cards.append(card.points / CARD_POINTS_NORM)
+                feature_reserved_cards.append(card.points)
+
             if len(player.reserved_cards) < MAX_RESERVES:
                 feature_reserved_cards.extend([0] * 11 * (MAX_RESERVES - len(player.reserved_cards)))
 
         feature = feature_gems + feature_bonus + feature_reserved_cards + [player.points / POINT_SCALE_NORM]
         return feature
+
+
+    def _encode_single_player(
+        self,
+        player: Player,
+    ):
+
+        feature = []
+
+        for color in GemColor:
+            feature.append(
+                player.gems[color] / GEM_SCALE_NORM
+            )
+
+        for color in COLOR_ORDER:
+            feature.append(
+                player.bonuses[color] / BONUS_NORM
+            )
+
+        for card in player.reserved_cards:
+            feature.extend(
+                self._encode_card(card)
+            )
+
+        missing_reserves = (
+            MAX_RESERVES
+            - len(player.reserved_cards)
+        )
+
+        if missing_reserves > 0:
+            feature.extend(
+                [0.0] * (11 * missing_reserves)
+            )
+
+        feature.append(
+            player.points / POINT_SCALE_NORM
+        )
+
+        return feature
+
+
+
     
     def _encode_bank(self, bank):
         feature = []
@@ -198,8 +244,9 @@ class ObservationEncoder:
             )
 
         return feature
-        
-    def _encode_card(self, card):
+
+    # We can't delete this since we are using it if encode card finds it missing
+    def slow_encode_card(self, card):
         vec = []
         if card != None:
             # 3. cost vector
@@ -220,6 +267,26 @@ class ObservationEncoder:
         else:
             vec = [0.0] * 11
         return vec
+
+    def _encode_card(self, card):
+
+        if card is None:
+            return self._empty_card_encoding
+
+        cached_encoding = self._card_encoding_cache.get(
+            card.id
+        )
+
+        if cached_encoding is not None:
+            return cached_encoding
+
+        encoded_card = self.slow_encode_card(card)
+
+        self._card_encoding_cache[
+            card.id
+        ] = encoded_card
+
+        return encoded_card
 
 
 

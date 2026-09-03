@@ -54,6 +54,8 @@ class SplendorEnv(gym.Env):
         # 49-61 -> Discard 13 #this will be a loop where we will discard 1 and recheck to discard another
         # 62+ -> Expansion
         #Total actions 9 + 5 + 15 + 15 = 61 Actions
+
+        self._color_mapping_cache = {}
         self.num_players = num_players
         self.game_state = None
         self.seed = seed
@@ -279,8 +281,9 @@ class SplendorEnv(gym.Env):
                 if card is None:
                     continue
 
-                if not self._can_afford_card(player, card):
-                    continue
+                # if not self._can_afford_card(player, card):
+                #     continue
+
                 
                 color_mapping = self.get_color_mapping(card)
 
@@ -288,6 +291,10 @@ class SplendorEnv(gym.Env):
                     player,
                     card,
                 )
+
+
+                if not valid_payments:
+                    continue
 
                 for actual_payment in valid_payments:
 
@@ -429,9 +436,26 @@ class SplendorEnv(gym.Env):
 
         return valid_payments
 
-
-
     def get_color_mapping(self, card):
+
+        cached_mapping = self._color_mapping_cache.get(
+            card.id
+        )
+
+        if cached_mapping is not None:
+            return cached_mapping
+
+        mapping = self.slow_get_color_mapping(card)
+
+        self._color_mapping_cache[
+            card.id
+        ] = mapping
+
+        return mapping
+
+
+
+    def slow_get_color_mapping(self, card):
         """
         Returns mapping from canonical color positions
         to actual card colors.
@@ -638,11 +662,11 @@ class SplendorEnv(gym.Env):
 
         for reserved_index, card in enumerate(player.reserved_cards):
 
-            if not self._can_afford_card(
-                player,
-                card,
-            ):
-                continue
+            # if not self._can_afford_card(
+            #     player,
+            #     card,
+            # ):
+            #     continue
 
             # card_type = self.get_card_type(card)
 
@@ -655,6 +679,9 @@ class SplendorEnv(gym.Env):
                 card,
             )
 
+
+            if not valid_payments:
+                continue
 
             # payment_lookup = self._get_tier_payment_lookup(card.tier)
             # payment_lookup = T3_PAYMENT_LOOKUP

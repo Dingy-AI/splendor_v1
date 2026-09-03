@@ -333,10 +333,13 @@ create speed reduction with generate_valid_payments to filter out bad cards
 
 #START here tomorrow
 
-1. Cache _encode_card
-2. Re-profile
-3. Optimize _can_afford_card / duplicate cost calculations
-4. Re-profile
+1. Cache _encode_card # DONE
+2. Re-profile #DONE 
+3. Optimize _can_afford_card / duplicate cost calculations #DONE 
+4. Re-profile #DONE
+get color mapping optimization #done
+encode single player #done
+
 5. Investigate lazy MCTS child-state creation
 6. Re-profile
 7. Only then consider deeper architectural changes like tree reuse/batching
