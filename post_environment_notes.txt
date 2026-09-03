@@ -327,7 +327,19 @@ slow_map_payment_to_card: 2.08 µs/call, 480917 calls/sec
 map_payment_to_card: 0.73 µs/call, 1367806 calls/sec 
 Speedup: 2.84x Time reduction: 64.8%
 
+increased speed further see time_reduction_goals.txt #DONE 
 
+create speed reduction with generate_valid_payments to filter out bad cards
+
+#START here tomorrow
+
+1. Cache _encode_card
+2. Re-profile
+3. Optimize _can_afford_card / duplicate cost calculations
+4. Re-profile
+5. Investigate lazy MCTS child-state creation
+6. Re-profile
+7. Only then consider deeper architectural changes like tree reuse/batching
 Add persistent replay storage (SQLite)
 Track strength across training
 Tune training/MCTS hyperparameters

@@ -1,13 +1,17 @@
 import time
 
 from splendor_v1.env.env import SplendorEnv
-
 from splendor_v1.env.core.enums import GemColor
+
 
 NUM_RUNS = 1_000
 
 
-def benchmark(name, func, state):
+def benchmark(
+    name,
+    func,
+    state,
+):
     start = time.perf_counter()
 
     for _ in range(NUM_RUNS):
@@ -28,59 +32,158 @@ def benchmark(name, func, state):
 
 
 def main():
+
     env = SplendorEnv()
-
-    # Adjust this depending on what your reset() returns.
     env.reset()
-
-    env.state.players[0].gems[GemColor.WHITE] = 2
-    env.state.players[0].gems[GemColor.BLUE] = 1
-    env.state.players[0].gems[GemColor.GREEN] = 2
-    env.state.players[0].gems[GemColor.RED] = 1
-    env.state.players[0].gems[GemColor.BLACK] = 1
-    env.state.players[0].gems[GemColor.GOLD] = 1
-
-    env.state.players[0].bonuses[GemColor.WHITE] = 1
-    env.state.players[0].bonuses[GemColor.GREEN] = 1
-    env.state.players[0].bonuses[GemColor.BLACK] = 1
-
-
     state = env.state
-    # If reset returns something like (obs, info),
-    # replace the line above with however you normally
-    # access the actual GameState.
+    player = state.players[state.current_player]
 
-    slow_actions = env.slow_legal_buy_visible(state)
-    fast_actions = env._legal_buy_visible(state)
+    # Representative mid-game-ish player state.
+    # Adjust this if you want a richer / poorer affordability case.
+    player.gems.update({
+        GemColor.WHITE: 2,
+        GemColor.BLUE: 2,
+        GemColor.GREEN: 2,
+        GemColor.RED: 2,
+        GemColor.BLACK: 2,
+        GemColor.GOLD: 2,
+    })
 
-    assert slow_actions == fast_actions
+    player.bonuses.update({
+        GemColor.WHITE: 1,
+        GemColor.BLUE: 1,
+        GemColor.GREEN: 1,
+        GemColor.RED: 1,
+        GemColor.BLACK: 1,
+    })
 
-    print(f"Legal buy actions: {len(fast_actions)}")
+    # ------------------------------------------------------------
+    # Correctness
+    # ------------------------------------------------------------
+
+    original_actions = env.slow_legal_buy_visible(
+        state
+    )
+
+    version_2_actions = env.slow_2_legal_buy_visible(
+        state
+    )
+
+    latest_actions = env._legal_buy_visible(
+        state
+    )
+
+    original_ids = sorted(
+        env.action_to_id(action)
+        for action in original_actions
+    )
+
+    version_2_ids = sorted(
+        env.action_to_id(action)
+        for action in version_2_actions
+    )
+
+    latest_ids = sorted(
+        env.action_to_id(action)
+        for action in latest_actions
+    )
+
+    assert original_ids == version_2_ids
+    assert original_ids == latest_ids
+
+    print(
+        f"Legal buy actions: {len(latest_actions)}"
+    )
     print()
 
-    slow_time = benchmark(
-        "slow_legal_buy_visible",
+    # ------------------------------------------------------------
+    # Benchmark
+    # ------------------------------------------------------------
+
+    original_time = benchmark(
+        "original",
         env.slow_legal_buy_visible,
         state,
     )
 
-    fast_time = benchmark(
-        "_legal_buy_visible",
+    version_2_time = benchmark(
+        "version_2",
+        env.slow_2_legal_buy_visible,
+        state,
+    )
+
+    latest_time = benchmark(
+        "latest",
         env._legal_buy_visible,
         state,
     )
 
-    speedup = slow_time / fast_time
+    # ------------------------------------------------------------
+    # Comparisons
+    # ------------------------------------------------------------
 
-    time_reduction = (
-        (slow_time - fast_time)
-        / slow_time
+    print()
+
+    v2_speedup = original_time / version_2_time
+    v2_reduction = (
+        (original_time - version_2_time)
+        / original_time
         * 100
     )
 
+    latest_vs_original_speedup = (
+        original_time / latest_time
+    )
+
+    latest_vs_original_reduction = (
+        (original_time - latest_time)
+        / original_time
+        * 100
+    )
+
+    latest_vs_v2_speedup = (
+        version_2_time / latest_time
+    )
+
+    latest_vs_v2_reduction = (
+        (version_2_time - latest_time)
+        / version_2_time
+        * 100
+    )
+
+    print(
+        f"Original -> Version 2 speedup: "
+        f"{v2_speedup:.2f}x"
+    )
+
+    print(
+        f"Original -> Version 2 reduction: "
+        f"{v2_reduction:.1f}%"
+    )
+
     print()
-    print(f"Speedup: {speedup:.2f}x")
-    print(f"Time reduction: {time_reduction:.1f}%")
+
+    print(
+        f"Original -> Latest speedup: "
+        f"{latest_vs_original_speedup:.2f}x"
+    )
+
+    print(
+        f"Original -> Latest reduction: "
+        f"{latest_vs_original_reduction:.1f}%"
+    )
+
+    print()
+
+    print(
+        f"Version 2 -> Latest speedup: "
+        f"{latest_vs_v2_speedup:.2f}x"
+    )
+
+    print(
+        f"Version 2 -> Latest reduction: "
+        f"{latest_vs_v2_reduction:.1f}%"
+    )
 
 
 if __name__ == "__main__":

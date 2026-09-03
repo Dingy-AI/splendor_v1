@@ -197,3 +197,17 @@ T3_PAYMENT_LOOKUP = [
     (5, 0, 0, 0, 0),
 ]
 
+T1_PAYMENT_TO_ID = {
+    payment: i
+    for i, payment in enumerate(T1_PAYMENT_LOOKUP)
+}
+
+T2_PAYMENT_TO_ID = {
+    payment: i
+    for i, payment in enumerate(T2_PAYMENT_LOOKUP)
+}
+
+T3_PAYMENT_TO_ID = {
+    payment: i
+    for i, payment in enumerate(T3_PAYMENT_LOOKUP)
+}
