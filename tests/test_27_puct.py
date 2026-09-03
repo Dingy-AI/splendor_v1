@@ -236,6 +236,7 @@ def test_select_with_puct_chooses_higher_score_child():
     )
 
     selected = mcts.select(
+        env,
         parent,
         root_player,
     )

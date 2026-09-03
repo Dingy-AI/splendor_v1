@@ -907,3 +907,251 @@ def test_generated_payments_match_old_system_when_gold_is_required(
     )
 
     assert new_payments == old_payments
+
+
+def set_player_resources(
+    player,
+    gems=None,
+    bonuses=None,
+):
+    player.gems = {
+        GemColor.WHITE: 0,
+        GemColor.BLUE: 0,
+        GemColor.GREEN: 0,
+        GemColor.RED: 0,
+        GemColor.BLACK: 0,
+        GemColor.GOLD: 0,
+    }
+
+    player.bonuses = {
+        GemColor.WHITE: 0,
+        GemColor.BLUE: 0,
+        GemColor.GREEN: 0,
+        GemColor.RED: 0,
+        GemColor.BLACK: 0,
+    }
+
+    if gems:
+        player.gems.update(gems)
+
+    if bonuses:
+        player.bonuses.update(bonuses)
+
+
+@pytest.mark.parametrize(
+    "card",
+    ALL_TEST_CARDS,
+)
+def test_valid_payments_no_resources(card):
+
+    env = SplendorEnv()
+    env.reset()
+
+    player = env.state.players[0]
+
+    set_player_resources(player)
+
+    slow_result = env.slow_generate_valid_payments(
+        player,
+        card,
+    )
+
+    fast_result = env._generate_valid_payments(
+        player,
+        card,
+    )
+
+    assert fast_result == slow_result
+
+
+@pytest.mark.parametrize(
+    "card",
+    ALL_TEST_CARDS,
+)
+def test_valid_payments_full_colored_gems(card):
+
+    env = SplendorEnv()
+    env.reset()
+
+    player = env.state.players[0]
+
+    set_player_resources(
+        player,
+        gems={
+            GemColor.WHITE: 7,
+            GemColor.BLUE: 7,
+            GemColor.GREEN: 7,
+            GemColor.RED: 7,
+            GemColor.BLACK: 7,
+            GemColor.GOLD: 0,
+        },
+    )
+
+    slow_result = env.slow_generate_valid_payments(
+        player,
+        card,
+    )
+
+    fast_result = env._generate_valid_payments(
+        player,
+        card,
+    )
+
+    assert fast_result == slow_result
+
+
+@pytest.mark.parametrize(
+    "card",
+    ALL_TEST_CARDS,
+)
+def test_valid_payments_with_gold(card):
+
+    env = SplendorEnv()
+    env.reset()
+
+    player = env.state.players[0]
+
+    set_player_resources(
+        player,
+        gems={
+            GemColor.WHITE: 1,
+            GemColor.BLUE: 1,
+            GemColor.GREEN: 1,
+            GemColor.RED: 1,
+            GemColor.BLACK: 1,
+            GemColor.GOLD: 3,
+        },
+    )
+
+    slow_result = env.slow_generate_valid_payments(
+        player,
+        card,
+    )
+
+    fast_result = env._generate_valid_payments(
+        player,
+        card,
+    )
+
+    assert fast_result == slow_result
+
+
+@pytest.mark.parametrize(
+    "card",
+    ALL_TEST_CARDS,
+)
+def test_valid_payments_with_bonuses(card):
+
+    env = SplendorEnv()
+    env.reset()
+
+    player = env.state.players[0]
+
+    set_player_resources(
+        player,
+        gems={
+            GemColor.WHITE: 1,
+            GemColor.BLUE: 1,
+            GemColor.GREEN: 1,
+            GemColor.RED: 1,
+            GemColor.BLACK: 1,
+            GemColor.GOLD: 2,
+        },
+        bonuses={
+            GemColor.WHITE: 1,
+            GemColor.BLUE: 1,
+            GemColor.GREEN: 1,
+            GemColor.RED: 1,
+            GemColor.BLACK: 1,
+        },
+    )
+
+    slow_result = env.slow_generate_valid_payments(
+        player,
+        card,
+    )
+
+    fast_result = env._generate_valid_payments(
+        player,
+        card,
+    )
+
+    assert fast_result == slow_result
+
+
+@pytest.mark.parametrize(
+    "card",
+    ALL_TEST_CARDS,
+)
+def test_valid_payments_large_gold_supply(card):
+
+    env = SplendorEnv()
+    env.reset()
+
+    player = env.state.players[0]
+
+    set_player_resources(
+        player,
+        gems={
+            GemColor.WHITE: 0,
+            GemColor.BLUE: 0,
+            GemColor.GREEN: 0,
+            GemColor.RED: 0,
+            GemColor.BLACK: 0,
+            GemColor.GOLD: 10,
+        },
+    )
+
+    slow_result = env.slow_generate_valid_payments(
+        player,
+        card,
+    )
+
+    fast_result = env._generate_valid_payments(
+        player,
+        card,
+    )
+
+    assert fast_result == slow_result
+
+@pytest.mark.parametrize(
+    "card",
+    ALL_TEST_CARDS,
+)
+def test_valid_payments_mixed_midgame_state(card):
+
+    env = SplendorEnv()
+    env.reset()
+
+    player = env.state.players[0]
+
+    set_player_resources(
+        player,
+        gems={
+            GemColor.WHITE: 2,
+            GemColor.BLUE: 0,
+            GemColor.GREEN: 3,
+            GemColor.RED: 1,
+            GemColor.BLACK: 2,
+            GemColor.GOLD: 2,
+        },
+        bonuses={
+            GemColor.WHITE: 1,
+            GemColor.BLUE: 2,
+            GemColor.GREEN: 0,
+            GemColor.RED: 1,
+            GemColor.BLACK: 0,
+        },
+    )
+
+    slow_result = env.slow_generate_valid_payments(
+        player,
+        card,
+    )
+
+    fast_result = env._generate_valid_payments(
+        player,
+        card,
+    )
+
+    assert fast_result == slow_result

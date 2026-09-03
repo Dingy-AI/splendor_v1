@@ -21,7 +21,7 @@ from splendor_v1.env.core.cost_lookup_table_v2 import PAYMENT_TABLE
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 
 from splendor_v1.env.observation.encoder import ObservationEncoder
-from itertools import combinations
+from itertools import combinations, product
 import random
 from copy import deepcopy
 
@@ -363,7 +363,7 @@ class SplendorEnv(gym.Env):
 
         return CardType[enum_name]
 
-    def _generate_valid_payments(
+    def slow_generate_valid_payments(
         self,
         player: Player,
         card: Card,
@@ -435,6 +435,48 @@ class SplendorEnv(gym.Env):
         )
 
         return valid_payments
+
+    def _generate_valid_payments(
+        self,
+        player: Player,
+        card: Card,
+    ) -> list[tuple[int, int, int, int, int]]:
+
+        required = [
+            max(
+                card.cost[color] - player.bonuses[color],
+                0,
+            )
+            for color in COLOR_ORDER
+        ]
+
+        minimum_gold = [
+            max(
+                required[i] - player.gems[color],
+                0,
+            )
+            for i, color in enumerate(COLOR_ORDER)
+        ]
+
+        gold_available = player.gems[GemColor.GOLD]
+
+        if sum(minimum_gold) > gold_available:
+            return []
+
+        ranges = [
+            range(
+                minimum_gold[i],
+                required[i] + 1,
+            )
+            for i in range(5)
+        ]
+
+        return [
+            payment
+            for payment in product(*ranges)
+            if sum(payment) <= gold_available
+        ]
+
 
     def get_color_mapping(self, card):
 
@@ -532,6 +574,7 @@ class SplendorEnv(gym.Env):
 
         return tuple(payment)
 
+    # TODO: CLEAN UP DEAD CODE
     def _get_payment_options(self, player, card):
 
         #This converts the GemColor.WHITE:1, etc... into 
@@ -758,7 +801,7 @@ class SplendorEnv(gym.Env):
 
         return actions
     
-    def _legal_take_gems(self, state: GameState) -> list[Action]:
+    def slow_legal_take_gems(self, state: GameState) -> list[Action]:
         actions = []
 
         bank = state.bank
@@ -807,6 +850,69 @@ class SplendorEnv(gym.Env):
                 )
 
         return actions
+
+    def _legal_take_gems(
+        self,
+        state: GameState,
+    ) -> list[Action]:
+
+        actions = []
+
+        bank = state.bank
+
+        available_colors = [
+            color
+            for color in COLOR_ORDER
+            if bank[color] > 0
+        ]
+
+        for color in available_colors:
+            actions.append(
+                Action(
+                    action_type=ActionType.TAKE_GEMS,
+                    gem_colors=(color,),
+                )
+            )
+
+        for combo in combinations(
+            available_colors,
+            2,
+        ):
+            actions.append(
+                Action(
+                    action_type=ActionType.TAKE_GEMS,
+                    gem_colors=combo,
+                )
+            )
+
+        for combo in combinations(
+            available_colors,
+            3,
+        ):
+            actions.append(
+                Action(
+                    action_type=ActionType.TAKE_GEMS,
+                    gem_colors=combo,
+                )
+            )
+
+        for color in available_colors:
+
+            if bank[color] >= 4:
+                actions.append(
+                    Action(
+                        action_type=ActionType.TAKE_GEMS,
+                        gem_colors=(
+                            color,
+                            color,
+                        ),
+                    )
+                )
+
+        return actions
+
+
+
 
     def _legal_discard_actions(self, state: GameState) -> list[Action]:
         actions = []
@@ -1521,13 +1627,27 @@ class SplendorEnv(gym.Env):
             noble_index=action_id - NOBLE_START,
         )   
         
-    def action_mask(self, state):
+    def action_mask(
+        self,
+        state,
+        legal_actions=None,
+    ):
 
-        mask = np.zeros(ACTION_SPACE_SIZE, dtype=np.int8)
+        mask = np.zeros(
+            ACTION_SPACE_SIZE,
+            dtype=np.int8,
+        )
 
-        for action in self._legal_actions(state):
+        if legal_actions is None:
+            legal_actions = self._legal_actions(
+                state
+            )
 
-            action_id = self.action_to_id(action)
+        for action in legal_actions:
+
+            action_id = self.action_to_id(
+                action
+            )
 
             mask[action_id] = 1
 

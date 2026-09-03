@@ -340,6 +340,16 @@ create speed reduction with generate_valid_payments to filter out bad cards
 get color mapping optimization #done
 encode single player #done
 
+_generate_valid_payments() — 6.85s #DONE 
+_legal_take_gems() — 1.34s #DONE 
+_encode_single_player() — 1.19s #SKIP 
+map_payment_to_canonical() — 0.86s #SKIP 
+_encode_nobles() — 0.68s #SKIP 
+
+we are going to investigate expand_all_with_priors now
+the next big 'win' is in mcts 
+
+
 5. Investigate lazy MCTS child-state creation
 6. Re-profile
 7. Only then consider deeper architectural changes like tree reuse/batching

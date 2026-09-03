@@ -76,7 +76,7 @@ class MCTS:
             # 1. Selection
             # -------------------------
             # start = time.perf_counter()
-            node = self.select(root, root_player)
+            node = self.select(env, root, root_player)
             # selection_time += time.perf_counter() - start
 
             # -------------------------
@@ -312,7 +312,12 @@ class MCTS:
 
         return exploitation + exploration
 
-    def select(self, node, root_player):
+    def select(
+        self,
+        env,
+        node,
+        root_player,
+    ):
 
         current = node
 
@@ -349,21 +354,31 @@ class MCTS:
                 if not current.children:
                     return current
 
-                current = max(
-                    current.children,
+                parent = current
+
+                child = max(
+                    parent.children,
                     key=lambda child: self.puct_score(
-                        current,
+                        parent,
                         child,
                         root_player,
                     ),
                 )
+
+                # Lazily create the child state
+                # only when PUCT actually selects it.
+                self.materialize_state(
+                    env,
+                    child,
+                )
+
+                current = child
 
             else:
                 raise ValueError(
                     f"Unknown selection type: "
                     f"{self.selection_type}"
                 )
-
 
     def expand(self, env, node):
 
@@ -451,6 +466,11 @@ class MCTS:
         child,
         root_player,
     ):
+
+        self.materialize_state(
+            env,
+            child,
+        )
 
         if self.rollout_type == "random":
             return random_rollout(
@@ -548,6 +568,12 @@ class MCTS:
         env,
         node,
     ):
+
+        # self.materialize_state(
+        #     env,
+        #     node,
+        # )
+
         if env._check_terminated(node.state):
             node.expanded = True
             return
@@ -561,7 +587,6 @@ class MCTS:
             node.state.game_over = True
             node.state.winners = []
             node.expanded = True            
-            node.expanded = True
             return
 
             
@@ -569,23 +594,25 @@ class MCTS:
             env,
             self.model,
             node.state,
+            legal_actions=legal_actions
         )
 
         for action in legal_actions:
 
-            child_state = node.state.clone()
+            # child_state = node.state.clone()
 
-            env.step(
-                action,
-                state=child_state,
-            )
+            # env.step(
+            #     action,
+            #     state=child_state,
+            # )
 
             action_id = env.action_to_id(
                 action
             )
 
             child = Node(
-                state=child_state,
+                # state=child
+                state=None,
                 parent=node,
                 action=action,
                 prior=policy_probs[
@@ -598,3 +625,33 @@ class MCTS:
             )
 
         node.expanded = True
+
+
+    def materialize_state(
+        self,
+        env,
+        node,
+    ):
+        if node.state is not None:
+            return
+
+        if node.parent is None:
+            raise ValueError(
+                "Cannot materialize root node "
+                "without a state."
+            )
+
+        if node.parent.state is None:
+            raise ValueError(
+                "Cannot materialize child because "
+                "parent state is missing."
+            )
+
+        child_state = node.parent.state.clone()
+
+        env.step(
+            node.action,
+            state=child_state,
+        )
+
+        node.state = child_state

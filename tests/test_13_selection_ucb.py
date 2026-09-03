@@ -104,7 +104,7 @@ def test_select_returns_root_if_root_has_untried_actions(env, mcts):
     root = Node(state=env.state)
     root.untried_actions = ["action"]
 
-    selected = mcts.select(root, root.state.current_player)
+    selected = mcts.select(env, root, root.state.current_player)
 
     assert selected is root
 
@@ -115,7 +115,7 @@ def test_select_returns_dead_end_node(env, mcts):
     root.untried_actions = []
     root.children = []
 
-    selected = mcts.select(root, root.state.current_player)
+    selected = mcts.select(env, root, root.state.current_player)
 
     assert selected is root
 
@@ -138,7 +138,7 @@ def test_select_chooses_highest_ucb_child(env, mcts):
 
     root.children = [child_a, child_b]
 
-    selected = mcts.select(root, root.state.current_player)
+    selected = mcts.select(env, root, root.state.current_player)
 
     assert selected is child_b
 
@@ -162,6 +162,6 @@ def test_select_walks_multiple_levels(env, mcts):
     root.children = [child]
     child.children = [grandchild]
 
-    selected = mcts.select(root, root.state.current_player)
+    selected = mcts.select(env, root, root.state.current_player)
 
     assert selected is grandchild
