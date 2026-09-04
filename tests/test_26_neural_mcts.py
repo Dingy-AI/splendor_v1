@@ -151,11 +151,13 @@ def test_neural_rollout_flips_value_for_opponent(
 
     class FakeChild:
         state = child_state
+        legal_actions = None        
 
     def fake_neural_evaluate(
         env,
         model,
         state,
+        legal_actions
     ):
         policy = torch.zeros(
             ACTION_SPACE_SIZE
@@ -198,11 +200,13 @@ def test_neural_rollout_keeps_value_for_root_player(
 
     class FakeChild:
         state = child_state
+        legal_actions = None
 
     def fake_neural_evaluate(
         env,
         model,
         state,
+        legal_actions
     ):
         policy = torch.zeros(
             ACTION_SPACE_SIZE

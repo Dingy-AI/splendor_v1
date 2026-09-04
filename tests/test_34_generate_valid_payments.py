@@ -913,22 +913,34 @@ def set_player_resources(
     player,
     gems=None,
     bonuses=None,
+    white=0,
+    blue=0,
+    green=0,
+    red=0,
+    black=0,
+    gold=0,
+    white_bonus=0,
+    blue_bonus=0,
+    green_bonus=0,
+    red_bonus=0,
+    black_bonus=0,
 ):
+
     player.gems = {
-        GemColor.WHITE: 0,
-        GemColor.BLUE: 0,
-        GemColor.GREEN: 0,
-        GemColor.RED: 0,
-        GemColor.BLACK: 0,
-        GemColor.GOLD: 0,
+        GemColor.WHITE: white,
+        GemColor.BLUE: blue,
+        GemColor.GREEN: green,
+        GemColor.RED: red,
+        GemColor.BLACK: black,
+        GemColor.GOLD: gold,
     }
 
     player.bonuses = {
-        GemColor.WHITE: 0,
-        GemColor.BLUE: 0,
-        GemColor.GREEN: 0,
-        GemColor.RED: 0,
-        GemColor.BLACK: 0,
+        GemColor.WHITE: white_bonus,
+        GemColor.BLUE: blue_bonus,
+        GemColor.GREEN: green_bonus,
+        GemColor.RED: red_bonus,
+        GemColor.BLACK: black_bonus,
     }
 
     if gems:
@@ -1114,6 +1126,10 @@ def test_valid_payments_large_gold_supply(card):
 
     assert fast_result == slow_result
 
+
+
+
+
 @pytest.mark.parametrize(
     "card",
     ALL_TEST_CARDS,
@@ -1155,3 +1171,418 @@ def test_valid_payments_mixed_midgame_state(card):
     )
 
     assert fast_result == slow_result
+
+# ================================================================
+# _generate_valid_payments optimization tests
+# ================================================================
+
+def assert_payment_generators_match(
+    env,
+    player,
+    card,
+):
+
+    slow_result = (
+        env.slow_2_generate_valid_payments(
+            player,
+            card,
+        )
+    )
+
+    fast_result = (
+        env._generate_valid_payments(
+            player,
+            card,
+        )
+    )
+
+    assert fast_result == slow_result
+
+
+# ================================================================
+# Cannot afford
+# ================================================================
+
+def test_generate_valid_payments_cannot_afford():
+
+    env = SplendorEnv()
+    env.reset()
+
+    player = env.state.players[0]
+
+    # T1_SINGLE_COLOR costs:
+    #
+    # BLUE = 3
+    #
+    # Player only has 1 blue and 1 gold.
+    # Therefore:
+    #
+    # minimum gold required = 2
+    # gold available = 1
+
+    set_player_resources(
+        player,
+        blue=1,
+        gold=1,
+    )
+
+    assert_payment_generators_match(
+        env,
+        player,
+        T1_SINGLE_COLOR,
+    )
+
+    result = env._generate_valid_payments(
+        player,
+        T1_SINGLE_COLOR,
+    )
+
+    assert result == []
+
+
+# ================================================================
+# Zero gold
+# ================================================================
+
+def test_generate_valid_payments_zero_gold():
+
+    env = SplendorEnv()
+    env.reset()
+
+    player = env.state.players[0]
+
+    # T1_TWO_COLOR costs:
+    #
+    # BLUE  = 2
+    # BLACK = 2
+    #
+    # Player can pay everything using colored gems.
+    # No gold exists, so there can only be one gold allocation.
+
+    set_player_resources(
+        player,
+        blue=2,
+        black=2,
+        gold=0,
+    )
+
+    assert_payment_generators_match(
+        env,
+        player,
+        T1_TWO_COLOR,
+    )
+
+    result = env._generate_valid_payments(
+        player,
+        T1_TWO_COLOR,
+    )
+
+    assert result == [
+        (0, 0, 0, 0, 0)
+    ]
+
+
+# ================================================================
+# All gold is mandatory
+# extra_gold == 0
+# ================================================================
+
+def test_generate_valid_payments_all_gold_is_mandatory():
+
+    env = SplendorEnv()
+    env.reset()
+
+    player = env.state.players[0]
+
+    # T1_SINGLE_COLOR:
+    #
+    # BLUE cost = 3
+    #
+    # Player:
+    #   BLUE = 2
+    #   GOLD = 1
+    #
+    # Therefore:
+    #
+    # minimum_gold = (0, 1, 0, 0, 0)
+    # minimum_total = 1
+    # gold_available = 1
+    # extra_gold = 0
+
+    set_player_resources(
+        player,
+        blue=2,
+        gold=1,
+    )
+
+    assert_payment_generators_match(
+        env,
+        player,
+        T1_SINGLE_COLOR,
+    )
+
+    result = env._generate_valid_payments(
+        player,
+        T1_SINGLE_COLOR,
+    )
+
+    assert result == [
+        (0, 1, 0, 0, 0)
+    ]
+
+
+# ================================================================
+# One spare gold
+# extra_gold == 1
+# ================================================================
+
+def test_generate_valid_payments_one_spare_gold():
+
+    env = SplendorEnv()
+    env.reset()
+
+    player = env.state.players[0]
+
+    # T1_TWO_COLOR:
+    #
+    # BLUE  = 2
+    # BLACK = 2
+    #
+    # Player:
+    #   BLUE  = 1
+    #   BLACK = 2
+    #   GOLD  = 2
+    #
+    # Mandatory:
+    #   1 gold must be spent as BLUE.
+    #
+    # Therefore:
+    #
+    # minimum_total = 1
+    # gold_available = 2
+    # extra_gold = 1
+
+    set_player_resources(
+        player,
+        blue=1,
+        black=2,
+        gold=2,
+    )
+
+    assert_payment_generators_match(
+        env,
+        player,
+        T1_TWO_COLOR,
+    )
+
+    result = env._generate_valid_payments(
+        player,
+        T1_TWO_COLOR,
+    )
+
+    assert result == [
+        # Mandatory gold only.
+        (0, 1, 0, 0, 0),
+
+        # Spend optional gold as BLACK.
+        (0, 1, 0, 0, 1),
+
+        # Spend optional gold as BLUE.
+        (0, 2, 0, 0, 0),
+    ]
+
+
+# ================================================================
+# Two spare gold
+# extra_gold == 2
+# ================================================================
+
+def test_generate_valid_payments_two_spare_gold():
+
+    env = SplendorEnv()
+    env.reset()
+
+    player = env.state.players[0]
+
+    # T2_THREE_COLOR:
+    #
+    # GREEN = 3
+    # RED   = 2
+    # BLACK = 2
+    #
+    # Player:
+    #   GREEN = 2
+    #   RED   = 2
+    #   BLACK = 2
+    #   GOLD  = 3
+    #
+    # Mandatory:
+    #   GREEN needs 1 gold.
+    #
+    # Therefore:
+    #
+    # minimum_total = 1
+    # gold_available = 3
+    # extra_gold = 2
+
+    set_player_resources(
+        player,
+        green=2,
+        red=2,
+        black=2,
+        gold=3,
+    )
+
+    assert_payment_generators_match(
+        env,
+        player,
+        T2_THREE_COLOR,
+    )
+
+
+# ================================================================
+# Three spare gold
+# product() fallback
+# ================================================================
+
+def test_generate_valid_payments_three_spare_gold():
+
+    env = SplendorEnv()
+    env.reset()
+
+    player = env.state.players[0]
+
+    # T2_THREE_COLOR:
+    #
+    # Player already owns enough colored gems
+    # to pay the entire card.
+    #
+    # minimum_total = 0
+    # gold_available = 3
+    # extra_gold = 3
+    #
+    # This should hit the product() fallback.
+
+    set_player_resources(
+        player,
+        green=3,
+        red=2,
+        black=2,
+        gold=3,
+    )
+
+    assert_payment_generators_match(
+        env,
+        player,
+        T2_THREE_COLOR,
+    )
+
+
+# ================================================================
+# High-cost Tier 3 card
+# ================================================================
+
+def test_generate_valid_payments_t3_card():
+
+    env = SplendorEnv()
+    env.reset()
+
+    player = env.state.players[0]
+
+    # T3_TWO_COLOR:
+    #
+    # WHITE = 3
+    # BLACK = 7
+    #
+    # Use a state where mandatory and optional
+    # gold substitution are both possible.
+
+    set_player_resources(
+        player,
+        white=2,
+        black=5,
+        gold=4,
+    )
+
+    assert_payment_generators_match(
+        env,
+        player,
+        T3_TWO_COLOR,
+    )
+
+
+# ================================================================
+# Bonuses
+# ================================================================
+
+def test_generate_valid_payments_with_bonuses():
+
+    env = SplendorEnv()
+    env.reset()
+
+    player = env.state.players[0]
+
+    # T2_HIGH_BLACK costs:
+    #
+    # WHITE = 2
+    # RED   = 1
+    # BLACK = 4
+    #
+    # Bonuses change the effective requirements.
+
+    set_player_resources(
+        player,
+        white=1,
+        red=1,
+        black=1,
+        gold=3,
+        white_bonus=1,
+        black_bonus=2,
+    )
+
+    assert_payment_generators_match(
+        env,
+        player,
+        T2_HIGH_BLACK,
+    )
+
+
+# ================================================================
+# Compare all supplied cards
+# ================================================================
+
+@pytest.mark.parametrize(
+    "card",
+    ALL_TEST_CARDS,
+)
+def test_generate_valid_payments_matches_slow_2_for_all_cards(
+    card,
+):
+
+    env = SplendorEnv()
+    env.reset()
+
+    player = env.state.players[0]
+
+    # Representative resource-heavy midgame state.
+
+    set_player_resources(
+        player,
+        white=2,
+        blue=3,
+        green=2,
+        red=1,
+        black=3,
+        gold=3,
+        white_bonus=1,
+        blue_bonus=1,
+        green_bonus=2,
+        red_bonus=1,
+        black_bonus=0,
+    )
+
+    assert_payment_generators_match(
+        env,
+        player,
+        card,
+    )

@@ -202,7 +202,7 @@ def test_puct_root_priors_sum_to_one():
         total_prior - 1.0
     ) < 1e-5
 
-def test_puct_first_simulation_visits_one_child():
+def test_puct_first_simulation_expands_root_and_visits_root():
 
     env = SplendorEnv()
     env.reset()
@@ -211,6 +211,37 @@ def test_puct_first_simulation_visits_one_child():
 
     mcts = MCTS(
         simulations=1,
+        rollout_type="neural",
+        selection_type="puct",
+        model=model,
+    )
+
+    _, root = mcts.search(
+        env,
+        env.state,
+        return_root=True,
+    )
+
+    assert root.expanded
+
+    assert len(root.children) > 0
+
+    assert root.visits == 1
+
+    assert all(
+        child.visits == 0
+        for child in root.children
+    )
+
+def test_puct_second_simulation_visits_one_child():
+
+    env = SplendorEnv()
+    env.reset()
+
+    model = SplendorNetwork()
+
+    mcts = MCTS(
+        simulations=2,
         rollout_type="neural",
         selection_type="puct",
         model=model,
@@ -232,7 +263,10 @@ def test_puct_first_simulation_visits_one_child():
 
     assert visited_children[0].visits == 1
 
-def test_puct_child_visits_sum_to_root_visits():
+    assert root.visits == 2
+
+
+def test_puct_child_visits_sum_to_root_visits_minus_one():
 
     env = SplendorEnv()
     env.reset()
@@ -259,4 +293,8 @@ def test_puct_child_visits_sum_to_root_visits():
         for child in root.children
     )
 
-    assert child_visits == simulations
+    assert root.visits == simulations
+
+    assert child_visits == (
+        root.visits - 1
+    )

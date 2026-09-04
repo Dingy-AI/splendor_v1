@@ -436,7 +436,7 @@ class SplendorEnv(gym.Env):
 
         return valid_payments
 
-    def _generate_valid_payments(
+    def slow_2_generate_valid_payments(
         self,
         player: Player,
         card: Card,
@@ -462,6 +462,111 @@ class SplendorEnv(gym.Env):
 
         if sum(minimum_gold) > gold_available:
             return []
+
+        ranges = [
+            range(
+                minimum_gold[i],
+                required[i] + 1,
+            )
+            for i in range(5)
+        ]
+
+        return [
+            payment
+            for payment in product(*ranges)
+            if sum(payment) <= gold_available
+        ]
+
+    def _generate_valid_payments(
+        self,
+        player: Player,
+        card: Card,
+    ) -> list[tuple[int, int, int, int, int]]:
+
+        required = [
+            max(
+                card.cost[color]
+                - player.bonuses[color],
+                0,
+            )
+            for color in COLOR_ORDER
+        ]
+
+        minimum_gold = [
+            max(
+                required[i]
+                - player.gems[color],
+                0,
+            )
+            for i, color in enumerate(COLOR_ORDER)
+        ]
+
+        gold_available = player.gems[
+            GemColor.GOLD
+        ]
+
+        minimum_total = sum(
+            minimum_gold
+        )
+
+        # Cannot afford card.
+        if minimum_total > gold_available:
+            return []
+
+        minimum_payment = tuple(
+            minimum_gold
+        )
+
+        extra_gold = (
+            gold_available
+            - minimum_total
+        )
+
+        # ------------------------------------------------------------
+        # No optional gold
+        # ------------------------------------------------------------
+
+        if extra_gold == 0:
+            return [
+                minimum_payment
+            ]
+
+        # ------------------------------------------------------------
+        # One optional gold
+        # ------------------------------------------------------------
+
+        if extra_gold == 1:
+
+            payments = [
+                minimum_payment
+            ]
+
+            for i in range(4, -1, -1):
+
+                # required[i] > minimum_gold[i]
+                # means there is at least one colored gem
+                # that could be replaced by gold.
+                if (
+                    required[i]
+                    <= minimum_gold[i]
+                ):
+                    continue
+
+                payment = list(
+                    minimum_gold
+                )
+
+                payment[i] += 1
+
+                payments.append(
+                    tuple(payment)
+                )
+
+            return payments
+
+        # ------------------------------------------------------------
+        # General case
+        # ------------------------------------------------------------
 
         ranges = [
             range(
@@ -1033,7 +1138,7 @@ class SplendorEnv(gym.Env):
         return gold_needed <= player.gems[GemColor.GOLD]
     
 
-    def step(self, action: Action, state:GameState = None, compute_observation=True):
+    def step(self, action: Action, state:GameState = None, compute_observation=False):
 
         if state is None:
             state = self.state
@@ -1078,7 +1183,7 @@ class SplendorEnv(gym.Env):
         info = {
             "node_type": state.node_type,
             "current_player": state.current_player,
-            "legal_actions_count": len(self._legal_actions(state)),
+            # "legal_actions_count": len(self._legal_actions(state)),
             "turn_number": state.turn_number,
             "state": state
         }
@@ -1626,7 +1731,8 @@ class SplendorEnv(gym.Env):
             action_type=ActionType.TAKE_NOBLE,
             noble_index=action_id - NOBLE_START,
         )   
-        
+
+    # TODO DELETE LATER THIS IS NO LONGER USED
     def action_mask(
         self,
         state,

@@ -174,60 +174,62 @@ def train_network(
     policy_loss_sum = 0.0
     value_loss_sum = 0.0
 
-    for _ in range(training_steps):
+    if len(replay_buffer) >= batch_size:
 
-        batch = replay_buffer.sample(
-            batch_size
-        )
+        for _ in range(training_steps):
 
-        observations = torch.as_tensor(
-            np.stack([
-                sample[0]
-                for sample in batch
-            ]),
-            dtype=torch.float32,
-        )
+            batch = replay_buffer.sample(
+                batch_size
+            )
 
-        target_policies = torch.as_tensor(
-            np.stack([
-                sample[1]
-                for sample in batch
-            ]),
-            dtype=torch.float32,
-        )
+            observations = torch.as_tensor(
+                np.stack([
+                    sample[0]
+                    for sample in batch
+                ]),
+                dtype=torch.float32,
+            )
 
-        target_values = torch.as_tensor(
-            np.array([
-                sample[2]
-                for sample in batch
-            ]),
-            dtype=torch.float32,
-        )
+            target_policies = torch.as_tensor(
+                np.stack([
+                    sample[1]
+                    for sample in batch
+                ]),
+                dtype=torch.float32,
+            )
 
-        policy_logits, predicted_values = model(
-            observations
-        )
+            target_values = torch.as_tensor(
+                np.array([
+                    sample[2]
+                    for sample in batch
+                ]),
+                dtype=torch.float32,
+            )
 
-        (
-            loss,
-            policy_loss,
-            value_loss,
-        ) = policy_value_loss(
-            policy_logits,
-            predicted_values,
-            target_policies,
-            target_values,
-        )
+            policy_logits, predicted_values = model(
+                observations
+            )
 
-        optimizer.zero_grad()
+            (
+                loss,
+                policy_loss,
+                value_loss,
+            ) = policy_value_loss(
+                policy_logits,
+                predicted_values,
+                target_policies,
+                target_values,
+            )
 
-        loss.backward()
+            optimizer.zero_grad()
 
-        optimizer.step()
+            loss.backward()
 
-        total_loss_sum += loss.item()
-        policy_loss_sum += policy_loss.item()
-        value_loss_sum += value_loss.item()
+            optimizer.step()
+
+            total_loss_sum += loss.item()
+            policy_loss_sum += policy_loss.item()
+            value_loss_sum += value_loss.item()
 
     return {
         "loss": (

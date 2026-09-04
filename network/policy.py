@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 
+#TODO DELETE later this whole section is useless now :'()
 
 def apply_action_mask(
     policy_logits: torch.Tensor,

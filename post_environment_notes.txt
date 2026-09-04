@@ -350,7 +350,7 @@ we are going to investigate expand_all_with_priors now #DONE
 the next big 'win' is in mcts 
 #we are now at the point where it is less than 3 sec per game with 20 simulations
 
-5. Only then consider deeper architectural changes like tree reuse/batching
+5. Only then consider deeper architectural changes like tree reuse #DONE 
 
 6. Investigate lazy MCTS child-state creation
 7. Re-profile

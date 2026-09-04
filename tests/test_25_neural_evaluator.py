@@ -21,9 +21,10 @@ def test_neural_evaluate_returns_policy_and_value():
         env.state,
     )
 
-    assert policy_probs.shape == (
-        ACTION_SPACE_SIZE,
-    )
+    #changes made it so that action space size is no longer needed
+    # assert policy_probs.shape == (
+    #     ACTION_SPACE_SIZE,
+    # )
 
     assert isinstance(value, float)
 
@@ -86,7 +87,7 @@ def test_neural_evaluate_has_no_nan():
     )
 
 
-def test_neural_evaluate_illegal_actions_have_zero_probability():
+def test_neural_evaluate_returns_only_legal_action_probs():
 
     env = SplendorEnv()
     env.reset()
@@ -95,24 +96,22 @@ def test_neural_evaluate_illegal_actions_have_zero_probability():
 
     model = SplendorNetwork()
 
+    legal_actions = env._legal_actions(
+        state
+    )
+
     policy_probs, _ = neural_evaluate(
         env,
         model,
         state,
+        legal_actions=legal_actions,
     )
 
-    action_mask = env.action_mask(
-        state
+    assert len(policy_probs) == len(
+        legal_actions
     )
 
-    illegal_ids = action_mask == 0
-
-    assert torch.all(
-        policy_probs[illegal_ids] == 0
-    )
-
-
-def test_neural_evaluate_legal_actions_have_positive_probability():
+def test_neural_evaluate_legal_probs_sum_to_one():
 
     env = SplendorEnv()
     env.reset()
@@ -121,18 +120,19 @@ def test_neural_evaluate_legal_actions_have_positive_probability():
 
     model = SplendorNetwork()
 
+    legal_actions = env._legal_actions(
+        state
+    )
+
     policy_probs, _ = neural_evaluate(
         env,
         model,
         state,
+        legal_actions=legal_actions,
     )
 
-    action_mask = env.action_mask(
-        state
-    )
-
-    legal_ids = action_mask == 1
-
-    assert torch.all(
-        policy_probs[legal_ids] > 0
+    assert torch.isclose(
+        policy_probs.sum(),
+        torch.tensor(1.0),
+        atol=1e-6,
     )

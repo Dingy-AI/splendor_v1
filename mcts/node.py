@@ -19,8 +19,10 @@ class Node:
 
     value: float = 0.0
 
-    untried_actions: list[Action] = field(default_factory=list)
-
+    untried_actions: list[Action] | None = None
+    
     prior: float = 0.0
 
     expanded: bool = False
+
+    legal_actions: list[Action] | None = None
