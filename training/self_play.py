@@ -38,7 +38,18 @@ def root_visit_policy(env, root):
 
     return target_policy
 
-def play_self_play_game(
+def get_child_for_action(
+    root,
+    action,
+):
+    for child in root.children:
+
+        if child.action == action:
+            return child
+
+    return None
+
+def old_play_self_play_game(
     env,
     mcts,
     replay_buffer,
@@ -104,169 +115,6 @@ def play_self_play_game(
         if not root.children:
             break
 
-        # Debug root visit distribution
-
-        # player = state.players[
-        #     state.current_player
-        # ]
-
-        # total_gems = sum(
-        #     player.gems.values()
-        # )
-        # if total_gems >= MAX_GEMS:
-
-
-        #     prior_by_type = defaultdict(float)
-        #     visits_by_type = defaultdict(int)
-        #     value_by_type = defaultdict(float)
-        #     actions_by_type = defaultdict(int)
-
-        #     exploration_by_type = defaultdict(float)
-        #     puct_by_type = defaultdict(float)
-
-        #     total_visits = sum(
-        #         child.visits
-        #         for child in root.children
-        #     )
-
-        #     for child in root.children:
-        #         action_type = child.action.action_type
-
-        #         prior_by_type[action_type] += (
-        #             child.prior
-        #         )
-
-        #         visits_by_type[action_type] += (
-        #             child.visits
-        #         )
-
-        #         value_by_type[action_type] += (
-        #             child.value
-        #         )
-
-        #         actions_by_type[action_type] += 1
-
-        #         # Q for this individual child
-        #         if child.visits > 0:
-        #             child_q = (
-        #                 child.value
-        #                 / child.visits
-        #             )
-        #         else:
-        #             child_q = 0.0
-
-        #         # Same exploration formula used by PUCT
-        #         c_puct = 1.5
-        #         child_exploration = (
-        #             c_puct
-        #             * child.prior
-        #             * math.sqrt(
-        #                 max(root.visits, 1)
-        #             )
-        #             / (1 + child.visits)
-        #         )
-
-        #         child_puct = (
-        #             child_q
-        #             + child_exploration
-        #         )
-
-        #         # Weight by visits for action-type summary
-        #         weight = max(child.visits, 1)
-
-        #         exploration_by_type[action_type] += (
-        #             child_exploration * weight
-        #         )
-
-        #         puct_by_type[action_type] += (
-        #             child_puct * weight
-        #         )
-
-        #     print(
-        #         f"\nPlayer {state.current_player} "
-        #         f"at {total_gems} gems:"
-        #     )
-
-        #     action_types = sorted(
-        #         prior_by_type.keys(),
-        #         key=lambda action_type: (
-        #             visits_by_type[action_type]
-        #         ),
-        #         reverse=True,
-        #     )
-
-        #     for action_type in action_types:
-
-        #         visits = visits_by_type[
-        #             action_type
-        #         ]
-
-        #         if visits > 0:
-        #             q_value = (
-        #                 value_by_type[action_type]
-        #                 / visits
-        #             )
-        #         else:
-        #             q_value = 0.0
-
-        #         if total_visits > 0:
-        #             target_policy = (
-        #                 visits / total_visits
-        #             )
-        #         else:
-        #             target_policy = 0.0
-
-        #         weight = sum(
-        #             max(child.visits, 1)
-        #             for child in root.children
-        #             if (
-        #                 child.action.action_type
-        #                 == action_type
-        #             )
-        #         )
-
-        #         avg_exploration = (
-        #             exploration_by_type[action_type]
-        #             / weight
-        #         )
-
-        #         avg_puct = (
-        #             puct_by_type[action_type]
-        #             / weight
-        #         )
-
-        #         print(
-        #             f"  {action_type.name}: "
-        #             f"actions={actions_by_type[action_type]}, "
-        #             f"prior={prior_by_type[action_type]:.3f}, "
-        #             f"target={target_policy:.3f}, "
-        #             f"visits={visits}, "
-        #             f"Q={q_value:.3f}, "
-        #             f"U={avg_exploration:.3f}, "
-        #             f"PUCT={avg_puct:.3f}"
-        #         )
-
-
-        #     sorted_children = sorted(
-        #         root.children,
-        #         key=lambda child: child.visits,
-        #         reverse=True,
-        #     )
-
-        #     print(
-        #         f"\nPlayer {state.current_player} "
-        #         f"at {total_gems} gems:"
-        #     )
-
-        #     for child in sorted_children[:10]:
-        #         print(
-        #             f"  visits={child.visits}, "
-        #             f"prior={child.prior:.3f}, "
-        #             f"action={child.action}"
-        #         )
-
-
-
         action = select_self_play_action(
             root,
             temperature=1.0,
@@ -316,82 +164,6 @@ def play_self_play_game(
             )
 
 
-        # print("Winners:", winners)
-
-        # for _, _, player in game_history[:10]:
-        #     target_value = (
-        #         1.0 if player in winners else -1.0
-        #     )
-
-        #     print(
-        #         f"Player={player}, "
-        #         f"Target value={target_value}"
-        #     )
-
-        # print("\nSelf-play action counts:")
-
-        # game_action_counts = Counter()
-
-        # for counts in action_counts.values():
-        #     game_action_counts.update(counts)
-
-        # game_total = sum(
-        #     game_action_counts.values()
-        # )
-
-        # print(
-        #     f"Game total: "
-        #     f"{game_total} actions"
-        # )
-
-        # for action_type, count in (
-        #     game_action_counts.items()
-        # ):
-        #     percentage = (
-        #         count / game_total * 100
-        #         if game_total > 0
-        #         else 0
-        #     )
-
-        #     print(
-        #         f"  {action_type.name}: "
-        #         f"{count} "
-        #         f"({percentage:.1f}%)"
-        #     )
-
-
-        # # Per-player breakdown
-
-        # for player in (0, 1):
-
-        #     total = sum(
-        #         action_counts[player].values()
-        #     )
-
-        #     print(
-        #         f"\nPlayer {player}: "
-        #         f"{total} actions"
-        #     )
-
-        #     for action_type, count in (
-        #         action_counts[player].items()
-        #     ):
-        #         percentage = (
-        #             count / total * 100
-        #             if total > 0
-        #             else 0
-        #         )
-
-        #         print(
-        #             f"  {action_type.name}: "
-        #             f"{count} "
-        #             f"({percentage:.1f}%)"
-        #         )
-
-
-
-
-
         return {
             "completed": True,
             "winners": winners,
@@ -399,69 +171,6 @@ def play_self_play_game(
             "mcts_time": mcts_time,
         }
     else:
-
-
-        # print("\nSelf-play action counts:")
-
-        # game_action_counts = Counter()
-
-        # for counts in action_counts.values():
-        #     game_action_counts.update(counts)
-
-        # game_total = sum(
-        #     game_action_counts.values()
-        # )
-
-        # print(
-        #     f"Game total: "
-        #     f"{game_total} actions"
-        # )
-
-        # for action_type, count in (
-        #     game_action_counts.items()
-        # ):
-        #     percentage = (
-        #         count / game_total * 100
-        #         if game_total > 0
-        #         else 0
-        #     )
-
-        #     print(
-        #         f"  {action_type.name}: "
-        #         f"{count} "
-        #         f"({percentage:.1f}%)"
-        #     )
-
-
-        # # Per-player breakdown
-
-        # for player in (0, 1):
-
-        #     total = sum(
-        #         action_counts[player].values()
-        #     )
-
-        #     print(
-        #         f"\nPlayer {player}: "
-        #         f"{total} actions"
-        #     )
-
-        #     for action_type, count in (
-        #         action_counts[player].items()
-        #     ):
-        #         percentage = (
-        #             count / total * 100
-        #             if total > 0
-        #             else 0
-        #         )
-
-        #         print(
-        #             f"  {action_type.name}: "
-        #             f"{count} "
-        #             f"({percentage:.1f}%)"
-        #         )
-
-
         
         return {
             "completed": False,
@@ -515,3 +224,215 @@ def select_self_play_action(
     )
 
     return root.children[index].action
+
+def play_self_play_game(
+    env,
+    mcts,
+    replay_buffer,
+):
+
+    action_counts = {
+        0: Counter(),
+        1: Counter(),
+    }
+
+    env.reset()
+
+    game_history = []
+
+    terminated = False
+    truncated = False
+    info = {}
+
+    mcts_time = 0.0
+
+    turn_count = 0
+    MAX_TURNS = 300
+
+    current_root = None
+
+    while not terminated and not truncated:
+
+        turn_count += 1
+
+        if turn_count > MAX_TURNS:
+            print(
+                f"Game aborted after "
+                f"{MAX_TURNS} turns"
+            )
+            break
+
+        if turn_count % 25 == 0:
+            print(
+                f"Turn {turn_count}: "
+                f"player={env.state.current_player}, "
+                f"node={env.state.node_type}"
+            )
+
+        state = env.state
+
+        observation = (
+            env.observation_encoder.encoder(
+                state
+            )
+        )
+
+        old_player = state.current_player
+
+
+        # -------------------------
+        # MCTS search
+        # -------------------------
+        mcts_start = time.perf_counter()
+
+        _, root = mcts.search(
+            env,
+            state,
+            root=current_root,
+            return_root=True,
+        )
+
+
+        mcts_time += (
+            time.perf_counter()
+            - mcts_start
+        )
+
+        if not root.children:
+            break
+
+        # -------------------------
+        # Select actual self-play move
+        # -------------------------
+        action = select_self_play_action(
+            root,
+            temperature=1.0,
+        )
+
+        if action is None:
+            break
+
+        # Find the child corresponding to
+        # the action actually selected.
+        #
+        # We cannot simply use best_child
+        # returned by search because
+        # temperature=1.0 may sample a
+        # different action.
+        next_root = None
+
+        for child in root.children:
+
+            if child.action == action:
+                next_root = child
+                break
+
+        if next_root is None:
+            raise ValueError(
+                "Selected self-play action "
+                "does not have a matching "
+                "child in the MCTS root."
+            )
+
+        # -------------------------
+        # Training targets
+        # -------------------------
+        target_policy = root_visit_policy(
+            env,
+            root,
+        )
+
+        player = old_player
+
+        action_counts[player][
+            action.action_type
+        ] += 1
+
+        game_history.append(
+            (
+                observation,
+                target_policy,
+                player,
+            )
+        )
+
+        # -------------------------
+        # Play actual move
+        # -------------------------
+        (
+            _,
+            _,
+            terminated,
+            truncated,
+            info,
+        ) = env.step(action)
+
+        new_player = env.state.current_player
+
+        # -------------------------
+        # Tree reuse
+        # -------------------------
+
+        # The selected child is now the
+        # root of the next MCTS search.
+        current_root = next_root
+
+        # Detach the old tree so it can
+        # be garbage collected.
+        current_root.parent = None
+
+        # MCTS node values are stored from
+        # the previous root player's
+        # perspective.
+        #
+        # If the player changed, convert
+        # the entire reused subtree to the
+        # new player's perspective.
+        #
+        # This intentionally DOES NOT flip
+        # during forced discard or noble
+        # decisions when current_player
+        # remains unchanged.
+        if new_player != old_player:
+
+            mcts.flip_tree_values(
+                current_root
+            )
+
+    # -------------------------
+    # Store completed game
+    # -------------------------
+    if terminated:
+
+        winners = info["winners"]
+
+        for (
+            observation,
+            target_policy,
+            player,
+        ) in game_history:
+
+            if player in winners:
+                target_value = 1.0
+            else:
+                target_value = -1.0
+
+            replay_buffer.add(
+                observation,
+                target_policy,
+                target_value,
+            )
+
+        return {
+            "completed": True,
+            "winners": winners,
+            "game_length": len(game_history),
+            "mcts_time": mcts_time,
+        }
+
+    else:
+
+        return {
+            "completed": False,
+            "mcts_time": mcts_time,
+        }

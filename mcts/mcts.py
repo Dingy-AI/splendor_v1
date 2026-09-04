@@ -24,7 +24,12 @@ class MCTS:
                 "A model is required for neural rollout."
             )
 
-    def search(self, env, state, return_root=False, debug=False):
+    def search(self, 
+               env, 
+               state, 
+               root=None,
+               return_root=False, 
+               debug=False):
 
         # Player whose decision we are trying to improve
         root_player = state.current_player
@@ -56,10 +61,19 @@ class MCTS:
             return None
 
         # Root node starts from the current game state
-        root = Node(
-            state=state.clone(),
-            untried_actions=legal_actions
-        )
+        if root is None:
+            root = Node(
+                state=state.clone(),
+                untried_actions=legal_actions,
+            )
+        else:
+            # Reused root becomes the new top of the tree.
+            root.parent = None
+
+            # Make sure its state corresponds to the
+            # actual current game state.
+            if root.state is None:
+                root.state = state.clone()
 
         # initial_legal_count = len(root.untried_actions)
 
@@ -655,3 +669,15 @@ class MCTS:
         )
 
         node.state = child_state
+
+    def flip_tree_values(
+        self,
+        node,
+    ):
+
+        node.value = -node.value
+
+        for child in node.children:
+            self.flip_tree_values(
+                child
+            )

@@ -346,13 +346,14 @@ _encode_single_player() — 1.19s #SKIP
 map_payment_to_canonical() — 0.86s #SKIP 
 _encode_nobles() — 0.68s #SKIP 
 
-we are going to investigate expand_all_with_priors now
+we are going to investigate expand_all_with_priors now #DONE 
 the next big 'win' is in mcts 
+#we are now at the point where it is less than 3 sec per game with 20 simulations
 
+5. Only then consider deeper architectural changes like tree reuse/batching
 
-5. Investigate lazy MCTS child-state creation
-6. Re-profile
-7. Only then consider deeper architectural changes like tree reuse/batching
+6. Investigate lazy MCTS child-state creation
+7. Re-profile
 Add persistent replay storage (SQLite)
 Track strength across training
 Tune training/MCTS hyperparameters

@@ -382,7 +382,7 @@ def test_self_play_replay_buffer_examples_are_finite():
     model = SplendorNetwork()
 
     mcts = MCTS(
-        simulations=3,
+        simulations=20,
         rollout_type="neural",
         selection_type="puct",
         model=model,
