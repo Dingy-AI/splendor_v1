@@ -3,9 +3,10 @@ from splendor_v1.mcts.node import Node
 from collections import Counter, defaultdict
 import math
 import time
-
+import numpy as np
 from splendor_v1.mcts.rollout import random_rollout, heuristic_rollout, heuristic_rollout_v2
 from splendor_v1.mcts.neural_evaluator import neural_evaluate, slow_neural_evaluate
+import torch
 class MCTS:
 
     def __init__(self, 
@@ -29,7 +30,9 @@ class MCTS:
                state, 
                root=None,
                return_root=False, 
-               debug=False):
+               debug=False,
+               add_root_noise=False,
+               teacher_mode=False):
 
         # Player whose decision we are trying to improve
         root_player = state.current_player
@@ -84,24 +87,6 @@ class MCTS:
 
             return None
 
-        # # Root node starts from the current game state
-        # if root is None:
-        #     root = Node(
-        #         state=state.clone(),
-        #         untried_actions=legal_actions,
-        #     )
-        # else:
-        #     # Reused root becomes the new top of the tree.
-        #     root.parent = None
-
-        #     # Make sure its state corresponds to the
-        #     # actual current game state.
-        #     if root.state is None:
-        #         root.state = state.clone()
-
-        # initial_legal_count = len(root.untried_actions)
-
-
         # selection_time = 0
         # expansion_time = 0
         # rollout_time = 0
@@ -117,6 +102,16 @@ class MCTS:
             )
 
 
+        root_noise_added = False
+
+        # Existing/reused root
+        if (
+            add_root_noise
+            and root.expanded
+            and root.children
+        ):
+            self.add_dirichlet_noise(root)
+            root_noise_added = True
 
         for _ in range(self.simulations):
 
@@ -146,7 +141,21 @@ class MCTS:
                     value = self.expand_all_with_priors(
                         env,
                         node,
+                        teacher_mode=teacher_mode
                     )
+
+
+
+
+                    # Fresh root was just expanded
+                    if (
+                        add_root_noise
+                        and node is root
+                        and not root_noise_added
+                        and root.children
+                    ):
+                        self.add_dirichlet_noise(root)
+                        root_noise_added = True
 
                     # Terminal / dead-end node
                     if value is None:
@@ -471,7 +480,7 @@ class MCTS:
         parent,
         child,
         root_player,
-        c_puct=1.5,
+        c_puct=3,
     ):
 
         if child.visits == 0:
@@ -560,6 +569,7 @@ class MCTS:
         self,
         env,
         node,
+        teacher_mode=False
     ):
 
         if env._check_terminated(node.state):
@@ -577,13 +587,27 @@ class MCTS:
             node.expanded = True
             return
 
-        legal_probs, value = neural_evaluate(
-            env,
-            self.model,
-            node.state,
-            legal_actions=legal_actions,
-        )
+        if teacher_mode:
 
+            # Strong teacher:
+            # uniform policy + no neural value
+            legal_probs = torch.full(
+                (len(legal_actions),),
+                1.0 / len(legal_actions),
+                dtype=torch.float32,
+            )
+
+            value = 0.0
+
+        else:
+
+            # Normal neural MCTS
+            legal_probs, value = neural_evaluate(
+                env,
+                self.model,
+                node.state,
+                legal_actions=legal_actions,
+            )
         for action, prior in zip(
             legal_actions,
             legal_probs,
@@ -667,3 +691,23 @@ class MCTS:
         )
 
         return node.legal_actions
+
+    def add_dirichlet_noise(
+        self,
+        root,
+        alpha=0.3,
+        epsilon=0.25,
+    ):
+        if not root.children:
+            return
+
+        noise = np.random.dirichlet(
+            [alpha] * len(root.children)
+        )
+
+        for child, n in zip(root.children, noise):
+            child.prior = (
+                (1.0 - epsilon) * child.prior
+                + epsilon * n
+        )
+

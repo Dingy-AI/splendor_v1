@@ -1,0 +1,36 @@
+
+Uniform P + V=0
+80 simulations
+50 games
+
+Evaluation complete.
+PUCT wins: 44
+Random wins: 4
+Ties: 0
+Deadlocks: 2
+Aborted: 0
+PUCT win rate: 91.67%
+Average steps: 137.0
+
+Uniform P + V=0
+200 simulations
+50 games
+
+Evaluation complete.
+PUCT wins: 47
+Random wins: 3
+Ties: 0
+Deadlocks: 0
+Aborted: 0
+PUCT win rate: 94.00%
+Average steps: 132.3
+
+
+Evaluation complete.
+PUCT wins: 1
+Random wins: 47
+Ties: 0
+Deadlocks: 2
+Aborted: 0
+PUCT win rate: 2.08%
+Average steps: 128.1

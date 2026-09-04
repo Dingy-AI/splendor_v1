@@ -7,7 +7,9 @@ from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 import time 
 from collections import Counter
 import math
-from splendor_v1.env.core.enums import NodeType
+from splendor_v1.env.core.enums import NodeType, ActionType
+import torch
+
 def root_visit_policy(env, root):
 
     target_policy = np.zeros(
@@ -229,6 +231,8 @@ def play_self_play_game(
     env,
     mcts,
     replay_buffer,
+    policy_debug_samples=None,
+    game_index=None
 ):
 
     action_counts = {
@@ -262,12 +266,12 @@ def play_self_play_game(
             )
             break
 
-        if turn_count % 25 == 0:
-            print(
-                f"Turn {turn_count}: "
-                f"player={env.state.current_player}, "
-                f"node={env.state.node_type}"
-            )
+        # if turn_count % 25 == 0:
+        #     print(
+        #         f"Turn {turn_count}: "
+        #         f"player={env.state.current_player}, "
+        #         f"node={env.state.node_type}"
+        #     )
 
         state = env.state
 
@@ -290,6 +294,8 @@ def play_self_play_game(
             state,
             root=current_root,
             return_root=True,
+            add_root_noise=True,
+            teacher_mode=True
         )
 
 
@@ -343,8 +349,23 @@ def play_self_play_game(
             root,
         )
 
-
-
+        #DEBUG HELPER
+        if (
+            policy_debug_samples is not None
+            and state.turn_number % 20 == 0
+        ):
+            legal_action_ids = [
+                env.action_to_id(child.action)
+                for child in root.children
+            ]
+            policy_debug_samples.append({
+                "game_index": game_index,
+                "turn": state.turn_number,
+                "observation": observation.copy(),
+                "target_policy": target_policy.copy(),
+                "legal_action_ids": legal_action_ids.copy(),
+            })
+                
 
         player = old_player
 
@@ -440,3 +461,4 @@ def play_self_play_game(
             "completed": False,
             "mcts_time": mcts_time,
         }
+

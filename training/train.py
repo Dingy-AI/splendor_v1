@@ -20,6 +20,7 @@ def run_training(
     checkpoint_every_games=None,
     checkpoint_dir="checkpoints",
     starting_games_played=0,
+    policy_debug_samples=None
 ):
     history = []
 
@@ -57,9 +58,9 @@ def run_training(
                 env,
                 mcts,
                 replay_buffer,
+                policy_debug_samples,
+                game_index= games_played
             )
-
-
 
             total_self_play_time += (
                 time.perf_counter() - start
@@ -68,6 +69,7 @@ def run_training(
                 total_mcts_time += (
                     game_stats["mcts_time"]
                 )
+                print("Games Completed Successfully: ", games_played)
 
                 games_played += 1
 

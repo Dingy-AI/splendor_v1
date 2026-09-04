@@ -1,5 +1,6 @@
 from splendor_v1.mcts.mcts import MCTS
-
+from collections import defaultdict
+from splendor_v1.env.core.enums import NodeType
 
 class NeuralPUCTAgent:
 
@@ -26,17 +27,8 @@ class NeuralPUCTAgent:
             env,
             state,
             return_root=True,
+            teacher_mode=False
         )
-
-        # print("\n--- SEARCH COUNT DEBUG ---")
-        # print("Configured simulations:", self.mcts.simulations)
-        # print("Root visits:", root.visits)
-        # print(
-        #     "Child visit sum:",
-        #     sum(child.visits for child in root.children),
-        # )
-        # print("Number of children:", len(root.children))
-        # print("--------------------------\n")
 
         if not root.children:
             raise ValueError(

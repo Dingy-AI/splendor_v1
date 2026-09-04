@@ -355,6 +355,10 @@ the next big 'win' is in mcts
 6. Investigate lazy MCTS child-state creation #DONE
 
 
+run 800 sims or something like it as a psuedo random rollout
+to confirm it is 'working'
+
+add_dirichlet_noise 
 
 
 
@@ -364,15 +368,6 @@ Add persistent replay storage (SQLite)
 Track strength across training
 Tune training/MCTS hyperparameters
 Add advanced AlphaZero features
-
-
-Extract the network-call portion of neural_evaluate() so it supports a batch of observations.
-Split PUCT leaf expansion into prepare and complete stages.
-Make one self-play game capable of pausing when it needs neural inference.
-Run, say, 8 games cooperatively in one process.
-Batch their pending leaf evaluations.
-Confirm game results are still valid and benchmark throughput.
-Only after that consider multiprocessing for the environment/MCTS portions if CPU becomes the bottleneck.
 
 The end goal might be:
 
