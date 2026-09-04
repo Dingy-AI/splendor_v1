@@ -28,6 +28,16 @@ class NeuralPUCTAgent:
             return_root=True,
         )
 
+        # print("\n--- SEARCH COUNT DEBUG ---")
+        # print("Configured simulations:", self.mcts.simulations)
+        # print("Root visits:", root.visits)
+        # print(
+        #     "Child visit sum:",
+        #     sum(child.visits for child in root.children),
+        # )
+        # print("Number of children:", len(root.children))
+        # print("--------------------------\n")
+
         if not root.children:
             raise ValueError(
                 "NeuralPUCTAgent could not find "

@@ -148,6 +148,7 @@ def run_training(
 
 
 
+
 def train_network(
     model,
     replay_buffer,
@@ -174,62 +175,66 @@ def train_network(
     policy_loss_sum = 0.0
     value_loss_sum = 0.0
 
-    if len(replay_buffer) >= batch_size:
+    for step in range(training_steps):
 
-        for _ in range(training_steps):
+        batch = replay_buffer.sample(
+            batch_size
+        )
 
-            batch = replay_buffer.sample(
-                batch_size
-            )
+        observations = torch.as_tensor(
+            np.stack([
+                sample[0]
+                for sample in batch
+            ]),
+            dtype=torch.float32,
+        )
 
-            observations = torch.as_tensor(
-                np.stack([
-                    sample[0]
-                    for sample in batch
-                ]),
-                dtype=torch.float32,
-            )
+        target_policies = torch.as_tensor(
+            np.stack([
+                sample[1]
+                for sample in batch
+            ]),
+            dtype=torch.float32,
+        )
 
-            target_policies = torch.as_tensor(
-                np.stack([
-                    sample[1]
-                    for sample in batch
-                ]),
-                dtype=torch.float32,
-            )
+        target_values = torch.as_tensor(
+            np.array([
+                sample[2]
+                for sample in batch
+            ]),
+            dtype=torch.float32,
+        )
 
-            target_values = torch.as_tensor(
-                np.array([
-                    sample[2]
-                    for sample in batch
-                ]),
-                dtype=torch.float32,
-            )
 
-            policy_logits, predicted_values = model(
-                observations
-            )
+        policy_logits, predicted_values = model(
+            observations
+        )
 
-            (
-                loss,
-                policy_loss,
-                value_loss,
-            ) = policy_value_loss(
-                policy_logits,
-                predicted_values,
-                target_policies,
-                target_values,
-            )
+        # ---------------------------------
+        # Debug first batch only
+        # ---------------------------------
 
-            optimizer.zero_grad()
 
-            loss.backward()
+        (
+            loss,
+            policy_loss,
+            value_loss,
+        ) = policy_value_loss(
+            policy_logits,
+            predicted_values,
+            target_policies,
+            target_values,
+        )
 
-            optimizer.step()
+        optimizer.zero_grad()
 
-            total_loss_sum += loss.item()
-            policy_loss_sum += policy_loss.item()
-            value_loss_sum += value_loss.item()
+        loss.backward()
+
+        optimizer.step()
+
+        total_loss_sum += loss.item()
+        policy_loss_sum += policy_loss.item()
+        value_loss_sum += value_loss.item()
 
     return {
         "loss": (
@@ -245,3 +250,4 @@ def train_network(
             / training_steps
         ),
     }
+

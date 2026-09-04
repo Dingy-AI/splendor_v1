@@ -67,19 +67,39 @@ def main():
     #     starting_games_played=starting_games_played
     # )
 
+    # history = run_training(
+    #     env=env,
+    #     model=model,
+    #     optimizer=optimizer,
+    #     replay_buffer=replay_buffer,
+    #     num_iterations=1,
+    #     self_play_games_per_iteration=1,
+    #     simulations=80,
+    #     batch_size=32,
+    #     training_steps=2,
+    #     checkpoint_every_games=2,
+    #     starting_games_played=starting_games_played,
+    # )
+
     history = run_training(
         env=env,
         model=model,
         optimizer=optimizer,
         replay_buffer=replay_buffer,
-        num_iterations=1,
-        self_play_games_per_iteration=1,
-        simulations=20,
+
+        num_iterations=5,
+        self_play_games_per_iteration=2,
+
+        simulations=80,
+
         batch_size=32,
-        training_steps=2,
-        checkpoint_every_games=2,
+        training_steps=20,
+
+        checkpoint_every_games=10,
+
         starting_games_played=starting_games_played,
     )
+
 
     print("\nTraining complete.")
     print(

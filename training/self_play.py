@@ -7,7 +7,7 @@ from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 import time 
 from collections import Counter
 import math
-
+from splendor_v1.env.core.enums import NodeType
 def root_visit_policy(env, root):
 
     target_policy = np.zeros(
@@ -293,6 +293,7 @@ def play_self_play_game(
         )
 
 
+
         mcts_time += (
             time.perf_counter()
             - mcts_start
@@ -341,6 +342,9 @@ def play_self_play_game(
             env,
             root,
         )
+
+
+
 
         player = old_player
 

@@ -352,12 +352,40 @@ the next big 'win' is in mcts
 
 5. Only then consider deeper architectural changes like tree reuse #DONE 
 
-6. Investigate lazy MCTS child-state creation
-7. Re-profile
+6. Investigate lazy MCTS child-state creation #DONE
+
+
+
+
+
+
+
 Add persistent replay storage (SQLite)
 Track strength across training
 Tune training/MCTS hyperparameters
 Add advanced AlphaZero features
+
+
+Extract the network-call portion of neural_evaluate() so it supports a batch of observations.
+Split PUCT leaf expansion into prepare and complete stages.
+Make one self-play game capable of pausing when it needs neural inference.
+Run, say, 8 games cooperatively in one process.
+Batch their pending leaf evaluations.
+Confirm game results are still valid and benchmark throughput.
+Only after that consider multiprocessing for the environment/MCTS portions if CPU becomes the bottleneck.
+
+The end goal might be:
+
+8 games
+    ↓
+each produces one pending leaf
+    ↓
+batch size 8
+    ↓
+one model forward
+    ↓
+8 MCTS searches resume
+
 
 
 SQLITE 

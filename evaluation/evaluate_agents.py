@@ -4,7 +4,7 @@ def evaluate_agents(
     agent_a,
     agent_b,
     num_games=100,
-    max_steps=500,
+    max_steps=300,
     debug_mode=True
 ):
 
@@ -51,7 +51,7 @@ def evaluate_agents(
 
             agent_a_index = 1
             agent_b_index = 0
-
+        print("Game: ", game_index, " completed with results ", result)
         # -------------------------
         # Record statistics
         # -------------------------
@@ -128,7 +128,7 @@ def evaluate_agents(
 def play_game(
     agent_0,
     agent_1,
-    max_steps=500,
+    max_steps=300,
 ):
 
     env = SplendorEnv()
@@ -172,14 +172,14 @@ def play_game(
                 f"illegal action: {action}"
             )
 
-        print(
-            f"Step={steps}, "
-            f"Player={current_player}, "
-            f"Agent={type(agent).__name__}, "
-            f"Action={action}, "
-            f"Scores="
-            f"{[p.points for p in env.state.players]}"
-        )
+        # print(
+        #     f"Step={steps}, "
+        #     f"Player={current_player}, "
+        #     f"Agent={type(agent).__name__}, "
+        #     f"Action={action}, "
+        #     f"Scores="
+        #     f"{[p.points for p in env.state.players]}"
+        # )
 
         obs, reward, terminated, truncated, info = env.step(action)
 

@@ -2,54 +2,34 @@ import torch
 
 from splendor_v1.agents.random_agent import RandomAgent
 from splendor_v1.agents.neural_puct_agent import NeuralPUCTAgent
-from splendor_v1.env.env import SplendorEnv
 from splendor_v1.env.core.constants import OBSERVATION_SIZE
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 from splendor_v1.network.model import SplendorNetwork
-from splendor_v1.training.replay_buffer import ReplayBuffer
-from splendor_v1.training.train import run_training
 from splendor_v1.evaluation.evaluate_agents import evaluate_agents
 
 
 def main_random_vs_puct():
 
     # -------------------------
-    # Create training objects
+    # Load trained model
     # -------------------------
-
-    env = SplendorEnv()
 
     model = SplendorNetwork(
         OBSERVATION_SIZE,
         ACTION_SPACE_SIZE,
     )
 
-    optimizer = torch.optim.Adam(
-        model.parameters(),
-        lr=1e-3,
+    checkpoint = torch.load(
+        "checkpoints/model_10_games_last.pt",
+        map_location="cpu",
     )
 
-    replay_buffer = ReplayBuffer(
-        max_size=100_000,
+    model.load_state_dict(
+        checkpoint["model_state_dict"]
     )
 
-    # -------------------------
-    # Train model in-place
-    # -------------------------
 
-    print("Training model...")
-
-    run_training(
-        env=env,
-        model=model,
-        optimizer=optimizer,
-        replay_buffer=replay_buffer,
-        num_iterations=3,
-        self_play_games_per_iteration=2,
-        simulations=20,
-        batch_size=32,
-        training_steps=10,
-    )
+    model.eval()
 
     # -------------------------
     # Create evaluation agents
@@ -57,7 +37,7 @@ def main_random_vs_puct():
 
     trained_agent = NeuralPUCTAgent(
         model=model,
-        simulations=5,
+        simulations=80,
     )
 
     random_agent = RandomAgent()
@@ -71,9 +51,9 @@ def main_random_vs_puct():
     results = evaluate_agents(
         agent_a=trained_agent,
         agent_b=random_agent,
-        num_games=1,
+        num_games=20,
         max_steps=300,
-        debug_mode=True,
+        debug_mode=False,
     )
 
     # -------------------------
@@ -118,8 +98,6 @@ def main_random_vs_puct():
     )
 
 
-
-
-
 if __name__ == "__main__":
     main_random_vs_puct()
+
