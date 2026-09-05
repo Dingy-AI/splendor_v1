@@ -20,7 +20,7 @@ def main_random_vs_puct():
     )
 
     checkpoint = torch.load(
-        "checkpoints/model_10_games.pt",
+        "checkpoints/model_98_games.pt",
         map_location="cpu",
     )
 

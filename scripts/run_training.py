@@ -76,22 +76,26 @@ def main():
         policy_debug_samples=policy_debug_samples,        
     )
 
-    for i, sample in enumerate(
-        policy_debug_samples
-    ):
-        print(
-            f"\n========== SAMPLE {i} =========="
-        )
 
-        compare_policy_target_to_prediction(
+    if policy_debug_samples != None:
+
+
+        for i, sample in enumerate(
+            policy_debug_samples
+        ):
+            print(
+                f"\n========== SAMPLE {i} =========="
+            )
+
+            compare_policy_target_to_prediction(
+                model,
+                sample,
+            )
+
+        summarize_policy_debug_by_game(
             model,
-            sample,
+            policy_debug_samples,
         )
-
-    summarize_policy_debug_by_game(
-        model,
-        policy_debug_samples,
-    )
 
 
 
