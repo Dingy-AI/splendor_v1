@@ -44,9 +44,9 @@ def test_add_single_example():
     observation, target_policy, target_value = make_example()
 
     buffer.add(
-        observation,
+        (observation,
         target_policy,
-        target_value,
+        target_value)
     )
 
     assert len(buffer) == 1
@@ -61,9 +61,9 @@ def test_added_example_preserves_data():
     )
 
     buffer.add(
-        observation,
+        (observation,
         target_policy,
-        target_value,
+        target_value)
     )
 
     stored_observation, stored_policy, stored_value = buffer.buffer[0]
@@ -90,9 +90,9 @@ def test_sample_returns_correct_batch_size():
         observation, target_policy, target_value = make_example()
 
         buffer.add(
-            observation,
+            (observation,
             target_policy,
-            target_value,
+            target_value)
         )
 
     batch = buffer.sample(
@@ -111,9 +111,9 @@ def test_sample_examples_have_correct_structure():
         observation, target_policy, target_value = make_example()
 
         buffer.add(
-            observation,
+            (observation,
             target_policy,
-            target_value,
+            target_value)
         )
 
     batch = buffer.sample(
@@ -145,7 +145,7 @@ def test_sample_examples_have_correct_structure():
 def test_buffer_respects_max_size():
 
     buffer = ReplayBuffer(
-        max_size=5
+        capacity=5
     )
 
     for i in range(10):
@@ -153,18 +153,17 @@ def test_buffer_respects_max_size():
         observation, target_policy, _ = make_example()
 
         buffer.add(
-            observation,
+            (observation,
             target_policy,
-            float(i),
+            float(i))
         )
 
     assert len(buffer) == 5
 
-
 def test_buffer_removes_oldest_examples_when_full():
 
     buffer = ReplayBuffer(
-        max_size=3
+        capacity=3
     )
 
     for value in [
@@ -174,13 +173,14 @@ def test_buffer_removes_oldest_examples_when_full():
         3.0,
         4.0,
     ]:
-
         observation, target_policy, _ = make_example()
 
         buffer.add(
-            observation,
-            target_policy,
-            value,
+            (
+                observation,
+                target_policy,
+                value,
+            )
         )
 
     stored_values = [
@@ -188,12 +188,11 @@ def test_buffer_removes_oldest_examples_when_full():
         for example in buffer.buffer
     ]
 
-    assert stored_values == [
+    assert set(stored_values) == {
         2.0,
         3.0,
         4.0,
-    ]
-
+    }
 
 def test_sample_does_not_remove_examples():
 
@@ -204,9 +203,9 @@ def test_sample_does_not_remove_examples():
         observation, target_policy, target_value = make_example()
 
         buffer.add(
-            observation,
+            (observation,
             target_policy,
-            target_value,
+            target_value)
         )
 
     original_size = len(buffer)
@@ -218,21 +217,86 @@ def test_sample_does_not_remove_examples():
     assert len(buffer) == original_size
 
 
-def test_sample_too_many_examples_raises_error():
+def test_replay_buffer_save_and_load(tmp_path):
 
-    buffer = ReplayBuffer()
+    buffer = ReplayBuffer(capacity=3)
 
-    for _ in range(5):
-
-        observation, target_policy, target_value = make_example()
+    for value in [0.0, 1.0, 2.0]:
+        observation, target_policy, _ = make_example()
 
         buffer.add(
-            observation,
-            target_policy,
-            target_value,
+            (
+                observation,
+                target_policy,
+                value,
+            )
         )
 
-    with pytest.raises(ValueError):
-        buffer.sample(
-            batch_size=10
+    path = tmp_path / "replay_buffer.pkl"
+
+    buffer.save(path)
+
+    loaded_buffer = ReplayBuffer.load(path)
+
+    assert loaded_buffer.capacity == buffer.capacity
+    assert loaded_buffer.position == buffer.position
+    assert len(loaded_buffer) == len(buffer)
+
+    for original, loaded in zip(
+        buffer.buffer,
+        loaded_buffer.buffer,
+    ):
+        np.testing.assert_array_equal(
+            original[0],
+            loaded[0],
         )
+
+        np.testing.assert_array_equal(
+            original[1],
+            loaded[1],
+        )
+
+        assert original[2] == loaded[2]
+
+
+def test_loaded_replay_buffer_continues_overwriting_oldest(tmp_path):
+
+    buffer = ReplayBuffer(capacity=3)
+
+    for value in [0.0, 1.0, 2.0, 3.0]:
+        observation, target_policy, _ = make_example()
+
+        buffer.add(
+            (
+                observation,
+                target_policy,
+                value,
+            )
+        )
+
+    path = tmp_path / "replay_buffer.pkl"
+
+    buffer.save(path)
+
+    loaded_buffer = ReplayBuffer.load(path)
+
+    observation, target_policy, _ = make_example()
+
+    loaded_buffer.add(
+        (
+            observation,
+            target_policy,
+            4.0,
+        )
+    )
+
+    stored_values = sorted(
+        example[2]
+        for example in loaded_buffer.buffer
+    )
+
+    assert stored_values == [
+        2.0,
+        3.0,
+        4.0,
+    ]

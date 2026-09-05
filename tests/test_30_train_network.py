@@ -38,9 +38,9 @@ def make_replay_buffer(num_samples=16):
         target_value = 1.0
 
         replay_buffer.add(
-            observation,
+            (observation,
             target_policy,
-            target_value,
+            target_value)
         )
 
     return replay_buffer

@@ -5,7 +5,8 @@ def evaluate_agents(
     agent_b,
     num_games=100,
     max_steps=300,
-    debug_mode=True
+    debug_mode=True,
+    seed=None
 ):
 
     results = {
@@ -34,6 +35,7 @@ def evaluate_agents(
                 agent_a,
                 agent_b,
                 max_steps=max_steps,
+                seed=seed
             )
 
             agent_a_index = 0
@@ -47,11 +49,24 @@ def evaluate_agents(
                 agent_b,
                 agent_a,
                 max_steps=max_steps,
+                seed=seed 
             )
 
             agent_a_index = 1
             agent_b_index = 0
-        print("Game: ", game_index, " completed with results ", result)
+
+        winners = [
+            agent_a.__class__.__name__ if winner == agent_a_index
+            else agent_b.__class__.__name__
+            for winner in result["winners"]
+        ]
+
+        print(f"Game {game_index} completed - Winners: {winners} and Info: {result}")
+
+
+
+
+
         # -------------------------
         # Record statistics
         # -------------------------
@@ -129,10 +144,11 @@ def play_game(
     agent_0,
     agent_1,
     max_steps=300,
+    seed=None
 ):
 
     env = SplendorEnv()
-    env.reset()
+    env.reset(seed)
 
     agents = {
         0: agent_0,

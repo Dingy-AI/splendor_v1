@@ -358,16 +358,34 @@ the next big 'win' is in mcts
 run 800 sims or something like it as a psuedo random rollout
 to confirm it is 'working'
 
-add_dirichlet_noise 
+add_dirichlet_noise xx # DONE
+did a lot of checking we found that prior is creating issues with 
+    learning. its "intuition" is not 'good' but I am not sure 
+    if it is just the limited state space 
+
+# increased c_puct to 3.0 from 1.5 #DONE 
+
+# need to do a test regarding same seeds and train to see #DONE ISH 
+    if the ai is indeed learning 
+    if ai is learning here then the algorithm is fine 
+    the issue is that the state space is just so damn big 
+
+# THE AI will learn some of the time with V = 0 and uniform P 
+# the teacher mode helps it learn
 
 
 
 
 
-Add persistent replay storage (SQLite)
+
+
+Add persistent replay storage (SQLite) #PKL TIME INSTEAD DONE
 Track strength across training
 Tune training/MCTS hyperparameters
 Add advanced AlphaZero features
+
+# we need to look for ways to do MCTS with variable starting states 
+
 
 The end goal might be:
 

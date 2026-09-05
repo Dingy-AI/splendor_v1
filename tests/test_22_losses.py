@@ -23,7 +23,7 @@ def test_policy_value_loss_returns_scalars():
         1.0
     ])
 
-    total_loss, policy_loss, value_loss = policy_value_loss(
+    total_loss, policy_loss, value_loss, _ = policy_value_loss(
         policy_logits,
         predicted_value,
         target_policy,
@@ -53,7 +53,7 @@ def test_total_loss_equals_policy_plus_value():
         1.0
     ])
 
-    total_loss, policy_loss, value_loss = policy_value_loss(
+    total_loss, policy_loss, value_loss, _ = policy_value_loss(
         policy_logits,
         predicted_value,
         target_policy,
@@ -84,7 +84,7 @@ def test_value_loss_is_zero_when_prediction_matches_target():
         1.0
     ])
 
-    _, _, value_loss = policy_value_loss(
+    _, _, value_loss, _ = policy_value_loss(
         policy_logits,
         predicted_value,
         target_policy,
@@ -115,7 +115,7 @@ def test_value_loss_matches_expected_mse():
         -0.5
     ])
 
-    _, _, value_loss = policy_value_loss(
+    _, _, value_loss, _ = policy_value_loss(
         policy_logits,
         predicted_value,
         target_policy,
@@ -151,14 +151,14 @@ def test_policy_loss_prefers_correct_action():
         [5.0, 0.0, 0.0]
     ])
 
-    _, good_policy_loss, _ = policy_value_loss(
+    _, good_policy_loss, _, _ = policy_value_loss(
         good_logits,
         predicted_value,
         target_policy,
         target_value,
     )
 
-    _, bad_policy_loss, _ = policy_value_loss(
+    _, bad_policy_loss, _, _ = policy_value_loss(
         bad_logits,
         predicted_value,
         target_policy,
@@ -186,7 +186,7 @@ def test_policy_loss_with_uniform_logits_and_uniform_target():
         0.0
     ])
 
-    _, policy_loss, _ = policy_value_loss(
+    _, policy_loss, _, _ = policy_value_loss(
         policy_logits,
         predicted_value,
         target_policy,
@@ -230,7 +230,7 @@ def test_loss_handles_batch():
         0.0,
     ])
 
-    total_loss, policy_loss, value_loss = policy_value_loss(
+    total_loss, policy_loss, value_loss, _ = policy_value_loss(
         policy_logits,
         predicted_value,
         target_policy,
@@ -272,7 +272,7 @@ def test_loss_supports_backward_pass():
         1.0,
     ])
 
-    total_loss, _, _ = policy_value_loss(
+    total_loss, _, _, _= policy_value_loss(
         policy_logits,
         predicted_value,
         target_policy,

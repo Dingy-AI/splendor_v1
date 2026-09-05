@@ -52,9 +52,9 @@ def test_network_can_learn_from_replay_buffer():
 
     for _ in range(32):
         buffer.add(
-            observation,
+            (observation,
             target_policy,
-            target_value,
+            target_value)
         )
 
     # -------------------------
@@ -90,7 +90,7 @@ def test_network_can_learn_from_replay_buffer():
         observations
     )
 
-    initial_loss, _, _ = policy_value_loss(
+    initial_loss, _, _, _ = policy_value_loss(
         policy_logits,
         predicted_values,
         target_policies,
@@ -108,7 +108,7 @@ def test_network_can_learn_from_replay_buffer():
             observations
         )
 
-        loss, _, _ = policy_value_loss(
+        loss, _, _, _ = policy_value_loss(
             policy_logits,
             predicted_values,
             target_policies,
@@ -128,7 +128,7 @@ def test_network_can_learn_from_replay_buffer():
         observations
     )
 
-    final_loss, _, _ = policy_value_loss(
+    final_loss, _, _, _ = policy_value_loss(
         policy_logits,
         predicted_values,
         target_policies,

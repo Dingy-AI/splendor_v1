@@ -27,10 +27,12 @@ def main():
 
     starting_games_played = 0
 
-
+    replay_buffer = ReplayBuffer(
+        capacity=50_000,
+    )
     checkpoint_path = None
 
-    # checkpoint_path = ("checkpoints/model_4_games.pt")
+    # checkpoint_path = ("checkpoints/seed_420_teacher_95_games_85wr_v_random.pt")
 
     if checkpoint_path is not None:
 
@@ -44,15 +46,20 @@ def main():
             checkpoint_info["games_played"]
         )
 
-        print(
-            f"Loaded checkpoint: "
+        replay_buffer = ReplayBuffer.load(
+            "checkpoints/replay_buffer.pkl"
         )
 
-    print(f"{starting_games_played} games")
+        print(
+            f"Loaded checkpoint with "
+            f"{starting_games_played} games played."
+        )
 
-    replay_buffer = ReplayBuffer(
-        max_size=100_000,
-    )
+        print(
+            f"Loaded replay buffer with "
+            f"{len(replay_buffer)} samples."
+        )
+        
     # policy_debug_samples = []
     policy_debug_samples = None
 
@@ -62,18 +69,18 @@ def main():
         optimizer=optimizer,
         replay_buffer=replay_buffer,
 
-        num_iterations=10,
-        self_play_games_per_iteration=10,
-
+        num_iterations=2,
+        self_play_games_per_iteration=5,
         simulations=200,
-
         batch_size=32,
         training_steps=100,
-
-        checkpoint_every_games=10,
+        checkpoint_every_games=2,
+        seed=420,
+        teacher_mode=True,
 
         starting_games_played=starting_games_played,
         policy_debug_samples=policy_debug_samples,        
+
     )
 
 
@@ -125,6 +132,10 @@ def main():
             f"{stats['value_loss']:.4f}"
         )
 
+        print(
+            f"Policy KL: "
+            f"{stats['policy_kl']:.4f}"
+        )
 
 #DEBUG  HELPER
 def compare_policy_target_to_prediction(

@@ -24,7 +24,6 @@ def test_env_init_state(env):
 
     assert env.num_players == 2
     assert env.game_state == None
-    assert env.seed == 420
     assert env.state == None
 
 

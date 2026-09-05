@@ -18,7 +18,7 @@ def test_random_rollout(seed, env):
 
     random.seed(seed)
 
-    env.reset()
+    env.reset(seed=seed)
 
     terminated = False
     truncated = False
@@ -26,12 +26,19 @@ def test_random_rollout(seed, env):
 
     while not (terminated or truncated):
 
+        terminated = env._check_terminated(env.state)
+
+        if terminated:
+            break
+
         legal_actions = env._legal_actions(env.state)
 
         assert len(legal_actions) > 0, (
-            f"No legal actions.\n"
+            f"No legal actions in nonterminal state.\n"
             f"Seed: {seed}\n"
-            f"Step: {steps}"
+            f"Step: {steps}\n"
+            f"Node type: {env.state.node_type}\n"
+            f"Current player: {env.state.current_player}"
         )
 
         action = random.choice(legal_actions)
@@ -53,7 +60,6 @@ def test_random_rollout(seed, env):
             f"Game exceeded maximum step count.\n"
             f"Seed: {seed}"
         )
-
 # def test_random_game_complete(env):
 #     random.seed(99)
 

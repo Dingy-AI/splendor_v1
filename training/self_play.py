@@ -232,7 +232,9 @@ def play_self_play_game(
     mcts,
     replay_buffer,
     policy_debug_samples=None,
-    game_index=None
+    game_index=None,
+    seed=None,
+    teacher_mode=False
 ):
 
     action_counts = {
@@ -240,7 +242,7 @@ def play_self_play_game(
         1: Counter(),
     }
 
-    env.reset()
+    env.reset(seed)
 
     game_history = []
 
@@ -295,7 +297,7 @@ def play_self_play_game(
             root=current_root,
             return_root=True,
             add_root_noise=True,
-            teacher_mode=True
+            teacher_mode=teacher_mode
         )
 
 
@@ -443,9 +445,9 @@ def play_self_play_game(
                 target_value = -1.0
 
             replay_buffer.add(
-                observation,
+                (observation,
                 target_policy,
-                target_value,
+                target_value)
             )
 
         return {

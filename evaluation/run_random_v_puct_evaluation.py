@@ -20,7 +20,7 @@ def main_random_vs_puct():
     )
 
     checkpoint = torch.load(
-        "checkpoints/model_98_games.pt",
+        "checkpoints/model_114_games_last.pt",
         map_location="cpu",
     )
 
@@ -54,6 +54,7 @@ def main_random_vs_puct():
         num_games=20,
         max_steps=300,
         debug_mode=False,
+        seed=420
     )
 
     # -------------------------

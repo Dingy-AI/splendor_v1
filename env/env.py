@@ -22,11 +22,10 @@ from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 
 from splendor_v1.env.observation.encoder import ObservationEncoder
 from itertools import combinations, product
-import random
 from copy import deepcopy
 
 class SplendorEnv(gym.Env):
-    def __init__ (self, num_players: int = 2, seed = 420):
+    def __init__ (self, num_players: int = 2):
         #TODO
         self.observation_encoder = ObservationEncoder()
         #I need to define the action space to allow for more expansions in the future
@@ -58,13 +57,14 @@ class SplendorEnv(gym.Env):
         self._color_mapping_cache = {}
         self.num_players = num_players
         self.game_state = None
-        self.seed = seed
         self.state = None
         return None 
     
     
-    def reset(self) -> GameState:
+    def reset(self, seed=None) -> GameState:
         #TODO
+
+        super().reset(seed=seed)        
         self.state = self._build_initial_state()
 
 
@@ -106,7 +106,7 @@ class SplendorEnv(gym.Env):
         visible = {}
 
         for tier, deck in decks.items():
-            random.shuffle(deck)
+            self.np_random.shuffle(deck)
             visible[tier] = [deck.pop() for _ in range(4)]
         return visible, decks
 
@@ -145,7 +145,7 @@ class SplendorEnv(gym.Env):
 
     def _init_nobles(self):
         nobles = deepcopy(NOBLES)
-        random.shuffle(nobles)
+        self.np_random.shuffle(nobles)
         return nobles[:self.num_players+1]
 
     def _get_info(self): # work on this later for debugging purpose 

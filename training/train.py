@@ -20,7 +20,9 @@ def run_training(
     checkpoint_every_games=None,
     checkpoint_dir="checkpoints",
     starting_games_played=0,
-    policy_debug_samples=None
+    policy_debug_samples=None,
+    seed=None,
+    teacher_mode=False
 ):
     history = []
 
@@ -59,7 +61,9 @@ def run_training(
                 mcts,
                 replay_buffer,
                 policy_debug_samples,
-                game_index= games_played
+                game_index= games_played,
+                seed=seed,
+                teacher_mode=teacher_mode
             )
 
             total_self_play_time += (
@@ -105,6 +109,7 @@ def run_training(
                 checkpoint_every_games=checkpoint_every_games,
                 next_checkpoint=next_checkpoint,
                 checkpoint_dir=checkpoint_dir,
+                replay_buffer=replay_buffer
             )
 
 
@@ -176,10 +181,9 @@ def train_network(
     total_loss_sum = 0.0
     policy_loss_sum = 0.0
     value_loss_sum = 0.0
+    policy_kl_sum = 0.0
 
-    for step in range(
-        
-    ):
+    for _ in range(training_steps):
 
         batch = replay_buffer.sample(
             batch_size
@@ -214,23 +218,21 @@ def train_network(
             observations
         )
 
-        # ---------------------------------
-        # Debug first batch only
-        # ---------------------------------
 
-
-        (
-            loss,
-            policy_loss,
-            value_loss,
-        ) = policy_value_loss(
-            policy_logits,
-            predicted_values,
-            target_policies,
-            target_values,
+        loss, policy_loss, value_loss, policy_kl = (
+            policy_value_loss(
+                policy_logits,
+                predicted_values,
+                target_policies,
+                target_values,
+            )
         )
 
+
+             
         optimizer.zero_grad()
+
+
 
         loss.backward()
 
@@ -239,6 +241,7 @@ def train_network(
         total_loss_sum += loss.item()
         policy_loss_sum += policy_loss.item()
         value_loss_sum += value_loss.item()
+        policy_kl_sum += policy_kl.item()
 
     return {
         "loss": (
@@ -253,5 +256,8 @@ def train_network(
             value_loss_sum
             / training_steps
         ),
+        "policy_kl": (
+            policy_kl/training_steps
+        )
     }
 

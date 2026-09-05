@@ -1,31 +1,67 @@
+import pickle
 from collections import deque
-import random
-
+import numpy as np
 
 class ReplayBuffer:
+    def __init__(self, capacity=50_000):
+        self.capacity = capacity
+        self.buffer = []
+        self.position = 0
 
-    def __init__(self, max_size=100_000):
-        self.buffer = deque(maxlen=max_size)
+    def add(self, sample):
+        if len(self.buffer) < self.capacity:
+            self.buffer.append(sample)
+        else:
+            self.buffer[self.position] = sample
 
-    def add(
-        self,
-        observation,
-        target_policy,
-        target_value,
-    ):
-        self.buffer.append(
-            (
-                observation,
-                target_policy,
-                target_value,
-            )
-        )
+        self.position = (
+            self.position + 1
+        ) % self.capacity
 
     def sample(self, batch_size):
-        return random.sample(
-            self.buffer,
+        if len(self.buffer) == 0:
+            return []
+
+        sample_size = min(
             batch_size,
+            len(self.buffer)
         )
+
+        indices = np.random.choice(
+            len(self.buffer),
+            size=sample_size,
+            replace=False,
+        )
+
+        return [
+            self.buffer[i]
+            for i in indices
+        ]
 
     def __len__(self):
         return len(self.buffer)
+
+    def save(self, path):
+        with open(path, "wb") as f:
+            pickle.dump(
+                {
+                    "capacity": self.capacity,
+                    "buffer": self.buffer,
+                    "position": self.position,
+                },
+                f,
+            )
+
+    @classmethod
+    def load(cls, path):
+        with open(path, "rb") as f:
+            data = pickle.load(f)
+
+        replay_buffer = cls(
+            capacity=data["capacity"]
+        )
+
+        replay_buffer.buffer = data["buffer"]
+        replay_buffer.position = data["position"]
+
+        return replay_buffer

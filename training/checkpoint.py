@@ -2,6 +2,8 @@ import os
 
 import torch
 
+from splendor_v1.training.replay_buffer import ReplayBuffer
+
 
 def save_checkpoint(
     path,
@@ -60,6 +62,7 @@ def save_model_if_needed(
     checkpoint_every_games,
     next_checkpoint,
     checkpoint_dir="checkpoints",
+    replay_buffer:ReplayBuffer = None,
 ):
     if games_played < next_checkpoint:
         return next_checkpoint
@@ -79,6 +82,14 @@ def save_model_if_needed(
         f"Saved checkpoint after "
         f"{games_played} games."
     )
+
+    replay_buffer.save(
+        path=(
+                f"{checkpoint_dir}/"
+                f"replay_{games_played}_games.pkl"
+            ),
+    )
+
 
     while next_checkpoint <= games_played:
         next_checkpoint += checkpoint_every_games
