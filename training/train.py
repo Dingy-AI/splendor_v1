@@ -6,6 +6,8 @@ from splendor_v1.training.checkpoint import save_model_if_needed, save_checkpoin
 from splendor_v1.training.self_play import play_self_play_game
 from splendor_v1.mcts.mcts import MCTS
 import time
+from splendor_v1.evaluation.evaluate_agents import evaluate_model_vs_random
+from splendor_v1.training.training_plot import TrainingPlot
 
 def run_training(
     env,
@@ -16,7 +18,7 @@ def run_training(
     self_play_games_per_iteration,
     simulations,
     batch_size,
-    training_steps,
+    training_ratio=1.5,
     checkpoint_every_games=None,
     checkpoint_dir="checkpoints",
     starting_games_played=0,
@@ -27,7 +29,7 @@ def run_training(
     history = []
 
     games_played = starting_games_played
-
+    # training_plot = TrainingPlot()
     if checkpoint_every_games is not None:
         next_checkpoint = (
             (
@@ -39,7 +41,8 @@ def run_training(
     else:
         next_checkpoint = None
 
-    
+    positions_added = 0
+
     for iteration in range(num_iterations):
         start = time.perf_counter()
 
@@ -73,15 +76,24 @@ def run_training(
                 total_mcts_time += (
                     game_stats["mcts_time"]
                 )
-                print("Games Completed Successfully: ", games_played)
+                # print("Games Completed Successfully: ", games_played)
 
                 games_played += 1
-
+                positions_added += game_stats['positions_added']
             else:
                 print("Game crashed and Terminated Early.")
 
         train_start = time.perf_counter()
 
+        training_steps = max(
+            1,
+            round(
+                positions_added
+                * training_ratio
+                / batch_size
+            )
+        )
+        print("NUMBER OF TRAINING STEP TEST: ", training_steps)
         stats = train_network(
             model=model,
             replay_buffer=replay_buffer,
@@ -89,8 +101,6 @@ def run_training(
             batch_size=batch_size,
             training_steps=training_steps,
         )
-
-
 
         train_time = (
             time.perf_counter()
@@ -101,7 +111,7 @@ def run_training(
 
 
         if checkpoint_every_games is not None:
-            next_checkpoint = save_model_if_needed(
+            next_checkpoint, checkpoint_saved = save_model_if_needed(
                 model=model,
                 optimizer=optimizer,
                 games_played=games_played,
@@ -111,6 +121,41 @@ def run_training(
                 checkpoint_dir=checkpoint_dir,
                 replay_buffer=replay_buffer
             )
+
+            if checkpoint_saved:
+                results = evaluate_model_vs_random(
+                    model=model,
+                    num_games=20,
+                    simulations=200,
+                    seed=420,
+                )
+
+                
+                # training_plot.update(
+                #     games_played=games_played,
+
+                #     win_rate=results[
+                #         "agent_a_win_rate"
+                #     ],
+
+                #     total_loss=np.mean(stats['iteration_total_losses']),
+
+                #     policy_loss=np.mean(stats['iteration_policy_losses']),
+
+                #     value_loss=np.mean(stats['iteration_value_losses']),
+
+                #     policy_kl=np.mean(stats['iteration_policy_kls']),
+
+                #     replay_size=len(
+                #         replay_buffer
+                #     ),
+
+                #     avg_game_length=results[
+                #         "average_steps"
+                #     ],
+                # )
+
+                # training_plot.save()
 
 
         print(
@@ -131,6 +176,10 @@ def run_training(
             f"Network training time: "
             f"{train_time:.2f}s"
         )
+
+        print("Games played:", games_played)
+        print("Replay size:", len(replay_buffer))
+        print("Replay position:", replay_buffer.position)
 
     save_checkpoint(
         path=(
@@ -177,11 +226,10 @@ def train_network(
         )
 
     model.train()
-
-    total_loss_sum = 0.0
-    policy_loss_sum = 0.0
-    value_loss_sum = 0.0
-    policy_kl_sum = 0.0
+    iteration_total_losses = []
+    iteration_policy_losses = []
+    iteration_value_losses = []
+    iteration_policy_kls = []
 
     for _ in range(training_steps):
 
@@ -238,26 +286,38 @@ def train_network(
 
         optimizer.step()
 
-        total_loss_sum += loss.item()
-        policy_loss_sum += policy_loss.item()
-        value_loss_sum += value_loss.item()
-        policy_kl_sum += policy_kl.item()
+        iteration_total_losses.append(
+                loss.item()
+            )
+
+        iteration_policy_losses.append(
+                policy_loss.item()
+            )
+
+        iteration_value_losses.append(
+                value_loss.item()
+            )
+
+        iteration_policy_kls.append(
+                policy_kl.item()
+            )
+
 
     return {
-        "loss": (
-            total_loss_sum
-            / training_steps
+        "iteration_total_losses": (
+            iteration_total_losses
+    
         ),
-        "policy_loss": (
-            policy_loss_sum
-            / training_steps
+        "iteration_policy_losses": (
+            iteration_policy_losses
+        
         ),
-        "value_loss": (
-            value_loss_sum
-            / training_steps
+        "iteration_value_losses": (
+            iteration_value_losses
+        
         ),
-        "policy_kl": (
-            policy_kl/training_steps
+        "iteration_policy_kls": (
+            iteration_policy_kls
         )
     }
 

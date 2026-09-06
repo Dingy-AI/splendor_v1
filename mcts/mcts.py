@@ -711,3 +711,150 @@ class MCTS:
                 + epsilon * n
         )
 
+    def print_root_debug(
+        self,
+        env,
+        root,
+        chosen_action,
+        top_k=5,
+    ):
+        if not root.children:
+            print("Root has no children.")
+            return
+
+        total_visits = sum(
+            child.visits
+            for child in root.children
+        )
+
+        print("\n" + "=" * 80)
+
+        print(
+            f"Turn: {root.state.turn_number} | "
+            f"Player: {root.state.current_player} | "
+            f"Root visits: {root.visits}"
+        )
+
+        print(f"Chosen action: {chosen_action}")
+
+        # --------------------------------------------------
+        # Chosen action
+        # --------------------------------------------------
+
+        chosen_child = next(
+            (
+                child
+                for child in root.children
+                if child.action == chosen_action
+            ),
+            None,
+        )
+
+        if chosen_child is not None:
+
+            visit_fraction = (
+                chosen_child.visits / total_visits
+                if total_visits > 0
+                else 0.0
+            )
+
+            average_value = (
+                chosen_child.value / chosen_child.visits
+                if chosen_child.visits > 0
+                else 0.0
+            )
+
+            print(
+                "\nChosen action statistics:"
+            )
+
+            print(
+                f"  Prior: {chosen_child.prior:.4f}"
+            )
+
+            print(
+                f"  Visits: {chosen_child.visits}"
+            )
+
+            print(
+                f"  Visit %: {visit_fraction:.4f}"
+            )
+
+            print(
+                f"  Q value: {average_value:.4f}"
+            )
+
+        # --------------------------------------------------
+        # Highest neural priors
+        # --------------------------------------------------
+
+        print(
+            f"\nTop {top_k} by NETWORK PRIOR:"
+        )
+
+        by_prior = sorted(
+            root.children,
+            key=lambda child: child.prior,
+            reverse=True,
+        )
+
+        for rank, child in enumerate(
+            by_prior[:top_k],
+            start=1,
+        ):
+
+            visit_fraction = (
+                child.visits / total_visits
+                if total_visits > 0
+                else 0.0
+            )
+
+            print(
+                f"{rank}. "
+                f"{child.action} | "
+                f"P={child.prior:.4f} | "
+                f"N={child.visits} | "
+                f"Visit%={visit_fraction:.4f}"
+            )
+
+        # --------------------------------------------------
+        # Highest MCTS visits
+        # --------------------------------------------------
+
+        print(
+            f"\nTop {top_k} by MCTS VISITS:"
+        )
+
+        by_visits = sorted(
+            root.children,
+            key=lambda child: child.visits,
+            reverse=True,
+        )
+
+        for rank, child in enumerate(
+            by_visits[:top_k],
+            start=1,
+        ):
+
+            visit_fraction = (
+                child.visits / total_visits
+                if total_visits > 0
+                else 0.0
+            )
+
+            average_value = (
+                child.value / child.visits
+                if child.visits > 0
+                else 0.0
+            )
+
+            print(
+                f"{rank}. "
+                f"{child.action} | "
+                f"N={child.visits} | "
+                f"Visit%={visit_fraction:.4f} | "
+                f"P={child.prior:.4f} | "
+                f"Q={average_value:.4f}"
+            )
+
+        print("=" * 80)

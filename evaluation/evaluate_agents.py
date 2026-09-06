@@ -1,4 +1,76 @@
 from splendor_v1.env.env import SplendorEnv
+from splendor_v1.agents.neural_puct_agent import NeuralPUCTAgent
+from splendor_v1.agents.random_agent import RandomAgent
+def evaluate_model_vs_random(
+    model,
+    num_games=20,
+    simulations=200,
+    seed=420,
+):
+
+    print("\nEvaluation Starting...")
+
+
+    model.eval()
+
+    trained_agent = NeuralPUCTAgent(
+        model=model,
+        simulations=simulations,
+    )
+
+
+    random_agent = RandomAgent()
+
+    results = evaluate_agents(
+        agent_a=trained_agent,
+        agent_b=random_agent,
+        num_games=num_games,
+        max_steps=300,
+        debug_mode=False,
+        seed=seed,
+    )
+
+    print("\nEvaluation complete.")
+
+    print(
+        f"PUCT wins: "
+        f"{results['agent_a_wins']}"
+    )
+
+    print(
+        f"Random wins: "
+        f"{results['agent_b_wins']}"
+    )
+
+    print(
+        f"Ties: "
+        f"{results['ties']}"
+    )
+
+    print(
+        f"Deadlocks: "
+        f"{results['deadlocks']}"
+    )
+
+    print(
+        f"Aborted: "
+        f"{results['aborted']}"
+    )
+
+    print(
+        f"PUCT win rate: "
+        f"{results['agent_a_win_rate']:.2%}"
+    )
+
+    print(
+        f"Average steps: "
+        f"{results['average_steps']:.1f}"
+    )
+
+    return results
+
+
+
 
 def evaluate_agents(
     agent_a,
@@ -61,7 +133,8 @@ def evaluate_agents(
             for winner in result["winners"]
         ]
 
-        print(f"Game {game_index} completed - Winners: {winners} and Info: {result}")
+        if debug_mode:
+            print(f"Game {game_index} completed - Winners: {winners} and Info: {result}")
 
 
 
@@ -102,8 +175,7 @@ def evaluate_agents(
 
         elif agent_b_index in winners:
             results["agent_b_wins"] += 1
-        if debug_mode:
-            print("Game Results: ", results)
+
     # -------------------------
     # Calculate summary stats
     # -------------------------

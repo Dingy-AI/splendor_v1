@@ -96,27 +96,82 @@ def test_train_network_returns_valid_losses():
         lr=1e-3,
     )
 
-    replay_buffer = make_replay_buffer()
+    replay_buffer = ReplayBuffer()
+
+    observation = np.zeros(
+        OBSERVATION_SIZE,
+        dtype=np.float32,
+    )
+
+    target_policy = np.zeros(
+        ACTION_SPACE_SIZE,
+        dtype=np.float32,
+    )
+
+    target_policy[0] = 1.0
+
+    replay_buffer.add(
+        (
+            observation,
+            target_policy,
+            1.0,
+        )
+    )
 
     stats = train_network(
         model=model,
-        replay_buffer=replay_buffer,
         optimizer=optimizer,
-        batch_size=8,
-        training_steps=2,
+        replay_buffer=replay_buffer,
+        batch_size=1,
+        training_steps=1,
     )
 
-    assert "loss" in stats
-    assert "policy_loss" in stats
-    assert "value_loss" in stats
+    total_losses = stats[
+        "iteration_total_losses"
+    ]
 
-    assert np.isfinite(stats["loss"])
-    assert np.isfinite(
-        stats["policy_loss"]
+    policy_losses = stats[
+        "iteration_policy_losses"
+    ]
+
+    value_losses = stats[
+        "iteration_value_losses"
+    ]
+
+    policy_kls = stats[
+        "iteration_policy_kls"
+    ]
+
+    assert isinstance(total_losses, list)
+    assert isinstance(policy_losses, list)
+    assert isinstance(value_losses, list)
+    assert isinstance(policy_kls, list)
+
+    assert len(total_losses) == 1
+    assert len(policy_losses) == 1
+    assert len(value_losses) == 1
+    assert len(policy_kls) == 1
+
+    assert all(
+        np.isfinite(loss)
+        for loss in total_losses
     )
-    assert np.isfinite(
-        stats["value_loss"]
+
+    assert all(
+        np.isfinite(loss)
+        for loss in policy_losses
     )
+
+    assert all(
+        np.isfinite(loss)
+        for loss in value_losses
+    )
+
+    assert all(
+        np.isfinite(kl)
+        for kl in policy_kls
+    )
+
 
 def test_train_network_requires_enough_samples():
 
@@ -168,48 +223,10 @@ def test_run_training_completes_one_iteration():
         self_play_games_per_iteration=1,
         simulations=2,
         batch_size=1,
-        training_steps=1,
     )
 
     assert len(history) == 1
 
-def test_run_training_returns_valid_loss_stats():
-
-    env = SplendorEnv()
-
-    model = SplendorNetwork(
-        OBSERVATION_SIZE,
-        ACTION_SPACE_SIZE,
-    )
-
-    optimizer = torch.optim.Adam(
-        model.parameters(),
-        lr=1e-3,
-    )
-
-    replay_buffer = ReplayBuffer()
-
-    history = run_training(
-        env=env,
-        model=model,
-        optimizer=optimizer,
-        replay_buffer=replay_buffer,
-        num_iterations=1,
-        self_play_games_per_iteration=1,
-        simulations=2,
-        batch_size=1,
-        training_steps=1,
-    )
-
-    stats = history[0]
-
-    assert "loss" in stats
-    assert "policy_loss" in stats
-    assert "value_loss" in stats
-
-    assert np.isfinite(stats["loss"])
-    assert np.isfinite(stats["policy_loss"])
-    assert np.isfinite(stats["value_loss"])
 
 def test_run_training_adds_self_play_data():
 
@@ -238,7 +255,6 @@ def test_run_training_adds_self_play_data():
         self_play_games_per_iteration=1,
         simulations=2,
         batch_size=1,
-        training_steps=1,
     )
 
     assert len(replay_buffer) > 0

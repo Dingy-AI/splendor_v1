@@ -380,9 +380,56 @@ did a lot of checking we found that prior is creating issues with
 
 
 Add persistent replay storage (SQLite) #PKL TIME INSTEAD DONE
-Track strength across training
-Tune training/MCTS hyperparameters
-Add advanced AlphaZero features
+Track strength across training # added matlibplot but its not working 
+
+# MAY need to upgrade network into what the ludometer has #ONGOING
+# I think we need to do two things 
+    #update our neural net into a residual net
+    # do a train/data ratio #DONE
+        training_steps = round(
+           positions_added * 1.5 / batch_size
+        )
+    # set batch size to 256 
+
+Run a fresh normal AlphaZero experiment. This is the big test:
+    fresh residual network
+    fresh optimizer
+    empty replay
+    teacher_mode=False
+    200 simulations
+    tree reuse ON
+    batch 256
+    replay ratio 1.5
+
+if it struggles we go back to uniform prior and v = 0
+    maybe do sims = 400 or 200?
+
+# later if the above works 
+    structured attention + factorized policy
+#potential learning rate changes 
+
+https://github.com/RemiFabre/ludometer/blob/main/docs/METHODOLOGY.md#8-three-runs-three-ideas
+
+
+Tune training/MCTS hyperparameters # NOPE XD 
+Add advanced AlphaZero features # HOLD OFF XD 
+
+Current
+2-layer MLP
+flat 1139 policy
+
+        ↓
+
+Experiment A
+Residual MLP + LayerNorm
+flat 1139 policy
+
+        ↓
+
+Experiment B
+Entity/token representation
+attention
+structured/factorized policy
 
 # we need to look for ways to do MCTS with variable starting states 
 

@@ -32,7 +32,7 @@ def main():
     )
     checkpoint_path = None
 
-    # checkpoint_path = ("checkpoints/seed_420_teacher_95_games_85wr_v_random.pt")
+    # checkpoint_path = ("checkpoints/model_106_games.pt")
 
     if checkpoint_path is not None:
 
@@ -47,7 +47,7 @@ def main():
         )
 
         replay_buffer = ReplayBuffer.load(
-            "checkpoints/replay_buffer.pkl"
+            "checkpoints/replay_106_games.pkl"
         )
 
         print(
@@ -70,11 +70,11 @@ def main():
         replay_buffer=replay_buffer,
 
         num_iterations=2,
-        self_play_games_per_iteration=5,
+        self_play_games_per_iteration=10,
         simulations=200,
-        batch_size=32,
-        training_steps=100,
-        checkpoint_every_games=2,
+        batch_size=256,
+        training_ratio=1.5,
+        checkpoint_every_games=100,
         seed=420,
         teacher_mode=True,
 
@@ -112,30 +112,6 @@ def main():
         f"{len(replay_buffer)}"
     )
 
-    for iteration, stats in enumerate(
-        history,
-        start=1,
-    ):
-        print(
-            f"\nIteration {iteration}"
-        )
-        print(
-            f"Loss: "
-            f"{stats['loss']:.4f}"
-        )
-        print(
-            f"Policy loss: "
-            f"{stats['policy_loss']:.4f}"
-        )
-        print(
-            f"Value loss: "
-            f"{stats['value_loss']:.4f}"
-        )
-
-        print(
-            f"Policy KL: "
-            f"{stats['policy_kl']:.4f}"
-        )
 
 #DEBUG  HELPER
 def compare_policy_target_to_prediction(

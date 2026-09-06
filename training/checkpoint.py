@@ -65,7 +65,7 @@ def save_model_if_needed(
     replay_buffer:ReplayBuffer = None,
 ):
     if games_played < next_checkpoint:
-        return next_checkpoint
+        return next_checkpoint, False
 
     save_checkpoint(
         path=(
@@ -94,4 +94,5 @@ def save_model_if_needed(
     while next_checkpoint <= games_played:
         next_checkpoint += checkpoint_every_games
 
-    return next_checkpoint
+    return next_checkpoint, True
+

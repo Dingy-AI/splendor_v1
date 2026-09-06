@@ -454,6 +454,7 @@ def play_self_play_game(
             "completed": True,
             "winners": winners,
             "game_length": len(game_history),
+            "positions_added": len(game_history),            
             "mcts_time": mcts_time,
         }
 
