@@ -956,6 +956,66 @@ class SplendorEnv(gym.Env):
 
         return actions
 
+    # def _legal_take_gems(
+    #     self,
+    #     state: GameState,
+    # ) -> list[Action]:
+
+    #     actions = []
+
+    #     bank = state.bank
+
+    #     available_colors = [
+    #         color
+    #         for color in COLOR_ORDER
+    #         if bank[color] > 0
+    #     ]
+
+    #     for color in available_colors:
+    #         actions.append(
+    #             Action(
+    #                 action_type=ActionType.TAKE_GEMS,
+    #                 gem_colors=(color,),
+    #             )
+    #         )
+
+    #     for combo in combinations(
+    #         available_colors,
+    #         2,
+    #     ):
+    #         actions.append(
+    #             Action(
+    #                 action_type=ActionType.TAKE_GEMS,
+    #                 gem_colors=combo,
+    #             )
+    #         )
+
+    #     for combo in combinations(
+    #         available_colors,
+    #         3,
+    #     ):
+    #         actions.append(
+    #             Action(
+    #                 action_type=ActionType.TAKE_GEMS,
+    #                 gem_colors=combo,
+    #             )
+    #         )
+
+    #     for color in available_colors:
+
+    #         if bank[color] >= 4:
+    #             actions.append(
+    #                 Action(
+    #                     action_type=ActionType.TAKE_GEMS,
+    #                     gem_colors=(
+    #                         color,
+    #                         color,
+    #                     ),
+    #                 )
+    #             )
+
+    #     return actions
+
     def _legal_take_gems(
         self,
         state: GameState,
@@ -971,35 +1031,52 @@ class SplendorEnv(gym.Env):
             if bank[color] > 0
         ]
 
-        for color in available_colors:
+        num_available_colors = len(
+            available_colors
+        )
+
+        # ---------------------------------
+        # Take different-colored gems
+        # ---------------------------------
+
+        if num_available_colors >= 3:
+
+            for combo in combinations(
+                available_colors,
+                3,
+            ):
+                actions.append(
+                    Action(
+                        action_type=ActionType.TAKE_GEMS,
+                        gem_colors=combo,
+                    )
+                )
+
+        elif num_available_colors == 2:
+
             actions.append(
                 Action(
                     action_type=ActionType.TAKE_GEMS,
-                    gem_colors=(color,),
+                    gem_colors=tuple(
+                        available_colors
+                    ),
                 )
             )
 
-        for combo in combinations(
-            available_colors,
-            2,
-        ):
+        elif num_available_colors == 1:
+
             actions.append(
                 Action(
                     action_type=ActionType.TAKE_GEMS,
-                    gem_colors=combo,
+                    gem_colors=(
+                        available_colors[0],
+                    ),
                 )
             )
 
-        for combo in combinations(
-            available_colors,
-            3,
-        ):
-            actions.append(
-                Action(
-                    action_type=ActionType.TAKE_GEMS,
-                    gem_colors=combo,
-                )
-            )
+        # ---------------------------------
+        # Take two of the same color
+        # ---------------------------------
 
         for color in available_colors:
 
@@ -1015,8 +1092,6 @@ class SplendorEnv(gym.Env):
                 )
 
         return actions
-
-
 
 
     def _legal_discard_actions(self, state: GameState) -> list[Action]:

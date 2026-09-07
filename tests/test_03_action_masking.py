@@ -23,7 +23,7 @@ def test_action_mask_default(env):
     mask = env.action_mask(env.state)
 
     # Default clean game should have 45 choices
-    assert sum(mask) == 45
+    assert sum(mask) == 30
 
 def test_action_mask_illegal(env):
     env.reset()

@@ -9,39 +9,15 @@ from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE, DISCARD_STA
 def env():
     return SplendorEnv()
 
-def test_take_one_gem(env):
-    
-    env.reset()
-
-    action = Action(
-
-        action_type=ActionType.TAKE_GEMS,
-        gem_colors=(GemColor.WHITE,)
-    )
-
-    obs, reward, terminated, truncated, info= env.step(action)
-
-
-    assert env.state.bank[GemColor.WHITE] == 3
-    assert env.state.players[0].gems[GemColor.WHITE] == 1
-
-def test_take_two_different_color(env):
-    env.reset()
-
-    action = Action(
-
-        action_type=ActionType.TAKE_GEMS,
-        gem_colors=(GemColor.WHITE, GemColor.GREEN)
-    )
-
-
-    obs, reward, terminated, truncated, info= env.step(action)
-
-
-    assert env.state.bank[GemColor.WHITE] == 3
-    assert env.state.players[0].gems[GemColor.WHITE] == 1
-    assert env.state.bank[GemColor.GREEN] == 3
-    assert env.state.players[0].gems[GemColor.GREEN] == 1
+def get_take_gem_actions(env):
+    return [
+        action
+        for action in env._legal_take_gems(
+            env.state
+        )
+        if action.action_type
+        == ActionType.TAKE_GEMS
+    ]
 
 
 def test_take_two_same_color(env):
@@ -139,3 +115,166 @@ def test_take_gems_reward(env):
 
 
 #TODO need to create a test case just for observation and really hammer that one out
+
+def test_take_gems_with_three_or_more_colors_has_no_single_or_two_different(
+    env,
+):
+    env.reset()
+
+    env.state.bank = {
+        GemColor.WHITE: 1,
+        GemColor.BLUE: 1,
+        GemColor.GREEN: 1,
+        GemColor.RED: 0,
+        GemColor.BLACK: 0,
+        GemColor.GOLD: 5,
+    }
+
+    actions = get_take_gem_actions(env)
+
+    gem_choices = [
+        action.gem_colors
+        for action in actions
+    ]
+
+    assert (
+        GemColor.WHITE,
+        GemColor.BLUE,
+        GemColor.GREEN,
+    ) in gem_choices
+
+    assert not any(
+        len(colors) == 1
+        for colors in gem_choices
+    )
+
+    assert not any(
+        (
+            len(colors) == 2
+            and colors[0] != colors[1]
+        )
+        for colors in gem_choices
+    )
+
+
+def test_take_gems_with_two_available_colors_allows_two_different(
+    env,
+):
+    env.reset()
+
+    env.state.bank = {
+        GemColor.WHITE: 1,
+        GemColor.BLUE: 1,
+        GemColor.GREEN: 0,
+        GemColor.RED: 0,
+        GemColor.BLACK: 0,
+        GemColor.GOLD: 5,
+    }
+
+    actions = get_take_gem_actions(env)
+
+    gem_choices = [
+        action.gem_colors
+        for action in actions
+    ]
+
+    assert (
+        GemColor.WHITE,
+        GemColor.BLUE,
+    ) in gem_choices
+
+    assert not any(
+        len(colors) == 1
+        for colors in gem_choices
+    )
+
+
+def test_take_gems_with_one_available_color_allows_single(
+    env,
+):
+    env.reset()
+
+    env.state.bank = {
+        GemColor.WHITE: 1,
+        GemColor.BLUE: 0,
+        GemColor.GREEN: 0,
+        GemColor.RED: 0,
+        GemColor.BLACK: 0,
+        GemColor.GOLD: 5,
+    }
+
+    actions = get_take_gem_actions(env)
+
+    gem_choices = [
+        action.gem_colors
+        for action in actions
+    ]
+
+    assert (
+        GemColor.WHITE,
+    ) in gem_choices
+
+    assert len(gem_choices) == 1
+
+def test_take_two_same_color_still_allowed_when_bank_has_four(
+    env,
+):
+    env.reset()
+
+    env.state.bank = {
+        GemColor.WHITE: 4,
+        GemColor.BLUE: 1,
+        GemColor.GREEN: 1,
+        GemColor.RED: 0,
+        GemColor.BLACK: 0,
+        GemColor.GOLD: 5,
+    }
+
+    actions = get_take_gem_actions(env)
+
+    gem_choices = [
+        action.gem_colors
+        for action in actions
+    ]
+
+    assert (
+        GemColor.WHITE,
+        GemColor.WHITE,
+    ) in gem_choices
+
+def test_legal_take_gems_action_count_with_mixed_bank(
+    env,
+):
+    env.reset()
+
+    env.state.bank = {
+        GemColor.WHITE: 4,
+        GemColor.BLUE: 3,
+        GemColor.GREEN: 1,
+        GemColor.RED: 0,
+        GemColor.BLACK: 0,
+        GemColor.GOLD: 5,
+    }
+
+    actions = env._legal_take_gems(
+        env.state
+    )
+
+    gem_choices = {
+        action.gem_colors
+        for action in actions
+    }
+
+    assert len(actions) == 2
+
+    assert gem_choices == {
+        (
+            GemColor.WHITE,
+            GemColor.BLUE,
+            GemColor.GREEN,
+        ),
+        (
+            GemColor.WHITE,
+            GemColor.WHITE,
+        ),
+    }

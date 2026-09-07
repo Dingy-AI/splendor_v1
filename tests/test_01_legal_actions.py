@@ -38,7 +38,7 @@ def test_first_turn_actions(env):
     assert buy_visible == 0
     assert reserve_visible == 12
     assert reserve_top_deck == 3
-    assert take_gems == 30
+    assert take_gems == 15
     assert discard_gems == 0
     assert take_noble == 0    
 
@@ -57,14 +57,14 @@ def test_no_white_gem_action(env):
             if GemColor.WHITE not in action.gem_colors:
                 non_white_actions += 1
             
-    assert non_white_actions == 18
+    assert non_white_actions == 8
 
 def test_no_gold_action(env):
     env.reset()
 
     env.state.bank[GemColor.GOLD] = 0
     actions = env._legal_actions(env.state)
-    assert len(actions) == 45
+    assert len(actions) == 30
 #overflow state
 #noble claim state
 #player qualifies for two nobles 
@@ -229,5 +229,5 @@ def test_two_of_a_kind_rule(env):
         elif action.action_type == ActionType.RESERVE_TOP_DECK or action.action_type == ActionType.RESERVE_VISIBLE:
             num_reserve += 1
 
-    assert num_take_gems == 25
+    assert num_take_gems == 10
     assert num_reserve == 15

@@ -315,7 +315,6 @@ class MCTS:
 
 
         action = random.choice(node.untried_actions)
-
         node.untried_actions.remove(action)
 
         # Clone environment so parent/game isn't modified
@@ -341,23 +340,6 @@ class MCTS:
         # node.children.append(child)
 
         # return child
-        prior = 0.0
-
-        if self.selection_type == "puct":
-
-            policy_probs, _ = neural_evaluate(
-                env,
-                self.model,
-                node.state,
-            )
-
-            action_id = env.action_to_id(
-                action
-            )
-
-            prior = policy_probs[
-                action_id
-            ].item()
 
         child = Node(
             state=child_state,
@@ -366,7 +348,6 @@ class MCTS:
             untried_actions=child_env._legal_actions(
                 child_state
             ),
-            prior=prior,
         )
 
         node.children.append(

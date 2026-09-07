@@ -257,7 +257,7 @@ def test_puct_requires_model():
     except ValueError:
         pass
 
-def test_puct_expansion_assigns_prior():
+def test_puct_child_priors_match_network_policy():
 
     env = SplendorEnv()
     env.reset()
@@ -273,67 +273,50 @@ def test_puct_expansion_assigns_prior():
 
     root = Node(
         state=env.state.clone(),
-        untried_actions=env._legal_actions(
-            env.state
-        ),
     )
 
-    child = mcts.expand(
-        env,
-        root,
-    )
-
-    assert child is not None
-
-    assert child.prior >= 0.0
-    assert child.prior <= 1.0
-
-def test_puct_child_prior_matches_network_policy():
-
-    env = SplendorEnv()
-    env.reset()
-
-    model = SplendorNetwork()
-
-    mcts = MCTS(
-        simulations=1,
-        rollout_type="neural",
-        selection_type="puct",
-        model=model,
-    )
-
-    root = Node(
-        state=env.state.clone(),
-        untried_actions=env._legal_actions(
-            env.state
-        ),
+    legal_actions = env._legal_actions(
+        root.state
     )
 
     policy_probs, _ = neural_evaluate(
         env,
         model,
         root.state,
+        legal_actions=legal_actions,
     )
 
-    child = mcts.expand(
+    mcts.expand_all_with_priors(
         env,
         root,
+        root_player=root.state.current_player,
+        teacher_mode=False,
     )
 
-    action_id = env.action_to_id(
-        child.action
+    assert root.expanded
+
+    assert len(root.children) == len(
+        legal_actions
     )
 
-    expected_prior = policy_probs[
-        action_id
-    ].item()
-
-    assert math.isclose(
-        child.prior,
+    for (
+        legal_action,
         expected_prior,
-        rel_tol=1e-6,
-    )
+        child,
+    ) in zip(
+        legal_actions,
+        policy_probs,
+        root.children,
+    ):
 
+        assert child.action == legal_action
+
+        assert math.isclose(
+            child.prior,
+            expected_prior.item(),
+            rel_tol=1e-6,
+        )
+        
 def test_puct_mcts_search_returns_legal_action():
 
     env = SplendorEnv()

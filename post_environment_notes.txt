@@ -436,13 +436,13 @@ DENIAL    ✗
 LONG-TERM ENGINE BUILDING   weak
 
 # ONE OF ITS PRIMARY struggles is that it doesnt know the difference 
-between 1 gem and 3 gem
+between 1 gem and 3 gem #DONE 
 
 #rework take gem action so if there are 3 or more gems 
-we get those actions 
+we get those actions  #DONE 
 
 # if there are 2 gems of different colors we get that action 
-# if theres one gem then one gem action 
+# if theres one gem then one gem action  #DONE 
 
 
 Current

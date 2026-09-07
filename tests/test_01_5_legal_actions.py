@@ -58,7 +58,7 @@ def test_legal_actions_count(env):
             actions_list.append(action)
 
 
-    assert take_gems == 26
+    assert take_gems == 11
     assert discard_gems == 0
     assert len(actions_list) == 5
     assert actions_list[0].payment_id == 0
