@@ -41,10 +41,12 @@ def run_training(
     else:
         next_checkpoint = None
 
-    positions_added = 0
 
     for iteration in range(num_iterations):
         start = time.perf_counter()
+
+        positions_added = 0
+
 
         total_self_play_time = 0.0
         total_mcts_time = 0.0
@@ -93,7 +95,7 @@ def run_training(
                 / batch_size
             )
         )
-        print("NUMBER OF TRAINING STEP TEST: ", training_steps)
+        print("Number of Training Steps: ", training_steps)
         stats = train_network(
             model=model,
             replay_buffer=replay_buffer,

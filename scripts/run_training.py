@@ -28,11 +28,11 @@ def main():
     starting_games_played = 0
 
     replay_buffer = ReplayBuffer(
-        capacity=50_000,
+        capacity=50_0000,
     )
     checkpoint_path = None
 
-    # checkpoint_path = ("checkpoints/model_106_games.pt")
+    checkpoint_path = ("checkpoints/model_302_games.pt")
 
     if checkpoint_path is not None:
 
@@ -47,7 +47,7 @@ def main():
         )
 
         replay_buffer = ReplayBuffer.load(
-            "checkpoints/replay_106_games.pkl"
+            "checkpoints/replay_302_games.pkl"
         )
 
         print(
@@ -69,14 +69,14 @@ def main():
         optimizer=optimizer,
         replay_buffer=replay_buffer,
 
-        num_iterations=2,
+        num_iterations=505,
         self_play_games_per_iteration=10,
         simulations=200,
         batch_size=256,
         training_ratio=1.5,
-        checkpoint_every_games=100,
+        checkpoint_every_games=400,
         seed=420,
-        teacher_mode=True,
+        teacher_mode=False,
 
         starting_games_played=starting_games_played,
         policy_debug_samples=policy_debug_samples,        

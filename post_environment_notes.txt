@@ -370,8 +370,12 @@ did a lot of checking we found that prior is creating issues with
     if ai is learning here then the algorithm is fine 
     the issue is that the state space is just so damn big 
 
+
+
 # THE AI will learn some of the time with V = 0 and uniform P 
 # the teacher mode helps it learn
+
+
 
 
 
@@ -384,14 +388,14 @@ Track strength across training # added matlibplot but its not working
 
 # MAY need to upgrade network into what the ludometer has #ONGOING
 # I think we need to do two things 
-    #update our neural net into a residual net
+    #update our neural net into a residual net #DONE
     # do a train/data ratio #DONE
         training_steps = round(
            positions_added * 1.5 / batch_size
         )
-    # set batch size to 256 
+    # set batch size to 256 #DONE 
 
-Run a fresh normal AlphaZero experiment. This is the big test:
+Run a fresh normal AlphaZero experiment. This is the big test: #ONGOING 
     fresh residual network
     fresh optimizer
     empty replay
@@ -401,7 +405,11 @@ Run a fresh normal AlphaZero experiment. This is the big test:
     batch 256
     replay ratio 1.5
 
+build a greedy game agent  # DONE 
+build a heuristic game agent # MIGHT NOT BE NECESSARY 
+
 if it struggles we go back to uniform prior and v = 0
+
     maybe do sims = 400 or 200?
 
 # later if the above works 
@@ -413,6 +421,29 @@ https://github.com/RemiFabre/ludometer/blob/main/docs/METHODOLOGY.md#8-three-run
 
 Tune training/MCTS hyperparameters # NOPE XD 
 Add advanced AlphaZero features # HOLD OFF XD 
+
+#created 'greedy agent' it 100-0 random agents after an 80 step game
+
+#I think we will need to generate data using the 'greedy' agent
+# and thens lowly do the training of the neural network agent
+
+
+Greedy pretraining gives us:
+BUY       ✓
+TAKE      ✓
+RESERVE   ✗
+DENIAL    ✗
+LONG-TERM ENGINE BUILDING   weak
+
+# ONE OF ITS PRIMARY struggles is that it doesnt know the difference 
+between 1 gem and 3 gem
+
+#rework take gem action so if there are 3 or more gems 
+we get those actions 
+
+# if there are 2 gems of different colors we get that action 
+# if theres one gem then one gem action 
+
 
 Current
 2-layer MLP

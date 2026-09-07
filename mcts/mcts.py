@@ -141,6 +141,7 @@ class MCTS:
                     value = self.expand_all_with_priors(
                         env,
                         node,
+                        root_player=root_player,
                         teacher_mode=teacher_mode
                     )
 
@@ -156,20 +157,6 @@ class MCTS:
                     ):
                         self.add_dirichlet_noise(root)
                         root_noise_added = True
-
-                    # Terminal / dead-end node
-                    if value is None:
-                        value = 0.0
-
-                    else:
-                        # Neural value is from the
-                        # perspective of the player
-                        # to move at node.state.
-                        if (
-                            node.state.current_player
-                            != root_player
-                        ):
-                            value = -value
 
                 else:
                     # This should normally only happen
@@ -569,12 +556,18 @@ class MCTS:
         self,
         env,
         node,
+        root_player=None,
         teacher_mode=False
     ):
 
         if env._check_terminated(node.state):
+
             node.expanded = True
-            return
+
+            return self.terminal_value(
+                node.state,
+                root_player,
+            )
 
         legal_actions = self.get_legal_actions(
             env,
@@ -585,7 +578,7 @@ class MCTS:
             node.state.game_over = True
             node.state.winners = []
             node.expanded = True
-            return
+            return 0.0
 
         if teacher_mode:
 
@@ -608,6 +601,17 @@ class MCTS:
                 node.state,
                 legal_actions=legal_actions,
             )
+
+            # neural value is relative to
+            # player-to-move
+            if (
+                node.state.current_player
+                != root_player
+            ):
+                value = -value
+
+
+
         for action, prior in zip(
             legal_actions,
             legal_probs,
@@ -858,3 +862,18 @@ class MCTS:
             )
 
         print("=" * 80)
+
+
+    def terminal_value(
+        self,
+        state,
+        root_player,
+    ):
+
+        if root_player in state.winners:
+            return 1.0
+
+        if len(state.winners) == 0:
+            return 0.0
+
+        return -1.0
