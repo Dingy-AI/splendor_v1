@@ -8,6 +8,7 @@ def evaluate_model_vs_random(
     num_games=20,
     simulations=200,
     seed=420,
+    is_evaluation_dynamic=False,
 ):
 
     print("\nEvaluation Starting...")
@@ -30,6 +31,7 @@ def evaluate_model_vs_random(
         max_steps=300,
         debug_mode=False,
         seed=seed,
+        is_evaluation_dynamic=is_evaluation_dynamic
     )
 
     print("\nEvaluation complete.")
@@ -77,6 +79,7 @@ def evaluate_model_vs_greedy(
     num_games=20,
     simulations=200,
     seed=420,
+    is_evaluation_dynamic=False
 ):
 
     print("\nEvaluation Starting...")
@@ -99,6 +102,7 @@ def evaluate_model_vs_greedy(
         max_steps=300,
         debug_mode=False,
         seed=seed,
+        is_evaluation_dynamic=is_evaluation_dynamic
     )
 
     print("\nEvaluation complete.")
@@ -146,8 +150,15 @@ def evaluate_agents(
     num_games=100,
     max_steps=300,
     debug_mode=True,
-    seed=None
+    seed=None,
+    is_evaluation_dynamic=False
 ):
+
+    if is_evaluation_dynamic and num_games % 2 != 0:
+        raise ValueError(
+            "Dynamic paired evaluation requires "
+            "an even number of games."
+        )
 
     results = {
         "agent_a_wins": 0,
@@ -160,8 +171,23 @@ def evaluate_agents(
     }
 
     for game_index in range(num_games):
+
         if debug_mode:
             print("Starting: ", game_index)
+
+        # -------------------------
+        # Evaluation seed
+        # -------------------------
+
+        if seed is None:
+            game_seed = None
+
+        elif is_evaluation_dynamic:
+            pair_index = game_index // 2
+            game_seed = seed + pair_index
+
+        else:
+            game_seed = seed
 
         # -------------------------
         # Alternate player positions
@@ -169,13 +195,11 @@ def evaluate_agents(
 
         if game_index % 2 == 0:
 
-            # A = Player 0
-            # B = Player 1
             result = play_game(
                 agent_a,
                 agent_b,
                 max_steps=max_steps,
-                seed=seed
+                seed=game_seed,
             )
 
             agent_a_index = 0
@@ -183,18 +207,15 @@ def evaluate_agents(
 
         else:
 
-            # B = Player 0
-            # A = Player 1
             result = play_game(
                 agent_b,
                 agent_a,
                 max_steps=max_steps,
-                seed=seed 
+                seed=game_seed,
             )
 
             agent_a_index = 1
             agent_b_index = 0
-
 
         if agent_a.__class__.__name__ == agent_b.__class__.__name__:
             winners = [
@@ -214,9 +235,12 @@ def evaluate_agents(
 
 
         if debug_mode:
-            print(f"Game {game_index} completed - Winners: {winners} and Info: {result}")
-            
-
+            print(
+                f"Game {game_index} completed - "
+                f"Seed: {game_seed} - "
+                f"Winners: {winners} - "
+                f"Info: {result}"
+            )
 
 
 

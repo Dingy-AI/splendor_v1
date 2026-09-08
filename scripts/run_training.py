@@ -9,6 +9,11 @@ from splendor_v1.training.replay_buffer import ReplayBuffer
 from splendor_v1.training.train import run_training
 
 from splendor_v1.training.checkpoint import load_checkpoint
+from torch.utils.tensorboard import SummaryWriter
+
+import os
+
+
 def main():
 
     env = SplendorEnv()
@@ -28,7 +33,7 @@ def main():
     starting_games_played = 0
 
     replay_buffer = ReplayBuffer(
-        capacity=50_0000,
+        capacity=500_000,
     )
     checkpoint_path = None
 
@@ -63,27 +68,36 @@ def main():
     # policy_debug_samples = []
     policy_debug_samples = None
 
+
+    writer = SummaryWriter(
+        log_dir="checkpoints_logger"
+    )
+
     history = run_training(
         env=env,
         model=model,
         optimizer=optimizer,
         replay_buffer=replay_buffer,
 
-        num_iterations=10,
+        num_iterations=505,
         self_play_games_per_iteration=10,
         simulations=200,
         batch_size=256,
         training_ratio=1.5,
-        checkpoint_every_games=10,
+        checkpoint_every_games=200,
         seed=0,
-        dynamic_seed=True,
+        dynamic_seeding=True,
         teacher_mode=False,
-
+        evaluation_seed=100000,
+        is_evaluation_dynamic=True,
         starting_games_played=starting_games_played,
         policy_debug_samples=policy_debug_samples,        
-
+        writer=writer
     )
 
+
+    writer.flush()
+    writer.close()
 
     if policy_debug_samples != None:
 

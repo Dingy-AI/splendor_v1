@@ -8,34 +8,31 @@ from splendor_v1.env.core.noble import Noble
 #TODO NEED TO DO A COMPLETE REWRITE OF THE ENCODER
 
 FOUR_PLAYER_GEM_NORM = 7
-from splendor_v1.env.core.constants import COLOR_ORDER, GEM_SCALE_NORM, BONUS_NORM, MAX_RESERVES, CARD_COST_SCALE_NORM, CARD_POINTS_NORM, POINT_SCALE_NORM, MAX_PLAYER_COUNT, TWO_PLAYER_GEM_NORM, THREE_PLAYER_GEM_NORM, MAX_DECK_SIZE_NORM, NOBLE_SCALE_NORM
+from splendor_v1.env.core.constants import CARD_COST_MAX, CARD_POINT_MAX, COLOR_ORDER, GEM_SCALE_NORM, BONUS_NORM, MAX_RESERVES, CARD_COST_SCALE_NORM, CARD_POINTS_NORM, NOBLE_POINT_MAX, NOBLE_REQUIREMENT_MAX, PLAYER_GEM_BONUS_MAX, PLAYER_POINT_MAX, POINT_SCALE_NORM, MAX_PLAYER_COUNT, TIER_1_DECK_SIZE, TIER_2_DECK_SIZE, TIER_3_DECK_SIZE, TWO_PLAYER_BANK_GEM_MAX, TWO_PLAYER_BANK_GOLD_MAX, TWO_PLAYER_GEM_NORM, THREE_PLAYER_GEM_NORM, MAX_DECK_SIZE_NORM, NOBLE_SCALE_NORM
 
 class ObservationEncoder:
     def __init__(self):
         self._card_encoding_cache = {}
         self._empty_card_encoding = [0.0] * 11
+        
 
     def encoder(self, state:GameState):
 
-        self.player_gem_norm = TWO_PLAYER_GEM_NORM
-        if len(state.players) == 4:
-            self.player_gem_norm = FOUR_PLAYER_GEM_NORM
-        elif len(state.players) == 3:
+
+        self.num_players = len(state.players)
+
+        if  self.num_players  == 2:
+            self.player_gem_norm = TWO_PLAYER_GEM_NORM
+        elif  self.num_players  == 3:
             self.player_gem_norm = THREE_PLAYER_GEM_NORM
-            
-        
+        elif  self.num_players  == 4:
+            self.player_gem_norm = FOUR_PLAYER_GEM_NORM
+        else:
+            raise ValueError(
+                f"Unsupported player count: { self.num_players }"
+            )
+
         features = []
-        #need different functions to encode different things
-
-
-        #player encoder
-        #noble encoder
-        #deck encoder 
-        #bank encoder 
-        #board encoder
-        #meta encoder? -> not sure if I really need this maybe just what the node type is?
-            #looks like I will just need to say what node it is
-            # also probably just say how many turns it has been
 
         features = self._encode_players(state.players,state.current_player)
 
@@ -99,9 +96,9 @@ class ObservationEncoder:
             # print(len(feature))
 
         # each player has 45 features
-
-        if len(players) < MAX_PLAYER_COUNT:
-            feature = feature + ((MAX_PLAYER_COUNT - len(players)) * [0] * 45 )
+        #TODO if we were to ever make a 3-4 player splendor game then padding might be necessary
+        # if len(players) < MAX_PLAYER_COUNT:
+        #     feature = feature + ((MAX_PLAYER_COUNT - len(players)) * [0] * 45 )
 
 
         return feature
@@ -152,12 +149,12 @@ class ObservationEncoder:
 
         for color in GemColor:
             feature.append(
-                player.gems[color] / GEM_SCALE_NORM
+                player.gems[color] / self.player_gem_norm 
             )
 
         for color in COLOR_ORDER:
             feature.append(
-                player.bonuses[color] / BONUS_NORM
+                player.bonuses[color] / PLAYER_GEM_BONUS_MAX 
             )
 
         for card in player.reserved_cards:
@@ -176,27 +173,42 @@ class ObservationEncoder:
             )
 
         feature.append(
-            player.points / POINT_SCALE_NORM
+            player.points / PLAYER_POINT_MAX
         )
 
         return feature
 
 
 
-    
+        
     def _encode_bank(self, bank):
+
         feature = []
+
         for color in GemColor:
-            feature = feature + [bank[color] / self.player_gem_norm]
-        return feature 
-    
-    def _encode_decks(self, decks):
-        feature = []
-        for tier in (1, 2, 3):
-            cards = decks[tier]
-            feature.append(len(cards) / MAX_DECK_SIZE_NORM[tier])
+
+            if color == GemColor.GOLD:
+                feature.append(
+                    bank[color]
+                    / TWO_PLAYER_BANK_GOLD_MAX
+                )
+            else:
+                feature.append(
+                    bank[color]
+                    / TWO_PLAYER_BANK_GEM_MAX
+                )
+
         return feature
     
+    def _encode_decks(self, decks):
+
+        feature = [
+            len(decks[1]) / TIER_1_DECK_SIZE,
+            len(decks[2]) / TIER_2_DECK_SIZE,
+            len(decks[3]) / TIER_3_DECK_SIZE,
+        ]
+
+        return feature
 
     def _encode_nobles(self, nobles:list[Noble]):
         feature = []
@@ -205,18 +217,19 @@ class ObservationEncoder:
             if noble == None:
                 feature.extend([0] * 6)
                 continue
+            # Requirements
+            for color in COLOR_ORDER:
+                feature.append(
+                    noble.requirement[color]
+                    / NOBLE_REQUIREMENT_MAX
+                )
 
-            for color in GemColor:
-                if color == GemColor.GOLD:
-                    continue
 
-                feature = feature + [(noble.requirement[color] / NOBLE_SCALE_NORM)]
-
-            feature = feature + [noble.points]
-
-            #need to do a player check and a noble count checkw
-        # if len(nobles) < 5:
-        #     feature = feature +  (5 - len(nobles)) * [0] * 6
+            # Victory points
+            feature.append(
+                noble.points
+                / NOBLE_POINT_MAX
+            )
         return feature
     
     def _encode_board(
@@ -255,7 +268,9 @@ class ObservationEncoder:
                 if color == GemColor.GOLD:
                     continue
 
-                vec.append(card.cost.get(color, 0))
+                vec.append(card.cost.get(color, 0)
+                           / CARD_COST_MAX
+                )
             # 2. bonus color one-hot
             for color in GemColor:
                 if color == GemColor.GOLD:
@@ -263,9 +278,7 @@ class ObservationEncoder:
                 vec.append(1.0 if card.bonus_color == color else 0.0)
 
             # 1. points
-            vec.append(card.points)
-        else:
-            vec = [0.0] * 11
+            vec.append(card.points / CARD_POINT_MAX)
         return vec
 
     def _encode_card(self, card):

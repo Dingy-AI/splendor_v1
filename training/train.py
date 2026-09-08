@@ -8,14 +8,6 @@ from splendor_v1.mcts.mcts import MCTS
 import time
 from splendor_v1.evaluation.evaluate_agents import evaluate_model_vs_greedy, evaluate_model_vs_random
 
-
-from torch.utils.tensorboard import SummaryWriter
-
-writer = SummaryWriter(
-    log_dir="checkpoints_logger/splendor_baseline"
-)
-
-
 def run_training(
     env,
     model,
@@ -32,7 +24,10 @@ def run_training(
     policy_debug_samples=None,
     seed=None,
     dynamic_seeding=False,
-    teacher_mode=False
+    teacher_mode=False,
+    writer=None,
+    evaluation_seed=None,
+    is_evaluation_dynamic=False,
 ):
     history = []
 
@@ -123,103 +118,105 @@ def run_training(
             iteration_game_lengths
         )
 
-        writer.add_scalar(
-            "SelfPlay/average_game_length",
-            average_game_length,
-            games_played,
-        )
 
-        writer.add_scalar(
-            "Loss/total",
-            training_results["average_total_loss"],
-            games_played,
-        )
-
-        writer.add_scalar(
-            "Loss/policy",
-            training_results["average_policy_loss"],
-            games_played,
-        )
-
-        writer.add_scalar(
-            "Loss/value",
-            training_results["average_value_loss"],
-            games_played,
-        )
-
-        writer.add_scalar(
-            "Loss/policy_kl",
-            training_results["average_policy_kl"],
-            games_played,
-        )
-
-        writer.add_scalar(
-            "Training/gradient_norm",
-            training_results["average_grad_norm"],
-            games_played,
-        )
-
-        writer.add_scalar(
-            "Training/predicted_value",
-            training_results["average_predicted_value"],
-            games_played,
-        )
-
-        writer.add_scalar(
-            "Training/target_value",
-            training_results["average_target_value"],
-            games_played,
-        )
-
-        writer.add_scalar(
-            "Training/target_policy_entropy",
-            training_results[
-                "average_target_policy_entropy"
-            ],
-            games_played,
-        )
-
-        writer.add_scalar(
-            "Training/replay_size",
-            len(replay_buffer),
-            games_played,
-        )
-
-        writer.add_scalar(
-            "Training/positions_added",
-            positions_added,
-            games_played,
-        )
-
-        writer.add_scalar(
-            "Training/training_steps",
-            training_steps,
-            games_played,
-        )
-
-        writer.add_scalar(
-            "Training/learning_rate",
-            optimizer.param_groups[0]["lr"],
-            games_played,
-        )
-        writer.add_scalar(
-            "Timing/mcts_seconds",
-            total_mcts_time,
-            games_played,
-        )
-
-        writer.add_scalar(
-            "Timing/iteration_seconds",
-            iteration_time,
-            games_played,
-        )
-
-        if positions_added > 0:
+        if writer is not None:
             writer.add_scalar(
-                "Timing/mcts_seconds_per_position",
-                total_mcts_time / positions_added,
+                "SelfPlay/average_game_length",
+                average_game_length,
                 games_played,
             )
+
+            writer.add_scalar(
+                "Loss/total",
+                training_results["average_total_loss"],
+                games_played,
+            )
+
+            writer.add_scalar(
+                "Loss/policy",
+                training_results["average_policy_loss"],
+                games_played,
+            )
+
+            writer.add_scalar(
+                "Loss/value",
+                training_results["average_value_loss"],
+                games_played,
+            )
+
+            writer.add_scalar(
+                "Loss/policy_kl",
+                training_results["average_policy_kl"],
+                games_played,
+            )
+
+            writer.add_scalar(
+                "Training/gradient_norm",
+                training_results["average_grad_norm"],
+                games_played,
+            )
+
+            writer.add_scalar(
+                "Training/predicted_value",
+                training_results["average_predicted_value"],
+                games_played,
+            )
+
+            writer.add_scalar(
+                "Training/target_value",
+                training_results["average_target_value"],
+                games_played,
+            )
+
+            writer.add_scalar(
+                "Training/target_policy_entropy",
+                training_results[
+                    "average_target_policy_entropy"
+                ],
+                games_played,
+            )
+
+            writer.add_scalar(
+                "Training/replay_size",
+                len(replay_buffer),
+                games_played,
+            )
+
+            writer.add_scalar(
+                "Training/positions_added",
+                positions_added,
+                games_played,
+            )
+
+            writer.add_scalar(
+                "Training/training_steps",
+                training_steps,
+                games_played,
+            )
+
+            writer.add_scalar(
+                "Training/learning_rate",
+                optimizer.param_groups[0]["lr"],
+                games_played,
+            )
+            writer.add_scalar(
+                "Timing/mcts_seconds",
+                total_mcts_time,
+                games_played,
+            )
+
+            writer.add_scalar(
+                "Timing/iteration_seconds",
+                iteration_time,
+                games_played,
+            )
+
+            if positions_added > 0:
+                writer.add_scalar(
+                    "Timing/mcts_seconds_per_position",
+                    total_mcts_time / positions_added,
+                    games_played,
+                )
 
         history.append(training_results)
 
@@ -241,52 +238,51 @@ def run_training(
                     model=model,
                     num_games=20,
                     simulations=200,
-                    seed=None,
+                    seed=evaluation_seed,
+                    is_evaluation_dynamic=is_evaluation_dynamic
                 )
+                print(results_random)
 
-                writer.add_scalar(
-                    "Evaluation/Random_win_rate",
-                    results_random["win_rate"],
-                    games_played,
-                )
+                if writer is not None:
 
-                writer.add_scalar(
-                    "Evaluation/Random_average_steps",
-                    results_random["average_steps"],
-                    games_played,
-                )
+                    writer.add_scalar(
+                        "Evaluation/Random_win_rate",
+                        results_random["agent_a_win_rate"],
+                        games_played,
+                    )
 
+                    writer.add_scalar(
+                        "Evaluation/Random_average_steps",
+                        results_random["average_steps"],
+                        games_played,
+                    )
 
+                    writer.flush()
 
                 results_greedy = evaluate_model_vs_greedy(
                     model=model,
                     num_games=20,
                     simulations=200,
-                    seed=None,
+                    seed=evaluation_seed,
+                    is_evaluation_dynamic=is_evaluation_dynamic
                 )
+                if writer is not None:
 
-                writer.add_scalar(
-                    "Evaluation/Greedy_win_rate",
-                    results_greedy["win_rate"],
-                    games_played,
-                )
+                    writer.add_scalar(
+                        "Evaluation/Greedy_win_rate",
+                        results_greedy["agent_a_win_rate"],
+                        games_played,
+                    )
 
-                writer.add_scalar(
-                    "Evaluation/Greedy_average_steps",
-                    results_greedy["average_steps"],
-                    games_played,
-                )
-
-
-
+                    writer.add_scalar(
+                        "Evaluation/Greedy_average_steps",
+                        results_greedy["average_steps"],
+                        games_played,
+                    )
+                    writer.flush()
 
         print(
             f"\nIteration {iteration + 1}"
-        )
-
-        print(
-            f"Self-play time: "
-            f"{total_self_play_time:.2f}s"
         )
 
         print(

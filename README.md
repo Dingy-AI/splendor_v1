@@ -21,3 +21,7 @@ python splendor_v1/scripts/read_profile.py
 
 # compares the old function and new function 
 python -m splendor_v1.scripts.script_benchmark_legal_buy_reserved
+
+# logger tool
+tensorboard --logdir=checkpoints_logger
+http://localhost:6006

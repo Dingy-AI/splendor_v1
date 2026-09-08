@@ -84,7 +84,7 @@ def test_train_network_updates_parameters():
         )
     )
 
-def test_train_network_returns_valid_losses():
+def test_train_network_returns_valid_metrics():
 
     model = SplendorNetwork(
         OBSERVATION_SIZE,
@@ -126,52 +126,24 @@ def test_train_network_returns_valid_losses():
         training_steps=1,
     )
 
-    total_losses = stats[
-        "iteration_total_losses"
+    expected_metrics = [
+        "average_total_loss",
+        "average_policy_loss",
+        "average_value_loss",
+        "average_policy_kl",
+        "average_grad_norm",
+        "average_predicted_value",
+        "average_target_value",
+        "average_target_policy_entropy",
     ]
 
-    policy_losses = stats[
-        "iteration_policy_losses"
-    ]
+    for metric in expected_metrics:
 
-    value_losses = stats[
-        "iteration_value_losses"
-    ]
+        assert metric in stats
 
-    policy_kls = stats[
-        "iteration_policy_kls"
-    ]
-
-    assert isinstance(total_losses, list)
-    assert isinstance(policy_losses, list)
-    assert isinstance(value_losses, list)
-    assert isinstance(policy_kls, list)
-
-    assert len(total_losses) == 1
-    assert len(policy_losses) == 1
-    assert len(value_losses) == 1
-    assert len(policy_kls) == 1
-
-    assert all(
-        np.isfinite(loss)
-        for loss in total_losses
-    )
-
-    assert all(
-        np.isfinite(loss)
-        for loss in policy_losses
-    )
-
-    assert all(
-        np.isfinite(loss)
-        for loss in value_losses
-    )
-
-    assert all(
-        np.isfinite(kl)
-        for kl in policy_kls
-    )
-
+        assert np.isfinite(
+            stats[metric]
+        )
 
 def test_train_network_requires_enough_samples():
 

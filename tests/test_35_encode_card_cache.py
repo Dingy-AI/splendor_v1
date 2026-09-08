@@ -1,6 +1,7 @@
+from splendor_v1.env.core.constants import CARD_COST_MAX, CARD_POINT_MAX
 from splendor_v1.env.env import SplendorEnv
 from splendor_v1.env.core.enums import GemColor
-
+import numpy as np
 
 def get_all_cards(state):
 
@@ -42,22 +43,19 @@ def test_encode_card_matches_original():
         assert slow_encoding == cached_encoding
 
 
-def test_encode_none_matches_original():
+def test_encode_none_card_is_empty():
 
     env = SplendorEnv()
     env.reset()
 
     encoder = env.observation_encoder
 
-    slow_encoding = encoder.slow_encode_card(
-        None
-    )
+    encoded = encoder._encode_card(None)
 
-    cached_encoding = encoder._encode_card(
-        None
-    )
+    expected = [0.0] * 11
 
-    assert slow_encoding == cached_encoding
+    assert len(encoded) == 11
+    assert encoded == expected
 
 
 def test_encode_card_uses_cache():
@@ -139,6 +137,7 @@ def test_encode_card_structure():
 
     expected_costs = [
         card.cost.get(color, 0)
+        / CARD_COST_MAX
         for color in GemColor
         if color != GemColor.GOLD
     ]
@@ -154,7 +153,15 @@ def test_encode_card_structure():
     expected = (
         expected_costs
         + expected_bonus
-        + [card.points]
+        + [
+            card.points
+            / CARD_POINT_MAX
+        ]
     )
 
-    assert encoding == expected
+    np.testing.assert_allclose(
+        encoding,
+        expected,
+        rtol=1e-6,
+        atol=1e-6,
+    )
