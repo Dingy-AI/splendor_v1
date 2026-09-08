@@ -10,8 +10,9 @@ class NeuralPUCTAgent:
         simulations=20,
         debug_mode=False,
         teacher_mode = False,
+        name=None
     ):
-
+        self.name = name
         self.teacher_mode = teacher_mode
         self.model = model
         self.debug_mode = debug_mode

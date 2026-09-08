@@ -32,7 +32,7 @@ def main():
     )
     checkpoint_path = None
 
-    checkpoint_path = ("checkpoints/model_302_games.pt")
+    # checkpoint_path = ("checkpoints/model_302_games.pt")
 
     if checkpoint_path is not None:
 
@@ -69,13 +69,14 @@ def main():
         optimizer=optimizer,
         replay_buffer=replay_buffer,
 
-        num_iterations=505,
+        num_iterations=10,
         self_play_games_per_iteration=10,
         simulations=200,
         batch_size=256,
         training_ratio=1.5,
-        checkpoint_every_games=400,
-        seed=420,
+        checkpoint_every_games=10,
+        seed=0,
+        dynamic_seed=True,
         teacher_mode=False,
 
         starting_games_played=starting_games_played,

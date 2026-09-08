@@ -8,51 +8,76 @@ from splendor_v1.network.model import SplendorNetwork
 from splendor_v1.evaluation.evaluate_agents import evaluate_agents
 
 
-def main_random_vs_puct():
+def main_puct_vs_puct():
 
     # -------------------------
     # Load trained model
     # -------------------------
 
-    model = SplendorNetwork(
+    model_1 = SplendorNetwork(
         OBSERVATION_SIZE,
         ACTION_SPACE_SIZE,
     )
 
-    checkpoint = torch.load(
-        "checkpoints/model_4008_games.pt",
+    checkpoint_1 = torch.load(
+        "checkpoints/model_206_games.pt",
         map_location="cpu",
     )
 
-    model.load_state_dict(
-        checkpoint["model_state_dict"]
+    model_1.load_state_dict(
+        checkpoint_1["model_state_dict"]
     )
 
 
-    model.eval()
+    model_1.eval()
+
+    model_2 = SplendorNetwork(
+        OBSERVATION_SIZE,
+        ACTION_SPACE_SIZE,
+    )
+
+    checkpoint_2 = torch.load(
+        "checkpoints/model_600_games.pt",
+        map_location="cpu",
+    )
+
+    model_2.load_state_dict(
+        checkpoint_2["model_state_dict"]
+    )
+
+
+    model_2.eval()
+
 
     # -------------------------
     # Create evaluation agents
     # -------------------------
 
-    trained_agent = NeuralPUCTAgent(
-        model=model,
-        simulations=400,
+    puct_agent_1 = NeuralPUCTAgent(
+        model=model_1,
+        simulations=200,
         debug_mode=False, 
-        teacher_mode=False
+        teacher_mode=False,
+        name="PUCT AGENT 206"
     )
 
-    random_agent = RandomAgent()
+    puct_agent_2 = NeuralPUCTAgent(
+        model=model_1,
+        simulations=200,
+        debug_mode=False, 
+        teacher_mode=False,
+        name="PUCT Agent 2403"
 
+    )
     # -------------------------
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating trained PUCT vs random...")
+    print("\nEvaluating trained PUCT vs PUCT...")
 
     results = evaluate_agents(
-        agent_a=trained_agent,
-        agent_b=random_agent,
+        agent_a=puct_agent_1,
+        agent_b=puct_agent_2,
         num_games=20,
         max_steps=300,
         debug_mode=True,
@@ -66,12 +91,12 @@ def main_random_vs_puct():
     print("\nEvaluation complete.")
 
     print(
-        f"PUCT wins: "
+        f"PUCT_1 wins: "
         f"{results['agent_a_wins']}"
     )
 
     print(
-        f"Random wins: "
+        f"PUCT_2 wins: "
         f"{results['agent_b_wins']}"
     )
 
@@ -91,7 +116,7 @@ def main_random_vs_puct():
     )
 
     print(
-        f"PUCT win rate: "
+        f"PUCT_1 win rate: "
         f"{results['agent_a_win_rate']:.2%}"
     )
 
@@ -102,5 +127,5 @@ def main_random_vs_puct():
 
 
 if __name__ == "__main__":
-    main_random_vs_puct()
+    main_puct_vs_puct()
 

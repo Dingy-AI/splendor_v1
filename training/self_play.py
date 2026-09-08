@@ -234,6 +234,7 @@ def play_self_play_game(
     policy_debug_samples=None,
     game_index=None,
     seed=None,
+    dynamic_seeding=False,
     teacher_mode=False
 ):
 
@@ -242,7 +243,12 @@ def play_self_play_game(
         1: Counter(),
     }
 
-    env.reset(seed)
+    if dynamic_seeding and seed is not None:
+        game_seed = seed + game_index
+    else:
+        game_seed = seed
+
+    env.reset(seed=game_seed)
 
     game_history = []
 

@@ -1,6 +1,8 @@
 from splendor_v1.env.env import SplendorEnv
 from splendor_v1.agents.neural_puct_agent import NeuralPUCTAgent
 from splendor_v1.agents.random_agent import RandomAgent
+from splendor_v1.agents.greedy_agent import GreedyAgent
+
 def evaluate_model_vs_random(
     model,
     num_games=20,
@@ -70,7 +72,73 @@ def evaluate_model_vs_random(
     return results
 
 
+def evaluate_model_vs_greedy(
+    model,
+    num_games=20,
+    simulations=200,
+    seed=420,
+):
 
+    print("\nEvaluation Starting...")
+
+
+    model.eval()
+
+    trained_agent = NeuralPUCTAgent(
+        model=model,
+        simulations=simulations,
+    )
+
+
+    greedy_agent = GreedyAgent()
+
+    results = evaluate_agents(
+        agent_a=trained_agent,
+        agent_b=greedy_agent,
+        num_games=num_games,
+        max_steps=300,
+        debug_mode=False,
+        seed=seed,
+    )
+
+    print("\nEvaluation complete.")
+
+    print(
+        f"PUCT wins: "
+        f"{results['agent_a_wins']}"
+    )
+
+    print(
+        f"Greedy wins: "
+        f"{results['agent_b_wins']}"
+    )
+
+    print(
+        f"Ties: "
+        f"{results['ties']}"
+    )
+
+    print(
+        f"Deadlocks: "
+        f"{results['deadlocks']}"
+    )
+
+    print(
+        f"Aborted: "
+        f"{results['aborted']}"
+    )
+
+    print(
+        f"PUCT win rate: "
+        f"{results['agent_a_win_rate']:.2%}"
+    )
+
+    print(
+        f"Average steps: "
+        f"{results['average_steps']:.1f}"
+    )
+
+    return results
 
 def evaluate_agents(
     agent_a,
@@ -127,14 +195,27 @@ def evaluate_agents(
             agent_a_index = 1
             agent_b_index = 0
 
-        winners = [
-            agent_a.__class__.__name__ if winner == agent_a_index
-            else agent_b.__class__.__name__
-            for winner in result["winners"]
-        ]
+
+        if agent_a.__class__.__name__ == agent_b.__class__.__name__:
+            winners = [
+                agent_a.name if winner == agent_a_index
+                else agent_b.name
+                for winner in result["winners"]
+            ]
+
+
+        else:
+            winners = [
+                agent_a.__class__.__name__ if winner == agent_a_index
+                else agent_b.__class__.__name__
+                for winner in result["winners"]
+            ]
+
+
 
         if debug_mode:
             print(f"Game {game_index} completed - Winners: {winners} and Info: {result}")
+            
 
 
 

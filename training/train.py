@@ -6,8 +6,15 @@ from splendor_v1.training.checkpoint import save_model_if_needed, save_checkpoin
 from splendor_v1.training.self_play import play_self_play_game
 from splendor_v1.mcts.mcts import MCTS
 import time
-from splendor_v1.evaluation.evaluate_agents import evaluate_model_vs_random
-from splendor_v1.training.training_plot import TrainingPlot
+from splendor_v1.evaluation.evaluate_agents import evaluate_model_vs_greedy, evaluate_model_vs_random
+
+
+from torch.utils.tensorboard import SummaryWriter
+
+writer = SummaryWriter(
+    log_dir="checkpoints_logger/splendor_baseline"
+)
+
 
 def run_training(
     env,
@@ -24,12 +31,13 @@ def run_training(
     starting_games_played=0,
     policy_debug_samples=None,
     seed=None,
+    dynamic_seeding=False,
     teacher_mode=False
 ):
     history = []
 
+    games_attempted = starting_games_played
     games_played = starting_games_played
-    # training_plot = TrainingPlot()
     if checkpoint_every_games is not None:
         next_checkpoint = (
             (
@@ -43,12 +51,11 @@ def run_training(
 
 
     for iteration in range(num_iterations):
-        start = time.perf_counter()
-
+        iteration_start = time.perf_counter()
         positions_added = 0
+        iteration_game_lengths = []
 
 
-        total_self_play_time = 0.0
         total_mcts_time = 0.0
 
         mcts = MCTS(
@@ -66,26 +73,29 @@ def run_training(
                 mcts,
                 replay_buffer,
                 policy_debug_samples,
-                game_index= games_played,
+                game_index= games_attempted,
                 seed=seed,
+                dynamic_seeding=dynamic_seeding,
                 teacher_mode=teacher_mode
             )
 
-            total_self_play_time += (
-                time.perf_counter() - start
-            )
+            games_attempted += 1
             if  game_stats['completed']:
                 total_mcts_time += (
                     game_stats["mcts_time"]
                 )
                 # print("Games Completed Successfully: ", games_played)
+                
+                iteration_game_lengths.append(
+                    game_stats["positions_added"]
+                )
+
 
                 games_played += 1
                 positions_added += game_stats['positions_added']
             else:
                 print("Game crashed and Terminated Early.")
 
-        train_start = time.perf_counter()
 
         training_steps = max(
             1,
@@ -96,7 +106,7 @@ def run_training(
             )
         )
         print("Number of Training Steps: ", training_steps)
-        stats = train_network(
+        training_results = train_network(
             model=model,
             replay_buffer=replay_buffer,
             optimizer=optimizer,
@@ -104,12 +114,114 @@ def run_training(
             training_steps=training_steps,
         )
 
-        train_time = (
+        iteration_time = (
             time.perf_counter()
-            - train_start
+            - iteration_start
         )
 
-        history.append(stats)
+        average_game_length = np.mean(
+            iteration_game_lengths
+        )
+
+        writer.add_scalar(
+            "SelfPlay/average_game_length",
+            average_game_length,
+            games_played,
+        )
+
+        writer.add_scalar(
+            "Loss/total",
+            training_results["average_total_loss"],
+            games_played,
+        )
+
+        writer.add_scalar(
+            "Loss/policy",
+            training_results["average_policy_loss"],
+            games_played,
+        )
+
+        writer.add_scalar(
+            "Loss/value",
+            training_results["average_value_loss"],
+            games_played,
+        )
+
+        writer.add_scalar(
+            "Loss/policy_kl",
+            training_results["average_policy_kl"],
+            games_played,
+        )
+
+        writer.add_scalar(
+            "Training/gradient_norm",
+            training_results["average_grad_norm"],
+            games_played,
+        )
+
+        writer.add_scalar(
+            "Training/predicted_value",
+            training_results["average_predicted_value"],
+            games_played,
+        )
+
+        writer.add_scalar(
+            "Training/target_value",
+            training_results["average_target_value"],
+            games_played,
+        )
+
+        writer.add_scalar(
+            "Training/target_policy_entropy",
+            training_results[
+                "average_target_policy_entropy"
+            ],
+            games_played,
+        )
+
+        writer.add_scalar(
+            "Training/replay_size",
+            len(replay_buffer),
+            games_played,
+        )
+
+        writer.add_scalar(
+            "Training/positions_added",
+            positions_added,
+            games_played,
+        )
+
+        writer.add_scalar(
+            "Training/training_steps",
+            training_steps,
+            games_played,
+        )
+
+        writer.add_scalar(
+            "Training/learning_rate",
+            optimizer.param_groups[0]["lr"],
+            games_played,
+        )
+        writer.add_scalar(
+            "Timing/mcts_seconds",
+            total_mcts_time,
+            games_played,
+        )
+
+        writer.add_scalar(
+            "Timing/iteration_seconds",
+            iteration_time,
+            games_played,
+        )
+
+        if positions_added > 0:
+            writer.add_scalar(
+                "Timing/mcts_seconds_per_position",
+                total_mcts_time / positions_added,
+                games_played,
+            )
+
+        history.append(training_results)
 
 
         if checkpoint_every_games is not None:
@@ -125,39 +237,47 @@ def run_training(
             )
 
             if checkpoint_saved:
-                results = evaluate_model_vs_random(
+                results_random = evaluate_model_vs_random(
                     model=model,
                     num_games=20,
                     simulations=200,
-                    seed=420,
+                    seed=None,
                 )
 
-                
-                # training_plot.update(
-                #     games_played=games_played,
+                writer.add_scalar(
+                    "Evaluation/Random_win_rate",
+                    results_random["win_rate"],
+                    games_played,
+                )
 
-                #     win_rate=results[
-                #         "agent_a_win_rate"
-                #     ],
+                writer.add_scalar(
+                    "Evaluation/Random_average_steps",
+                    results_random["average_steps"],
+                    games_played,
+                )
 
-                #     total_loss=np.mean(stats['iteration_total_losses']),
 
-                #     policy_loss=np.mean(stats['iteration_policy_losses']),
 
-                #     value_loss=np.mean(stats['iteration_value_losses']),
+                results_greedy = evaluate_model_vs_greedy(
+                    model=model,
+                    num_games=20,
+                    simulations=200,
+                    seed=None,
+                )
 
-                #     policy_kl=np.mean(stats['iteration_policy_kls']),
+                writer.add_scalar(
+                    "Evaluation/Greedy_win_rate",
+                    results_greedy["win_rate"],
+                    games_played,
+                )
 
-                #     replay_size=len(
-                #         replay_buffer
-                #     ),
+                writer.add_scalar(
+                    "Evaluation/Greedy_average_steps",
+                    results_greedy["average_steps"],
+                    games_played,
+                )
 
-                #     avg_game_length=results[
-                #         "average_steps"
-                #     ],
-                # )
 
-                # training_plot.save()
 
 
         print(
@@ -175,8 +295,8 @@ def run_training(
         )
 
         print(
-            f"Network training time: "
-            f"{train_time:.2f}s"
+            f"Iteration time: "
+            f"{iteration_time:.2f}s"
         )
 
         print("Games played:", games_played)
@@ -199,9 +319,6 @@ def run_training(
         f"{games_played} games"
     )
 
-
-
-
     return history
 
 
@@ -218,7 +335,8 @@ def train_network(
     Train the network using samples from the replay buffer.
 
     Returns:
-        dict containing average losses across all training steps.
+        dict containing average training metrics
+        across all optimizer steps.
     """
 
     if len(replay_buffer) < batch_size:
@@ -233,6 +351,11 @@ def train_network(
     iteration_value_losses = []
     iteration_policy_kls = []
 
+    iteration_grad_norms = []
+
+    iteration_predicted_value_means = []
+    iteration_target_value_means = []
+    iteration_target_policy_entropies = []
     for _ in range(training_steps):
 
         batch = replay_buffer.sample(
@@ -286,7 +409,51 @@ def train_network(
 
         loss.backward()
 
+
+        grad_norm = torch.nn.utils.clip_grad_norm_(
+            model.parameters(),
+            max_norm=float("inf"),
+        )
+
+
+
         optimizer.step()
+
+
+        with torch.no_grad():
+
+            predicted_value_mean = (
+                predicted_values.mean().item()
+            )
+
+            target_value_mean = (
+                target_values.mean().item()
+            )
+
+            target_policy_entropy = -(
+                target_policies
+                * torch.log(
+                    target_policies.clamp_min(1e-8)
+                )
+            ).sum(dim=-1).mean().item()
+
+        iteration_predicted_value_means.append(
+            predicted_value_mean
+        )
+
+        iteration_target_value_means.append(
+            target_value_mean
+        )
+
+        iteration_target_policy_entropies.append(
+            target_policy_entropy
+        )
+
+
+
+
+
+        iteration_grad_norms.append(grad_norm.item())
 
         iteration_total_losses.append(
                 loss.item()
@@ -306,20 +473,29 @@ def train_network(
 
 
     return {
-        "iteration_total_losses": (
+        "average_total_loss": np.mean(
             iteration_total_losses
-    
         ),
-        "iteration_policy_losses": (
+        "average_policy_loss": np.mean(
             iteration_policy_losses
-        
         ),
-        "iteration_value_losses": (
+        "average_value_loss": np.mean(
             iteration_value_losses
-        
         ),
-        "iteration_policy_kls": (
+        "average_policy_kl": np.mean(
             iteration_policy_kls
-        )
+        ),
+        "average_grad_norm": np.mean(
+            iteration_grad_norms
+        ),
+        "average_predicted_value": np.mean(
+            iteration_predicted_value_means
+        ),
+        "average_target_value": np.mean(
+            iteration_target_value_means
+        ),
+        "average_target_policy_entropy": np.mean(
+            iteration_target_policy_entropies
+        ),
     }
 
