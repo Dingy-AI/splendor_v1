@@ -28,6 +28,7 @@ def run_training(
     writer=None,
     evaluation_seed=None,
     is_evaluation_dynamic=False,
+    scheduler=None
 ):
     history = []
 
@@ -107,6 +108,7 @@ def run_training(
             optimizer=optimizer,
             batch_size=batch_size,
             training_steps=training_steps,
+            scheduler=scheduler
         )
 
         iteration_time = (
@@ -230,7 +232,8 @@ def run_training(
                 checkpoint_every_games=checkpoint_every_games,
                 next_checkpoint=next_checkpoint,
                 checkpoint_dir=checkpoint_dir,
-                replay_buffer=replay_buffer
+                replay_buffer=replay_buffer,
+                scheduler=scheduler
             )
 
             if checkpoint_saved:
@@ -326,6 +329,7 @@ def train_network(
     optimizer,
     batch_size,
     training_steps,
+    scheduler=None
 ):
     """
     Train the network using samples from the replay buffer.
@@ -401,8 +405,6 @@ def train_network(
              
         optimizer.zero_grad()
 
-
-
         loss.backward()
 
 
@@ -414,6 +416,10 @@ def train_network(
 
 
         optimizer.step()
+
+
+        if scheduler is not None:
+            scheduler.step()
 
 
         with torch.no_grad():

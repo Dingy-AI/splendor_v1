@@ -11,6 +11,7 @@ def save_checkpoint(
     optimizer,
     games_played,
     history=None,
+    scheduler=None,
 ):
     os.makedirs(
         os.path.dirname(path),
@@ -22,6 +23,11 @@ def save_checkpoint(
         "model_state_dict": model.state_dict(),
         "optimizer_state_dict": optimizer.state_dict(),
         "history": history,
+        "scheduler_state_dict": (
+            scheduler.state_dict()
+            if scheduler is not None
+            else None
+        ),
     }
 
     torch.save(
@@ -63,6 +69,7 @@ def save_model_if_needed(
     next_checkpoint,
     checkpoint_dir="checkpoints",
     replay_buffer:ReplayBuffer = None,
+    scheduler=None
 ):
     if games_played < next_checkpoint:
         return next_checkpoint, False
@@ -76,6 +83,7 @@ def save_model_if_needed(
         optimizer=optimizer,
         games_played=games_played,
         history=history,
+        scheduler=scheduler
     )
 
     print(

@@ -30,7 +30,7 @@ class ReplayBuffer:
         indices = np.random.choice(
             len(self.buffer),
             size=sample_size,
-            replace=False,
+            replace=True,
         )
 
         return [

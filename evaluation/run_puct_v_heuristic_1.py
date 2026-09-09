@@ -1,6 +1,6 @@
 import torch
 
-from splendor_v1.agents.greedy_agent import GreedyAgent
+from splendor_v1.agents.heuristic_agent import HeuristicAgent
 from splendor_v1.env.core.constants import OBSERVATION_SIZE
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 from splendor_v1.network.model import SplendorNetwork
@@ -8,7 +8,7 @@ from splendor_v1.evaluation.evaluate_agents import evaluate_agents
 from splendor_v1.agents.neural_puct_agent import NeuralPUCTAgent
 
 
-def main_greedy_vs_random():
+def main_puct_vs_heuristic_1():
 
     # -------------------------
     # Create evaluation agents
@@ -33,18 +33,18 @@ def main_greedy_vs_random():
 
     trained_agent = NeuralPUCTAgent(
         model=model,
-        simulations=400,
+        simulations=200,
         debug_mode=False, 
         teacher_mode=False
     )
 
-    random_agent = GreedyAgent()
+    random_agent = HeuristicAgent()
 
     # -------------------------
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating trained PUCT vs Greedy...")
+    print("\nEvaluating trained PUCT vs HeuristicAgent...")
 
     results = evaluate_agents(
         agent_a=trained_agent,
@@ -69,7 +69,7 @@ def main_greedy_vs_random():
     )
 
     print(
-        f"Greedy wins: "
+        f"HeuristicAgent wins: "
         f"{results['agent_b_wins']}"
     )
 
@@ -100,5 +100,5 @@ def main_greedy_vs_random():
 
 
 if __name__ == "__main__":
-    main_greedy_vs_random()
+    main_puct_vs_heuristic_1()
 

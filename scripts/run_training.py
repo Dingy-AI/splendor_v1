@@ -27,7 +27,11 @@ def main():
         model.parameters(),
         lr=1e-3,
     )
-
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer,
+        T_max=3000,
+        eta_min=5e-5,
+)
 
 
     starting_games_played = 0
@@ -45,6 +49,10 @@ def main():
             path=checkpoint_path,
             model=model,
             optimizer=optimizer,
+        )
+
+        scheduler.load_state_dict(
+            checkpoint_info["scheduler_state_dict"]
         )
 
         starting_games_played = (
@@ -92,7 +100,8 @@ def main():
         is_evaluation_dynamic=True,
         starting_games_played=starting_games_played,
         policy_debug_samples=policy_debug_samples,        
-        writer=writer
+        writer=writer,
+        scheduler=scheduler
     )
 
 

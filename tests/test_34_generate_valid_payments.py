@@ -138,6 +138,7 @@ def make_player(
         },
         reserved_cards=[],
         purchased_cards=[],
+        reserved_card_hidden=[],
         nobles=[],
         points=0,
     )

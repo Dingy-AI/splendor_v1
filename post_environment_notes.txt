@@ -444,6 +444,37 @@ we get those actions  #DONE
 # if there are 2 gems of different colors we get that action 
 # if theres one gem then one gem action  #DONE 
 
+### CURRENTLY AT BASELINE 2
+
+
+Baseline 1
+fixed seed + old normalization
+→ completed
+    finished this one with fixed 420 seed
+    it ran for 3600 and was able to 'beat' greedy 23% of the time 
+
+Baseline 2
+dynamic seeds + normalized inputs
+→ CURRENT RUN
+
+# create a cosine lr scheduler #done 
+# create a new agent that is 'better' than greedy #done
+
+
+# use a champion fight? where after training for 200 games they fight 
+each other. if one is 'better' then we keep the better one?
+
+Baseline 3
+fresh baseline + cosine LR scheduler + node_type 
+
+
+
+Baseline 4
+
+fresh training with attention model?
+or heuristic training data with attention model? 
+
+
 
 Current
 2-layer MLP
@@ -639,3 +670,37 @@ training distribution gets stranger
           │                + visit counts
           │                       │
  "What has worked?"       "What should I try?"
+
+
+                    252 OBSERVATION
+                         ↓
+               split into raw entities
+                         ↓
+
+     ┌─────────────────────────────────┐
+     │                                 │
+ Player → player encoder ───────┐      │
+ Opponent → player encoder ─────┤      │
+ Bank → bank encoder ───────────┤      │
+ Deck → deck encoder ───────────┤      │
+ Noble ×3 → shared encoder ─────┤
+ Visible Cards ×12 ─────────────┤
+ Reserved Cards ×6 ─────────────┤
+ Node Type → encoder ───────────┤
+ CLS/state token ────────────────┤
+                                ↓
+                        token sequence
+                         ~26 × 128
+                                ↓
+                    Transformer block
+                                ↓
+                    Transformer block
+                                ↓
+                    Transformer block
+                                ↓
+                         CLS token
+                           128-d
+                         ↙       ↘
+                  Policy         Value
+                    ↓              ↓
+               1139 logits       tanh

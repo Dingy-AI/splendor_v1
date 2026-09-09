@@ -6,10 +6,10 @@ from splendor_v1.env.core.actions import Action
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE, DISCARD_START, NOBLE_START, DISCARD_COLORS
 from copy import deepcopy
 from splendor_v1.mcts.node import Node
-
+from splendor_v1.env.core.player import Player
 from splendor_v1.mcts.mcts import MCTS
 import math 
-
+import numpy as np
 import random 
 
 from splendor_v1.env.core.constants import OBSERVATION_SIZE
@@ -39,10 +39,11 @@ def test_player_encoding_size():
     # normally construct/reserve one.
 
     features = env.observation_encoder._encode_single_player(
-        player
+        player,
+        is_current_player=True
     )
 
-    assert len(features) == 45
+    assert len(features) == 48
 
 def test_observation_size_across_many_states():
 
@@ -121,12 +122,17 @@ def test_player_encoding_size_with_reserved_cards(
         for i in range(num_reserved)
     ]
 
+    player.reserved_card_hidden = [
+        False
+        for _ in range(num_reserved)
+    ]
+
     features = (
         env.observation_encoder
-        ._encode_single_player(player)
+        ._encode_single_player(player, is_current_player=True)
     )
 
-    assert len(features) == 45
+    assert len(features) == 48
 
 @pytest.mark.parametrize(
     "tier",
@@ -177,3 +183,191 @@ def test_empty_card_encoding_size():
 
     assert len(features) == 11
     assert features == [0.0] * 11
+
+def test_encode_node_type():
+    env = SplendorEnv()
+
+
+    assert env.observation_encoder._encode_node_type(NodeType.MAIN_DECISION) == [1.0, 0.0, 0.0]
+
+    assert env.observation_encoder._encode_node_type(
+        NodeType.OVERFLOW_DISCARD
+    ) == [0.0, 1.0, 0.0]
+
+    assert env.observation_encoder._encode_node_type(
+        NodeType.NOBLE_CLAIM
+    ) == [0.0, 0.0, 1.0]
+
+
+T3_TWO_COLOR = Card(
+    id=75,
+    tier=3,
+    points=5,
+    bonus_color=GemColor.WHITE,
+    cost={
+        GemColor.WHITE: 3,
+        GemColor.BLUE: 0,
+        GemColor.GREEN: 0,
+        GemColor.RED: 0,
+        GemColor.BLACK: 7,
+    },
+)
+
+def test_hidden_reserved_card_visible_to_owner():
+
+    env = SplendorEnv()
+    encoder = env.observation_encoder
+
+    state = env.reset()[0]
+
+    player = env.state.players[
+        env.state.current_player
+    ]
+
+    card = T3_TWO_COLOR
+
+    player.reserved_cards.append(
+        card
+    )
+
+    player.reserved_card_hidden.append(
+        True
+    )
+
+    encoding = encoder._encode_single_player(
+        player,
+        is_current_player=True,
+    )
+
+    # 6 gems + 5 bonuses
+    reserve_start = 11
+
+    first_reserve = encoding[
+        reserve_start:
+        reserve_start + 12
+    ]
+
+    expected_card = encoder._encode_card(
+        card
+    )
+
+    np.testing.assert_allclose(
+        first_reserve[:11],
+        expected_card,
+    )
+
+    # Owner knows the card.
+    assert first_reserve[11] == 0.0
+
+def test_hidden_reserved_card_hidden_from_opponent():
+
+    env = SplendorEnv()
+    encoder = env.observation_encoder
+
+    env.reset()
+
+    player = env.state.players[
+        env.state.current_player
+    ]
+
+    card = T3_TWO_COLOR
+
+    player.reserved_cards.append(
+        card
+    )
+
+    player.reserved_card_hidden.append(
+        True
+    )
+
+    encoding = encoder._encode_single_player(
+        player,
+        is_current_player=False,
+    )
+
+    reserve_start = 11
+
+    first_reserve = encoding[
+        reserve_start:
+        reserve_start + 12
+    ]
+
+    np.testing.assert_allclose(
+        first_reserve[:11],
+        [0.0] * 11,
+    )
+
+    # Opponent sees "occupied but unknown".
+    assert first_reserve[11] == 1.0
+
+def test_public_reserved_card_visible_to_opponent():
+
+    env = SplendorEnv()
+    encoder = env.observation_encoder
+
+    env.reset()
+
+    player = env.state.players[
+        env.state.current_player
+    ]
+
+    card = T3_TWO_COLOR
+
+    player.reserved_cards.append(
+        card
+    )
+
+    player.reserved_card_hidden.append(
+        False
+    )
+
+    encoding = encoder._encode_single_player(
+        player,
+        is_current_player=False,
+    )
+
+    reserve_start = 11
+
+    first_reserve = encoding[
+        reserve_start:
+        reserve_start + 12
+    ]
+
+    expected_card = encoder._encode_card(
+        card
+    )
+
+    np.testing.assert_allclose(
+        first_reserve[:11],
+        expected_card,
+    )
+
+    assert first_reserve[11] == 0.0
+
+def test_empty_reserved_slot_not_marked_unknown():
+
+    env = SplendorEnv()
+    encoder = env.observation_encoder
+
+    env.reset()
+
+    player = env.state.players[
+        env.state.current_player
+    ]
+
+    encoding = encoder._encode_single_player(
+        player,
+        is_current_player=False,
+    )
+
+    reserve_start = 11
+
+    first_reserve = encoding[
+        reserve_start:
+        reserve_start + 12
+    ]
+
+    np.testing.assert_allclose(
+        first_reserve,
+        [0.0] * 12,
+    )

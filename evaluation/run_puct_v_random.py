@@ -20,8 +20,9 @@ def main_random_vs_puct():
     )
 
     checkpoint = torch.load(
-        "checkpoints/model_3600_games.pt",
+        "checkpoints/model_3207_games.pt",
         map_location="cpu",
+        weights_only=False,
     )
 
     model.load_state_dict(
@@ -37,7 +38,7 @@ def main_random_vs_puct():
 
     trained_agent = NeuralPUCTAgent(
         model=model,
-        simulations=200,
+        simulations=400,
         debug_mode=False, 
         teacher_mode=False
     )
@@ -56,7 +57,9 @@ def main_random_vs_puct():
         num_games=100,
         max_steps=300,
         debug_mode=True,
-        seed=None
+        seed=500000,
+        is_evaluation_dynamic=True
+
     )
 
     # -------------------------

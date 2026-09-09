@@ -1,7 +1,7 @@
 from splendor_v1.env.state.base import GameState
 import numpy as np
 from splendor_v1.env.core.player import Player
-from splendor_v1.env.core.enums import GemColor
+from splendor_v1.env.core.enums import GemColor, NodeType
 from splendor_v1.env.core.card import Card
 from splendor_v1.env.core.noble import Noble
 
@@ -48,58 +48,76 @@ class ObservationEncoder:
 
         features = features + self._encode_board(state.visible_cards)
         # print(len(features))
+        features += self._encode_node_type(
+            state.node_type
+        )
+
 
         return np.array(features, dtype=np.float32)
 
+    def _encode_node_type(
+        self,
+        node_type,
+    ):
+        feature = [
+            0.0,
+            0.0,
+            0.0,
+        ]
 
-        #need to convert things everything into a number :)
-        # we have player features 
-        # we have our player feature 
-        # we have opponent player feature 
-        # ideally we want to always have next player at the same place
-        # gems -> 6
-        # cards -> we don't need our cards, we just need the bonuses -> 5?
-        # reserve cards -> points, bonus_one_hot(5), cost(5), if card is unknown we use torch.randn(11)?
-        # 11 * 3
+        if (
+            node_type
+            == NodeType.MAIN_DECISION
+        ):
+            feature[0] = 1.0
 
-        #(6+5+ (11*3)) -> 44 
+        elif (
+            node_type
+            == NodeType.OVERFLOW_DISCARD
+        ):
+            feature[1] = 1.0
 
-        # do this for players in current turn order need a 1 to track turn order
-        # (44+1) * 4 
-        #board state
-        # each card is 11 features there are 12 cards = 132 features
-        # deck size - normalize this -> remaining_cards/max_cards 3
-        # noble -> each noble has requirement(5), points (1) -> 6*5
-        # need to know bank state + 6
+        elif (
+            node_type
+            == NodeType.NOBLE_CLAIM
+        ):
+            feature[2] = 1.0
 
-        # need to track each opponents score so +1
-        # 45  + 1 -> 46
-        #players 46 * 4 
-        #everything else 132 + 3 + 30 + 6 
-        # 354 input features
+        else:
+            raise ValueError(
+                f"Unknown node type: "
+                f"{node_type}"
+            )
 
-        #work on normalization and encoder next time :3
-         
-    
-    # we need a normalization strategy for our encoding? :O
-    # we have to do turn order in the feature 
-    # need to know deck size as well 
-    # deck encoder? 
+        return feature
 
-    def _encode_players(self, players:list[Player], current_player:int):
         
+    def _encode_players(
+        self,
+        players,
+        current_player,
+    ):
         feature = []
-        players = players[current_player:] + players[:current_player]
 
-        for player in players:
-            feature = feature + self._encode_single_player(player)
-            # print(len(feature))
+        # Current player
+        feature.extend(
+            self._encode_single_player(
+                players[current_player],
+                is_current_player=True,
+            )
+        )
 
-        # each player has 45 features
-        #TODO if we were to ever make a 3-4 player splendor game then padding might be necessary
-        # if len(players) < MAX_PLAYER_COUNT:
-        #     feature = feature + ((MAX_PLAYER_COUNT - len(players)) * [0] * 45 )
+        # Opponent
+        opponent = (
+            1 - current_player
+        )
 
+        feature.extend(
+            self._encode_single_player(
+                players[opponent],
+                is_current_player=False,
+            )
+        )
 
         return feature
 
@@ -143,24 +161,61 @@ class ObservationEncoder:
     def _encode_single_player(
         self,
         player: Player,
+        is_current_player: bool,
     ):
 
         feature = []
 
+        # -------------------------
+        # Gems
+        # -------------------------
+
         for color in GemColor:
             feature.append(
-                player.gems[color] / self.player_gem_norm 
+                player.gems[color]
+                / self.player_gem_norm
             )
+
+        # -------------------------
+        # Permanent bonuses
+        # -------------------------
 
         for color in COLOR_ORDER:
             feature.append(
-                player.bonuses[color] / PLAYER_GEM_BONUS_MAX 
+                player.bonuses[color]
+                / PLAYER_GEM_BONUS_MAX
             )
 
-        for card in player.reserved_cards:
-            feature.extend(
-                self._encode_card(card)
+        # -------------------------
+        # Reserved cards
+        # -------------------------
+        if (
+            len(player.reserved_cards)
+            != len(player.reserved_card_hidden)
+        ):
+            raise ValueError(
+                "reserved_cards and "
+                "reserved_card_hidden must have "
+                "the same length."
             )
+
+        for card, is_hidden in zip(
+            player.reserved_cards,
+            player.reserved_card_hidden,
+        ):
+            feature.extend(
+                self._encode_reserved_card(
+                    card=card,
+                    is_hidden=is_hidden,
+                    is_current_player=(
+                        is_current_player
+                    ),
+                )
+            )
+
+        # -------------------------
+        # Empty reserve slots
+        # -------------------------
 
         missing_reserves = (
             MAX_RESERVES
@@ -169,18 +224,50 @@ class ObservationEncoder:
 
         if missing_reserves > 0:
             feature.extend(
-                [0.0] * (11 * missing_reserves)
+                [0.0]
+                * (
+                    12
+                    * missing_reserves
+                )
             )
 
+        # -------------------------
+        # Points
+        # -------------------------
+
         feature.append(
-            player.points / PLAYER_POINT_MAX
+            player.points
+            / PLAYER_POINT_MAX
         )
 
         return feature
 
+    def _encode_reserved_card(
+        self,
+        card,
+        is_hidden,
+        is_current_player,
+    ):
+        # You always know your own reserved card,
+        # even if you drew it from the top deck.
+        if is_current_player:
+            return (
+                list(self._encode_card(card))
+                + [0.0]
+            )
 
+        # Opponent's face-down reserved card.
+        if is_hidden:
+            return (
+                [0.0] * 11
+                + [1.0]
+            )
 
-        
+        # Opponent publicly reserved this card.
+        return (
+            list(self._encode_card(card))
+            + [0.0]
+        )
     def _encode_bank(self, bank):
 
         feature = []

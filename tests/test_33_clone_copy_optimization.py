@@ -26,7 +26,9 @@ def sample_player():
         reserved_cards=[
             reserved_card,
         ],
-
+        reserved_card_hidden=[
+            False
+        ],
         purchased_cards=[
             purchased_card,
         ],
@@ -55,6 +57,7 @@ def sample_game_state():
         reserved_cards=[
             object(),
         ],
+        reserved_card_hidden=[False],
         purchased_cards=[
             object(),
         ],
@@ -79,6 +82,7 @@ def sample_game_state():
         reserved_cards=[
             object(),
         ],
+        reserved_card_hidden=[False],
         purchased_cards=[
             object(),
         ],

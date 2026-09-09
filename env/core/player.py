@@ -9,6 +9,7 @@ class Player:
     gems: dict[GemColor, int] 
     bonuses: dict[GemColor, int] 
     reserved_cards: list[Card]
+    reserved_card_hidden: list[Card]
     purchased_cards: list[Card]
     nobles: list[Noble]
 
@@ -24,7 +25,7 @@ class Player:
             bonuses=self.bonuses.copy(),
 
             reserved_cards=self.reserved_cards.copy(),
-
+            reserved_card_hidden=self.reserved_card_hidden.copy(),
             purchased_cards=self.purchased_cards.copy(),
 
             nobles=self.nobles.copy(),

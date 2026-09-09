@@ -49,8 +49,6 @@ class NodeType(Enum):
     MAIN_DECISION = 0
     NOBLE_CLAIM = 1
     OVERFLOW_DISCARD = 2
-    END_TURN = 3
-    PAYMENT = 4
 
 # MAIN_ACTION
 #    ↓

@@ -8,3 +8,8 @@ class Card:
     points: int
     bonus_color: GemColor
     cost: dict[GemColor, int]
+
+@dataclass
+class ReservedCard:
+    card: Card
+    hidden: bool

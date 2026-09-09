@@ -208,13 +208,18 @@ def test_single_player_encoding_is_normalized():
         T3_TWO_COLOR
     ]
 
+    player.reserved_card_hidden = [
+        False
+    ]
+
     player.points = 15
 
     # _encode_single_player depends on this
     encoder.player_gem_norm = 13
 
     encoded = encoder._encode_single_player(
-        player
+        player,
+        is_current_player=True,
     )
 
     expected = [
@@ -242,27 +247,38 @@ def test_single_player_encoding_is_normalized():
         # Reserved card 1
         # T3_TWO_COLOR
         # --------------------
+
+        # Costs: /7
         3 / 7,
         0.0,
         0.0,
         0.0,
         1.0,
 
+        # Bonus color one-hot
         1.0,
         0.0,
         0.0,
         0.0,
         0.0,
 
+        # Points: /5
         1.0,
+
+        # Hidden / unknown flag
+        0.0,
 
         # --------------------
         # Empty reserve 2
+        # 11 card features
+        # + 1 hidden flag
         # --------------------
-        *([0.0] * 11),
+        *([0.0] * 12),
 
+        # --------------------
         # Empty reserve 3
-        *([0.0] * 11),
+        # --------------------
+        *([0.0] * 12),
 
         # --------------------
         # Points: /20
@@ -270,8 +286,8 @@ def test_single_player_encoding_is_normalized():
         15 / 20,
     ]
 
-    assert len(encoded) == 45
-    assert len(expected) == 45
+    assert len(encoded) == 48
+    assert len(expected) == 48
 
     np.testing.assert_allclose(
         encoded,

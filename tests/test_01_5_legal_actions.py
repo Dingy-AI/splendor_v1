@@ -92,7 +92,7 @@ def test_legal_reserved_buy(env):
             GemColor.BLACK:0
         }
     ))
-
+    env.state.players[0].reserved_card_hidden=[False]
     env.state.players[0].gems ={ 
             GemColor.WHITE: 1,
             GemColor.BLUE: 1,

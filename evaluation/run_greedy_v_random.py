@@ -23,7 +23,7 @@ def main_greedy_vs_random():
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating trained PUCT vs random...")
+    print("\nEvaluating trained GreedyAgent vs random...")
 
     results = evaluate_agents(
         agent_a=trained_agent,
@@ -33,6 +33,15 @@ def main_greedy_vs_random():
         debug_mode=True,
         seed=420
     )
+
+    #     Evaluation complete.
+    # Greedy wins: 99
+    # Random wins: 1
+    # Ties: 0
+    # Deadlocks: 0
+    # Aborted: 0
+    # Greedy win rate: 99.00%
+    # Average steps: 77.0
 
     # -------------------------
     # Print results

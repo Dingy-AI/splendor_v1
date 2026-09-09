@@ -125,7 +125,7 @@ class SplendorEnv(gym.Env):
                 GemColor.GREEN: 0,
                 GemColor.RED: 0,
                 GemColor.BLACK: 0,
-            }, [], [], []) for i in range(self.num_players)
+            }, [], [], [], []) for i in range(self.num_players)
         ]
 
     def _init_bank(self):
@@ -1465,6 +1465,10 @@ class SplendorEnv(gym.Env):
         )
 
         player.reserved_cards.pop(action.reserved_index)
+        player.reserved_card_hidden.pop(
+            action.reserved_index
+        )
+
 
         player.purchased_cards.append(card)
 
@@ -1491,7 +1495,9 @@ class SplendorEnv(gym.Env):
         card = state.visible_cards[action.tier][action.slot]
 
         player.reserved_cards.append(card)
-
+        player.reserved_card_hidden.append(
+            False
+        )
         # refill slot
         state.visible_cards[action.tier][action.slot] = self._draw_card(state, action.tier)
 
@@ -1505,8 +1511,14 @@ class SplendorEnv(gym.Env):
 
         player = state.players[state.current_player]
         card = state.decks[action.tier].pop()
-        player.reserved_cards.append(card)
 
+        player.reserved_cards.append(
+            card
+        )
+
+        player.reserved_card_hidden.append(
+            True
+        )
         # gold bonus (optional)
         if state.bank[GemColor.GOLD] > 0:
             player.gems[GemColor.GOLD] += 1

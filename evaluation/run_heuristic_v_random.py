@@ -1,50 +1,29 @@
 import torch
 
-from splendor_v1.agents.greedy_agent import GreedyAgent
+from splendor_v1.agents.random_agent import RandomAgent
+from splendor_v1.agents.heuristic_agent import HeuristicAgent
 from splendor_v1.env.core.constants import OBSERVATION_SIZE
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 from splendor_v1.network.model import SplendorNetwork
 from splendor_v1.evaluation.evaluate_agents import evaluate_agents
-from splendor_v1.agents.neural_puct_agent import NeuralPUCTAgent
 
 
-def main_greedy_vs_random():
+def main_heuristic_vs_random():
 
     # -------------------------
     # Create evaluation agents
     # -------------------------
-    model = SplendorNetwork(
-        OBSERVATION_SIZE,
-        ACTION_SPACE_SIZE,
+
+    trained_agent = HeuristicAgent(
     )
 
-    checkpoint = torch.load(
-        "checkpoints/model_3207_games.pt",
-        map_location="cpu",
-        weights_only=False
-    )
-
-    model.load_state_dict(
-        checkpoint["model_state_dict"]
-    )
-
-
-    model.eval()
-
-    trained_agent = NeuralPUCTAgent(
-        model=model,
-        simulations=400,
-        debug_mode=False, 
-        teacher_mode=False
-    )
-
-    random_agent = GreedyAgent()
+    random_agent = RandomAgent()
 
     # -------------------------
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating trained PUCT vs Greedy...")
+    print("\nEvaluating trained HeuristicAgent vs random...")
 
     results = evaluate_agents(
         agent_a=trained_agent,
@@ -52,10 +31,19 @@ def main_greedy_vs_random():
         num_games=100,
         max_steps=300,
         debug_mode=True,
-        seed=500000,
-        is_evaluation_dynamic=True
-
+        seed=None
     )
+
+    # Evaluation complete.
+    # HeuristicAgent wins: 99
+    # Random wins: 1
+    # Ties: 0
+    # Deadlocks: 0
+    # Aborted: 0
+    # HeuristicAgent win rate: 99.00%
+    # Average steps: 78.1
+
+
 
     # -------------------------
     # Print results
@@ -64,12 +52,12 @@ def main_greedy_vs_random():
     print("\nEvaluation complete.")
 
     print(
-        f"Puct wins: "
+        f"HeuristicAgent wins: "
         f"{results['agent_a_wins']}"
     )
 
     print(
-        f"Greedy wins: "
+        f"Random wins: "
         f"{results['agent_b_wins']}"
     )
 
@@ -89,7 +77,7 @@ def main_greedy_vs_random():
     )
 
     print(
-        f"Puct win rate: "
+        f"HeuristicAgent win rate: "
         f"{results['agent_a_win_rate']:.2%}"
     )
 
@@ -100,5 +88,5 @@ def main_greedy_vs_random():
 
 
 if __name__ == "__main__":
-    main_greedy_vs_random()
+    main_heuristic_vs_random()
 
