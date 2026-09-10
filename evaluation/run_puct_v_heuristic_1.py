@@ -19,7 +19,7 @@ def main_puct_vs_heuristic_1():
     )
 
     checkpoint = torch.load(
-        "checkpoints/model_3207_games.pt",
+        "checkpoints/model_906_games.pt",
         map_location="cpu",
         weights_only=False
     )
@@ -49,7 +49,7 @@ def main_puct_vs_heuristic_1():
     results = evaluate_agents(
         agent_a=trained_agent,
         agent_b=random_agent,
-        num_games=100,
+        num_games=50,
         max_steps=300,
         debug_mode=True,
         seed=500000,

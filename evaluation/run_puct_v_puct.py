@@ -20,7 +20,7 @@ def main_puct_vs_puct():
     )
 
     checkpoint_1 = torch.load(
-        "checkpoints/model_2802_games.pt",
+        "checkpoints_archived/model_1409_games.pt",
         map_location="cpu",
         weights_only=False
 
@@ -39,7 +39,7 @@ def main_puct_vs_puct():
     )
 
     checkpoint_2 = torch.load(
-        "checkpoints/model_2802_games.pt",
+        "checkpoints/model_906_games.pt",
         map_location="cpu",
         weights_only=False
 
@@ -59,10 +59,10 @@ def main_puct_vs_puct():
 
     puct_agent_1 = NeuralPUCTAgent(
         model=model_1,
-        simulations=200,
+        simulations=400,
         debug_mode=False, 
         teacher_mode=False,
-        name="PUCT AGENT 2802 200sim"
+        name="PUCT AGENT 1409 400sim"
     )
 
     puct_agent_2 = NeuralPUCTAgent(
@@ -70,7 +70,7 @@ def main_puct_vs_puct():
         simulations=400,
         debug_mode=False, 
         teacher_mode=False,
-        name="PUCT Agent 2802 400sim"
+        name="PUCT Agent 906 400sim"
 
     )
     # -------------------------
@@ -82,10 +82,11 @@ def main_puct_vs_puct():
     results = evaluate_agents(
         agent_a=puct_agent_1,
         agent_b=puct_agent_2,
-        num_games=100,
+        num_games=50,
         max_steps=300,
         debug_mode=True,
-        seed=500000,
+        # seed=500000,
+        seed=500025,
         is_evaluation_dynamic = True
     )
 

@@ -466,10 +466,26 @@ each other. if one is 'better' then we keep the better one?
 
 Baseline 3
 fresh baseline + cosine LR scheduler + node_type 
+Tournament style 
+
+    Baseline 3
+    - Fresh model / fresh replay
+    - 258-d observation
+    - normalized original features
+    - node_type
+    - hidden reserved-card information
+    - Residual MLP
+    - 200 MCTS simulations
+    - 500k uniform FIFO replay
+    - batch 256
+    - training ratio 1.5
+    - cosine LR scheduler
+    - tournament-style checkpoint selection
 
 
 
 Baseline 4
+
 
 fresh training with attention model?
 or heuristic training data with attention model? 

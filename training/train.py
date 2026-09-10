@@ -236,53 +236,7 @@ def run_training(
                 scheduler=scheduler
             )
 
-            if checkpoint_saved:
-                results_random = evaluate_model_vs_random(
-                    model=model,
-                    num_games=20,
-                    simulations=200,
-                    seed=evaluation_seed,
-                    is_evaluation_dynamic=is_evaluation_dynamic
-                )
-                print(results_random)
 
-                if writer is not None:
-
-                    writer.add_scalar(
-                        "Evaluation/Random_win_rate",
-                        results_random["agent_a_win_rate"],
-                        games_played,
-                    )
-
-                    writer.add_scalar(
-                        "Evaluation/Random_average_steps",
-                        results_random["average_steps"],
-                        games_played,
-                    )
-
-                    writer.flush()
-
-                results_greedy = evaluate_model_vs_greedy(
-                    model=model,
-                    num_games=20,
-                    simulations=200,
-                    seed=evaluation_seed,
-                    is_evaluation_dynamic=is_evaluation_dynamic
-                )
-                if writer is not None:
-
-                    writer.add_scalar(
-                        "Evaluation/Greedy_win_rate",
-                        results_greedy["agent_a_win_rate"],
-                        games_played,
-                    )
-
-                    writer.add_scalar(
-                        "Evaluation/Greedy_average_steps",
-                        results_greedy["average_steps"],
-                        games_played,
-                    )
-                    writer.flush()
 
         print(
             f"\nIteration {iteration + 1}"
@@ -301,7 +255,10 @@ def run_training(
         print("Games played:", games_played)
         print("Replay size:", len(replay_buffer))
         print("Replay position:", replay_buffer.position)
-
+        print(
+            "Learning rate:",
+            optimizer.param_groups[0]["lr"],
+        )
     save_checkpoint(
         path=(
             f"{checkpoint_dir}/"

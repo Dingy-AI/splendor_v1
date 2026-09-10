@@ -19,7 +19,7 @@ def main_greedy_vs_random():
     )
 
     checkpoint = torch.load(
-        "checkpoints/model_3207_games.pt",
+        "checkpoints/model_1006_games.pt",
         map_location="cpu",
         weights_only=False
     )
@@ -33,7 +33,7 @@ def main_greedy_vs_random():
 
     trained_agent = NeuralPUCTAgent(
         model=model,
-        simulations=400,
+        simulations=200,
         debug_mode=False, 
         teacher_mode=False
     )
@@ -49,7 +49,7 @@ def main_greedy_vs_random():
     results = evaluate_agents(
         agent_a=trained_agent,
         agent_b=random_agent,
-        num_games=100,
+        num_games=50,
         max_steps=300,
         debug_mode=True,
         seed=500000,

@@ -41,7 +41,7 @@ def main():
     )
     checkpoint_path = None
 
-    # checkpoint_path = ("checkpoints/model_302_games.pt")
+    # checkpoint_path = ("checkpoints/model_1409_games.pt")
 
     if checkpoint_path is not None:
 
@@ -60,7 +60,7 @@ def main():
         )
 
         replay_buffer = ReplayBuffer.load(
-            "checkpoints/replay_302_games.pkl"
+            "checkpoints/replay_1409_games.pkl"
         )
 
         print(
@@ -89,11 +89,11 @@ def main():
 
         num_iterations=505,
         self_play_games_per_iteration=10,
-        simulations=200,
+        simulations=400,
         batch_size=256,
         training_ratio=1.5,
-        checkpoint_every_games=200,
-        seed=0,
+        checkpoint_every_games=100,
+        seed=1410,
         dynamic_seeding=True,
         teacher_mode=False,
         evaluation_seed=100000,
@@ -103,6 +103,29 @@ def main():
         writer=writer,
         scheduler=scheduler
     )
+
+    # history = run_training(
+    #     env=env,
+    #     model=model,
+    #     optimizer=optimizer,
+    #     replay_buffer=replay_buffer,
+
+    #     num_iterations=5,
+    #     self_play_games_per_iteration=5,
+    #     simulations=25,
+    #     batch_size=32,
+    #     training_ratio=1.5,
+    #     checkpoint_every_games=5,
+    #     seed=0,
+    #     dynamic_seeding=True,
+    #     teacher_mode=False,
+    #     evaluation_seed=100000,
+    #     is_evaluation_dynamic=True,
+    #     starting_games_played=starting_games_played,
+    #     policy_debug_samples=policy_debug_samples,        
+    #     writer=writer,
+    #     scheduler=scheduler
+    # )
 
 
     writer.flush()

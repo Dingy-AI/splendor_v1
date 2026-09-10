@@ -44,6 +44,8 @@ def load_checkpoint(
     checkpoint = torch.load(
         path,
         map_location="cpu",
+        weights_only=False,
+
     )
 
     model.load_state_dict(
@@ -58,6 +60,7 @@ def load_checkpoint(
     return {
         "games_played": checkpoint["games_played"],
         "history": checkpoint.get("history"),
+        "scheduler_state_dict": checkpoint["scheduler_state_dict"]
     }
 
 def save_model_if_needed(
