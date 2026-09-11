@@ -37,35 +37,86 @@ def slow_neural_evaluate(
         value.item(),
     )
 
+# def neural_evaluate(
+#     env,
+#     model,
+#     state,
+#     legal_actions=None,
+# ):
+#     obs = env.observation_encoder.encoder(
+#         state
+#     )
+
+#     obs_tensor = torch.as_tensor(
+#         obs,
+#         dtype=torch.float32,
+#     ).unsqueeze(0)
+
+#     with torch.inference_mode():
+#         policy_logits, value = model(
+#             obs_tensor
+#         )
+
+#     if legal_actions is None:
+#         legal_actions = env._legal_actions(
+#             state
+#         )
+
+#     if not legal_actions:
+#         raise ValueError(
+#             "neural_evaluate received no legal actions."
+#         )
+
+#     legal_action_ids = [
+#         env.action_to_id(action)
+#         for action in legal_actions
+#     ]
+
+#     legal_ids_tensor = torch.as_tensor(
+#         legal_action_ids,
+#         dtype=torch.long,
+#         device=policy_logits.device,
+#     )
+
+#     legal_logits = policy_logits[
+#         0,
+#         legal_ids_tensor,
+#     ]
+
+#     legal_probs = torch.softmax(
+#         legal_logits,
+#         dim=0,
+#     )
+
+#     return (
+#         legal_probs,
+#         value.item(),
+#     )
+
+
 def neural_evaluate(
     env,
     model,
     state,
     legal_actions=None,
 ):
-    obs = env.observation_encoder.encoder(
-        state
-    )
-
-    obs_tensor = torch.as_tensor(
-        obs,
-        dtype=torch.float32,
-    ).unsqueeze(0)
-
-    with torch.inference_mode():
-        policy_logits, value = model(
-            obs_tensor
-        )
-
     if legal_actions is None:
-        legal_actions = env._legal_actions(
-            state
-        )
+        legal_actions = env._legal_actions(state)
 
     if not legal_actions:
         raise ValueError(
             "neural_evaluate received no legal actions."
         )
+
+    observation = env.observation_encoder.encoder(state)
+
+    weight = model.policy_head.weight
+
+    obs_tensor = torch.as_tensor(
+        observation,
+        dtype=weight.dtype,
+        device=weight.device,
+    ).unsqueeze(0)
 
     legal_action_ids = [
         env.action_to_id(action)
@@ -75,20 +126,20 @@ def neural_evaluate(
     legal_ids_tensor = torch.as_tensor(
         legal_action_ids,
         dtype=torch.long,
-        device=policy_logits.device,
+        device=weight.device,
     )
 
-    legal_logits = policy_logits[
-        0,
-        legal_ids_tensor,
-    ]
+    with torch.inference_mode():
+        legal_logits, value = model.forward_legal(
+            obs_tensor,
+            legal_ids_tensor,
+        )
 
-    legal_probs = torch.softmax(
-        legal_logits,
-        dim=0,
-    )
+        legal_probs = torch.softmax(
+            legal_logits[0],
+            dim=0,
+        )
 
-    return (
-        legal_probs,
-        value.item(),
-    )
+        value_number = value.item()
+
+    return legal_probs, value_number

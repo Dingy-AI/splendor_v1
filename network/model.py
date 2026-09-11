@@ -99,3 +99,34 @@ class SplendorNetwork(nn.Module):
         )
 
         return policy_logits, value
+
+
+    def forward_legal(self, x, legal_action_ids):
+        features = self.stem(x)
+        features = self.residual_blocks(features)
+
+        head = self.policy_head
+
+        legal_weights = head.weight.index_select(
+            0,
+            legal_action_ids,
+        )
+
+        legal_bias = (
+            None
+            if head.bias is None
+            else head.bias.index_select(
+                0,
+                legal_action_ids,
+            )
+        )
+
+        legal_logits = F.linear(
+            features,
+            legal_weights,
+            legal_bias,
+        )
+
+        value = self.value_head(features)
+
+        return legal_logits, value

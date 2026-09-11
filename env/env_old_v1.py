@@ -24,14 +24,6 @@ from splendor_v1.env.observation.encoder import ObservationEncoder
 from itertools import combinations, product
 from copy import deepcopy
 
-
-# Action layout is fixed; reuse it for every visible-card action.
-_BUY_VISIBLE_ACTION_LAYOUT = {
-    1: (BUY_T1_START, T1_PAYMENT_COUNT),
-    2: (BUY_T2_START, T2_PAYMENT_COUNT),
-    3: (BUY_T3_START, T3_PAYMENT_COUNT),
-}
-
 class SplendorEnv(gym.Env):
     def __init__ (self, num_players: int = 2):
         #TODO
@@ -289,6 +281,12 @@ class SplendorEnv(gym.Env):
                 if card is None:
                     continue
 
+                # if not self._can_afford_card(player, card):
+                #     continue
+
+                
+                color_mapping = self.get_color_mapping(card)
+
                 valid_payments = self._generate_valid_payments(
                     player,
                     card,
@@ -297,8 +295,6 @@ class SplendorEnv(gym.Env):
 
                 if not valid_payments:
                     continue
-
-                color_mapping = self.get_color_mapping(card)
 
                 for actual_payment in valid_payments:
 
@@ -592,32 +588,35 @@ class SplendorEnv(gym.Env):
         card: Card,
     ) -> list[tuple[int, int, int, int, int]]:
 
-        cost = card.cost
-        bonuses = player.bonuses
-        gems = player.gems
-        gold_available = gems[GemColor.GOLD]
+        required = [
+            max(
+                card.cost[color]
+                - player.bonuses[color],
+                0,
+            )
+            for color in COLOR_ORDER
+        ]
 
-        required = [0] * 5
-        minimum_gold = [0] * 5
-        minimum_total = 0
+        minimum_gold = [
+            max(
+                required[i]
+                - player.gems[color],
+                0,
+            )
+            for i, color in enumerate(COLOR_ORDER)
+        ]
 
-        for i, color in enumerate(COLOR_ORDER):
-            remaining = cost[color] - bonuses[color]
-            if remaining < 0:
-                remaining = 0
+        gold_available = player.gems[
+            GemColor.GOLD
+        ]
 
-            shortage = remaining - gems[color]
-            if shortage < 0:
-                shortage = 0
+        minimum_total = sum(
+            minimum_gold
+        )
 
-            minimum_total += shortage
-
-            # Later colors cannot reduce the gold already needed.
-            if minimum_total > gold_available:
-                return []
-
-            required[i] = remaining
-            minimum_gold[i] = shortage
+        # Cannot afford card.
+        if minimum_total > gold_available:
+            return []
 
         minimum_payment = tuple(
             minimum_gold
@@ -959,6 +958,8 @@ class SplendorEnv(gym.Env):
 
             # card_type = self.get_card_type(card)
 
+            color_mapping = self.get_color_mapping(card)
+
             # Only generate payments that apply to this card type
             # payments = PAYMENT_TABLE[card_type]
             valid_payments = self._generate_valid_payments(
@@ -969,8 +970,6 @@ class SplendorEnv(gym.Env):
 
             if not valid_payments:
                 continue
-
-            color_mapping = self.get_color_mapping(card)
 
             # payment_lookup = self._get_tier_payment_lookup(card.tier)
             # payment_lookup = T3_PAYMENT_LOOKUP
@@ -1787,10 +1786,22 @@ class SplendorEnv(gym.Env):
 
         elif action.action_type == ActionType.BUY_VISIBLE:
 
-            tier_start, payment_count = _BUY_VISIBLE_ACTION_LAYOUT[action.tier]
+            payment_counts = {
+                1: T1_PAYMENT_COUNT,
+                2: T2_PAYMENT_COUNT,
+                3: T3_PAYMENT_COUNT,
+            }
+
+            tier_starts = {
+                1: BUY_T1_START,
+                2: BUY_T2_START,
+                3: BUY_T3_START,
+            }
+
+            payment_count = payment_counts[action.tier]
 
             return (
-                tier_start
+                tier_starts[action.tier]
                 + action.slot * payment_count
                 + action.payment_id
             )

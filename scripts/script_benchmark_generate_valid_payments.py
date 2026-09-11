@@ -254,14 +254,14 @@ def main():
         for card in ALL_TEST_CARDS:
 
             slow_result = (
-                env.slow_generate_valid_payments(
+                env.slow_2_generate_valid_payments(
                     player,
                     card,
                 )
             )
 
             slow_2_result = (
-                env.slow_2_generate_valid_payments(
+                env.slow_3_generate_valid_payments(
                     player,
                     card,
                 )

@@ -199,8 +199,11 @@ class MCTS:
         # 5. Choose final action
         # -------------------------
         if not root.children:
-            return None
+            if return_root:
+                return None, root
 
+            return None
+        
         best_child = max(
             root.children,
             key=lambda child: child.visits
@@ -284,17 +287,11 @@ class MCTS:
 
                 parent = current
 
-                child = max(
-                    parent.children,
-                    key=lambda child: self.puct_score(
-                        parent,
-                        child,
-                        root_player,
-                    ),
+                child = self.select_puct_child(
+                    parent,
+                    root_player,
                 )
 
-                # Lazily create the child state
-                # only when PUCT actually selects it.
                 self.materialize_state(
                     env,
                     child,
@@ -442,6 +439,62 @@ class MCTS:
         raise ValueError(
             f"Unknown rollout type: {self.rollout_type}"
         )
+
+    def select_puct_child(
+        self,
+        parent,
+        root_player,
+        c_puct=3,
+    ):
+        if not parent.children:
+            raise ValueError(
+                "Cannot select from a node without children."
+            )
+
+        # Calculate once for this parent comparison.
+        sqrt_parent_visits = math.sqrt(
+            max(parent.visits, 1)
+        )
+        same_player = (
+            parent.state.current_player == root_player
+        )
+
+        best_child = None
+        best_score = 0.0
+
+        for child in parent.children:
+            visits = child.visits
+
+            average_value = (
+                child.value / visits
+                if visits != 0
+                else 0.0
+            )
+
+            exploitation = (
+                average_value
+                if same_player
+                else -average_value
+            )
+
+            exploration = (
+                c_puct
+                * child.prior
+                * sqrt_parent_visits
+                / (1 + visits)
+            )
+
+            score = exploitation + exploration
+
+            # Like max(), keep the first child when scores tie.
+            if best_child is None or score > best_score:
+                best_child = child
+                best_score = score
+
+        return best_child
+
+
+
 
     def puct_score(
         self,
@@ -592,17 +645,19 @@ class MCTS:
                 value = -value
 
 
+        prior_values = legal_probs.detach().cpu().tolist()
+
 
         for action, prior in zip(
             legal_actions,
-            legal_probs,
+            prior_values,
         ):
 
             child = Node(
                 state=None,
                 parent=node,
                 action=action,
-                prior=prior.item(),
+                prior=prior,
             )
 
             node.children.append(

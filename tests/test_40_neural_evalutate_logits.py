@@ -6,21 +6,47 @@ from splendor_v1.env.env import SplendorEnv
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 from splendor_v1.mcts.neural_evaluator import neural_evaluate
 
-class FakeModel(nn.Module):
+class FakeModel(torch.nn.Module):
+
+    def __init__(self):
+        super().__init__()
+
+        self.policy_head = torch.nn.Linear(
+            1,
+            ACTION_SPACE_SIZE,
+        )
+
+        with torch.no_grad():
+            self.policy_head.weight.zero_()
+
+            self.policy_head.bias.copy_(
+                torch.arange(
+                    ACTION_SPACE_SIZE,
+                    dtype=torch.float32,
+                )
+            )
 
     def forward(self, x):
+        # Zero weights make each output equal its bias:
+        # action 0 -> 0, action 1 -> 1, etc.
+        logits = self.policy_head(x[:, :1])
 
-        # logit[action_id] == action_id
-        policy_logits = torch.arange(
-            ACTION_SPACE_SIZE,
-            dtype=torch.float32,
-        ).unsqueeze(0)
+        value = x.new_full(
+            (x.shape[0], 1),
+            0.5,
+        )
 
-        value = torch.tensor([
-            [0.5]
-        ])
+        return logits, value
 
-        return policy_logits, value
+    def forward_legal(self, x, legal_action_ids):
+        logits, value = self.forward(x)
+
+        legal_logits = logits.index_select(
+            1,
+            legal_action_ids,
+        )
+
+        return legal_logits, value
 
 def test_neural_evaluate_uses_correct_legal_action_logits():
 

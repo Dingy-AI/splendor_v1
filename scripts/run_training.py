@@ -12,6 +12,7 @@ from splendor_v1.training.checkpoint import load_checkpoint
 from torch.utils.tensorboard import SummaryWriter
 
 import os
+torch.set_num_threads(1)
 
 
 def main():
@@ -89,11 +90,11 @@ def main():
 
         num_iterations=505,
         self_play_games_per_iteration=10,
-        simulations=400,
+        simulations=200,
         batch_size=256,
         training_ratio=1.5,
-        checkpoint_every_games=100,
-        seed=1410,
+        checkpoint_every_games=200,
+        seed=0,
         dynamic_seeding=True,
         teacher_mode=False,
         evaluation_seed=100000,

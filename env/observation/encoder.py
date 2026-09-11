@@ -14,45 +14,44 @@ class ObservationEncoder:
     def __init__(self):
         self._card_encoding_cache = {}
         self._empty_card_encoding = [0.0] * 11
+        self._gem_colors = tuple(GemColor)
+        self._bank_normalizers = tuple(
+            (
+                color,
+                TWO_PLAYER_BANK_GOLD_MAX
+                if color == GemColor.GOLD
+                else TWO_PLAYER_BANK_GEM_MAX,
+            )
+            for color in self._gem_colors
+        )
+        self._reserved_card_encoding_cache = {}
+        self._empty_reserved_card_encoding = [0.0] * 12
+        self._hidden_reserved_card_encoding = [0.0] * 11 + [1.0]
+        self._reserve_padding = tuple(
+            [0.0] * (12 * count) for count in range(MAX_RESERVES + 1)
+        )
         
 
-    def encoder(self, state:GameState):
-
-
+    def encoder(self, state: GameState):
         self.num_players = len(state.players)
 
-        if  self.num_players  == 2:
+        if self.num_players == 2:
             self.player_gem_norm = TWO_PLAYER_GEM_NORM
-        elif  self.num_players  == 3:
+        elif self.num_players == 3:
             self.player_gem_norm = THREE_PLAYER_GEM_NORM
-        elif  self.num_players  == 4:
+        elif self.num_players == 4:
             self.player_gem_norm = FOUR_PLAYER_GEM_NORM
         else:
-            raise ValueError(
-                f"Unsupported player count: { self.num_players }"
-            )
+            raise ValueError(f"Unsupported player count: {self.num_players}")
 
-        features = []
+        features = self._encode_players(state.players, state.current_player)
+        features.extend(self._encode_bank(state.bank))
+        features.extend(self._encode_decks(state.decks))
+        features.extend(self._encode_nobles(state.nobles))
+        features.extend(self._encode_board(state.visible_cards))
+        features.extend(self._encode_node_type(state.node_type))
 
-        features = self._encode_players(state.players,state.current_player)
-
-        # print(len(features))
-        features = features + self._encode_bank(state.bank)
-        # print(len(features))
-
-        features = features + self._encode_decks(state.decks)
-        # print(len(features))
-
-        features = features + self._encode_nobles(state.nobles)
-        # print(len(features))
-
-        features = features + self._encode_board(state.visible_cards)
-        # print(len(features))
-        features += self._encode_node_type(
-            state.node_type
-        )
-
-
+        # Each observation owns its array; later calls cannot overwrite replay data.
         return np.array(features, dtype=np.float32)
 
     def _encode_node_type(
@@ -92,33 +91,15 @@ class ObservationEncoder:
         return feature
 
         
-    def _encode_players(
-        self,
-        players,
-        current_player,
-    ):
-        feature = []
-
-        # Current player
+    def _encode_players(self, players, current_player):
+        feature = self._encode_single_player(
+            players[current_player], is_current_player=True
+        )
         feature.extend(
             self._encode_single_player(
-                players[current_player],
-                is_current_player=True,
+                players[1 - current_player], is_current_player=False
             )
         )
-
-        # Opponent
-        opponent = (
-            1 - current_player
-        )
-
-        feature.extend(
-            self._encode_single_player(
-                players[opponent],
-                is_current_player=False,
-            )
-        )
-
         return feature
 
     def slow_encode_single_player(self, player:Player):
@@ -158,134 +139,50 @@ class ObservationEncoder:
         return feature
 
 
-    def _encode_single_player(
-        self,
-        player: Player,
-        is_current_player: bool,
-    ):
+    def _encode_single_player(self, player: Player, is_current_player: bool):
+        gems = player.gems
+        bonuses = player.bonuses
+        gem_norm = self.player_gem_norm
+        feature = [gems[color] / gem_norm for color in self._gem_colors]
+        feature.extend(
+            [bonuses[color] / PLAYER_GEM_BONUS_MAX for color in COLOR_ORDER]
+        )
 
-        feature = []
-
-        # -------------------------
-        # Gems
-        # -------------------------
-
-        for color in GemColor:
-            feature.append(
-                player.gems[color]
-                / self.player_gem_norm
-            )
-
-        # -------------------------
-        # Permanent bonuses
-        # -------------------------
-
-        for color in COLOR_ORDER:
-            feature.append(
-                player.bonuses[color]
-                / PLAYER_GEM_BONUS_MAX
-            )
-
-        # -------------------------
-        # Reserved cards
-        # -------------------------
-        if (
-            len(player.reserved_cards)
-            != len(player.reserved_card_hidden)
-        ):
+        reserved_cards = player.reserved_cards
+        hidden_flags = player.reserved_card_hidden
+        if len(reserved_cards) != len(hidden_flags):
             raise ValueError(
-                "reserved_cards and "
-                "reserved_card_hidden must have "
-                "the same length."
+                "reserved_cards and reserved_card_hidden must have the same length."
             )
 
-        for card, is_hidden in zip(
-            player.reserved_cards,
-            player.reserved_card_hidden,
-        ):
+        for card, is_hidden in zip(reserved_cards, hidden_flags):
             feature.extend(
-                self._encode_reserved_card(
-                    card=card,
-                    is_hidden=is_hidden,
-                    is_current_player=(
-                        is_current_player
-                    ),
-                )
+                self._encode_reserved_card(card, is_hidden, is_current_player)
             )
 
-        # -------------------------
-        # Empty reserve slots
-        # -------------------------
-
-        missing_reserves = (
-            MAX_RESERVES
-            - len(player.reserved_cards)
-        )
-
+        missing_reserves = MAX_RESERVES - len(reserved_cards)
         if missing_reserves > 0:
-            feature.extend(
-                [0.0]
-                * (
-                    12
-                    * missing_reserves
-                )
-            )
+            feature.extend(self._reserve_padding[missing_reserves])
 
-        # -------------------------
-        # Points
-        # -------------------------
-
-        feature.append(
-            player.points
-            / PLAYER_POINT_MAX
-        )
-
+        feature.append(player.points / PLAYER_POINT_MAX)
         return feature
 
-    def _encode_reserved_card(
-        self,
-        card,
-        is_hidden,
-        is_current_player,
-    ):
-        # You always know your own reserved card,
-        # even if you drew it from the top deck.
-        if is_current_player:
-            return (
-                list(self._encode_card(card))
-                + [0.0]
-            )
+    def _encode_reserved_card(self, card, is_hidden, is_current_player):
+        if not is_current_player and is_hidden:
+            return self._hidden_reserved_card_encoding
 
-        # Opponent's face-down reserved card.
-        if is_hidden:
-            return (
-                [0.0] * 11
-                + [1.0]
-            )
+        if card is None:
+            return self._empty_reserved_card_encoding
 
-        # Opponent publicly reserved this card.
-        return (
-            list(self._encode_card(card))
-            + [0.0]
-        )
+        cached = self._reserved_card_encoding_cache.get(card.id)
+        if cached is not None:
+            return cached
+
+        encoded = self._encode_card(card) + [0.0]
+        self._reserved_card_encoding_cache[card.id] = encoded
+        return encoded
     def _encode_bank(self, bank):
-
-        feature = []
-
-        for color in GemColor:
-
-            if color == GemColor.GOLD:
-                feature.append(
-                    bank[color]
-                    / TWO_PLAYER_BANK_GOLD_MAX
-                )
-            else:
-                feature.append(
-                    bank[color]
-                    / TWO_PLAYER_BANK_GEM_MAX
-                )
-
-        return feature
+        return [bank[color] / norm for color, norm in self._bank_normalizers]
     
     def _encode_decks(self, decks):
 
