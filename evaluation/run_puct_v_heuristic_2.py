@@ -19,7 +19,7 @@ def main_puct_vs_heuristic_1():
     )
 
     checkpoint = torch.load(
-        "checkpoints/model_1409_games.pt",
+        "checkpoints/heuristic_pretrain/heuristic_pretrain_best_combined.pt",
         map_location="cpu",
         weights_only=False
     )
@@ -33,7 +33,7 @@ def main_puct_vs_heuristic_1():
 
     trained_agent = NeuralPUCTAgent(
         model=model,
-        simulations=200,
+        simulations=400,
         debug_mode=False, 
         teacher_mode=False
     )

@@ -8,9 +8,6 @@ from splendor_v1.mcts.mcts import MCTS
 import time
 from splendor_v1.evaluation.evaluate_agents import evaluate_model_vs_greedy, evaluate_model_vs_random
 
-
-from splendor_v1.training.batched_self_play import BatchedSelfPlayRunner
-
 def run_training(
     env,
     model,
@@ -49,20 +46,6 @@ def run_training(
         next_checkpoint = None
 
 
-
-    mcts = MCTS(
-        simulations=simulations,
-        rollout_type="neural",
-        selection_type="puct",
-        model=model,
-    )
-
-    # runner = BatchedSelfPlayRunner(
-    #     mcts,
-    #     device="cuda",
-    # )
-
-
     for iteration in range(num_iterations):
         iteration_start = time.perf_counter()
         positions_added = 0
@@ -71,7 +54,12 @@ def run_training(
 
         total_mcts_time = 0.0
 
-
+        mcts = MCTS(
+            simulations=simulations,
+            rollout_type="neural",
+            selection_type="puct",
+            model=model,
+        )
 
         for _ in range(
             self_play_games_per_iteration
@@ -104,30 +92,6 @@ def run_training(
             else:
                 print("Game crashed and Terminated Early.")
 
-
-        # stats = runner.play_batch(
-        #     replay_buffer,
-        #     policy_debug_samples,
-        #     num_games=10,
-        #     start_game_index=games_played,    
-        #     game_index= games_attempted,
-        #     seed=seed,
-        #     dynamic_seeding=dynamic_seeding,
-        #     teacher_mode=teacher_mode            
-        #     # Pass your existing seed/debug options here if needed.
-        # )
-
-        # games_played += stats["games_attempted"]
-
-        # print(
-        #     f"Completed games: "
-        #     f"{stats['games_completed']}/{stats['games_attempted']}"
-        # )
-        # print(f"Positions added: {stats['positions_added']}")
-        # print(f"Self-play time: {stats['batch_time']:.2f}s")
-        # print(f"MCTS time: {stats['mcts_time']:.2f}s")
-        # print(f"Neural evaluation time: {stats['evaluation_time']:.2f}s")
-        # print(f"Average neural batch: {stats['mean_batch_size']:.2f}")
 
         training_steps = max(
             1,
@@ -258,7 +222,6 @@ def run_training(
 
         history.append(training_results)
 
-
         if checkpoint_every_games is not None:
             next_checkpoint, checkpoint_saved = save_model_if_needed(
                 model=model,
@@ -271,8 +234,6 @@ def run_training(
                 replay_buffer=replay_buffer,
                 scheduler=scheduler
             )
-
-
 
         print(
             f"\nIteration {iteration + 1}"
@@ -312,9 +273,6 @@ def run_training(
     )
 
     return history
-
-
-
 
 def train_network(
     model,

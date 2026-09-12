@@ -1,66 +1,50 @@
 import torch
 
-from splendor_v1.agents.random_agent import RandomAgent
-from splendor_v1.agents.neural_puct_agent import NeuralPUCTAgent
+from splendor_v1.agents.heuristic_agent_3 import HeuristicAgent3
+from splendor_v1.agents.heuristic_agent import HeuristicAgent
 from splendor_v1.env.core.constants import OBSERVATION_SIZE
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 from splendor_v1.network.model import SplendorNetwork
 from splendor_v1.evaluation.evaluate_agents import evaluate_agents
 
 
-def main_random_vs_puct():
-
-    # -------------------------
-    # Load trained model
-    # -------------------------
-
-    model = SplendorNetwork(
-        OBSERVATION_SIZE,
-        ACTION_SPACE_SIZE,
-    )
-
-    checkpoint = torch.load(
-        "checkpoints/heuristic_pretrain/heuristic_pretrain_best_combined.pt",
-        map_location="cpu",
-        weights_only=False,
-    )
-
-    model.load_state_dict(
-        checkpoint["model_state_dict"]
-    )
-
-
-    model.eval()
+def main_heuristic_vs_greedy():
 
     # -------------------------
     # Create evaluation agents
     # -------------------------
 
-    trained_agent = NeuralPUCTAgent(
-        model=model,
-        simulations=400,
-        debug_mode=False, 
-        teacher_mode=False
+    trained_agent = HeuristicAgent(
     )
 
-    random_agent = RandomAgent()
+    greedy_agent = HeuristicAgent3()
 
     # -------------------------
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating trained PUCT vs random...")
+    print("\nEvaluating trained HeuristicAgent vs HeuristicAgent3...")
+
 
     results = evaluate_agents(
         agent_a=trained_agent,
-        agent_b=random_agent,
+        agent_b=greedy_agent,
         num_games=50,
         max_steps=300,
         debug_mode=True,
-        seed=500000,
-        is_evaluation_dynamic=True
+        seed=500025,
+        is_evaluation_dynamic = True
 
     )
+    # ONLY SLIGHTLY BETTER :)
+    # Evaluation complete.
+    # HeuristicAgent2 wins: 54
+    # HeuristicAgent wins: 46
+    # Ties: 0
+    # Deadlocks: 0
+    # Aborted: 0
+    # HeuristicAgent2 win rate: 54.00%
+    # Average steps: 61.8
 
     # -------------------------
     # Print results
@@ -69,12 +53,12 @@ def main_random_vs_puct():
     print("\nEvaluation complete.")
 
     print(
-        f"PUCT wins: "
+        f"HeuristicAgent wins: "
         f"{results['agent_a_wins']}"
     )
 
     print(
-        f"Random wins: "
+        f"HeuristicAgent3 wins: "
         f"{results['agent_b_wins']}"
     )
 
@@ -94,7 +78,7 @@ def main_random_vs_puct():
     )
 
     print(
-        f"PUCT win rate: "
+        f"HeuristicAgent2 win rate: "
         f"{results['agent_a_win_rate']:.2%}"
     )
 
@@ -105,5 +89,5 @@ def main_random_vs_puct():
 
 
 if __name__ == "__main__":
-    main_random_vs_puct()
+    main_heuristic_vs_greedy()
 

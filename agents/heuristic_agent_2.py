@@ -2,7 +2,7 @@ from splendor_v1.agents.heuristic_agent import HeuristicAgent
 from splendor_v1.env.core.constants import COLOR_ORDER
 from splendor_v1.env.core.enums import GemColor
 from splendor_v1.env.core.actions import ActionType
-
+import numpy as np
 
 class HeuristicAgent2(HeuristicAgent):
 
@@ -467,16 +467,33 @@ class HeuristicAgent2(HeuristicAgent):
         state,
     ):
 
-        legal_actions = env._legal_actions(
-            state
+        scored_actions = self.get_scored_actions(
+            env,
+            state,
         )
 
-        if not legal_actions:
+        if not scored_actions:
             return None
 
-        # -------------------------
+        return max(
+            scored_actions,
+            key=lambda x: x[1],
+        )[0]
+
+
+    def get_scored_actions(
+        self,
+        env,
+        state,
+    ):
+        legal_actions = env._legal_actions(state)
+
+        if not legal_actions:
+            return []
+
+        # ========================================================
         # BUY
-        # -------------------------
+        # ========================================================
 
         buy_actions = [
             action
@@ -487,19 +504,22 @@ class HeuristicAgent2(HeuristicAgent):
             )
         ]
 
+        # H2 always buys if a buy is available.
         if buy_actions:
-            return max(
-                buy_actions,
-                key=lambda action:
+            return [
+                (
+                    action,
                     self._score_buy_action(
                         state,
                         action,
                     ),
-            )
+                )
+                for action in buy_actions
+            ]
 
-        # -------------------------
+        # ========================================================
         # TAKE GEMS
-        # -------------------------
+        # ========================================================
 
         take_actions = [
             action
@@ -510,9 +530,9 @@ class HeuristicAgent2(HeuristicAgent):
             )
         ]
 
-        # -------------------------
+        # ========================================================
         # RESERVE
-        # -------------------------
+        # ========================================================
 
         reserve_actions = [
             action
@@ -523,9 +543,9 @@ class HeuristicAgent2(HeuristicAgent):
             )
         ]
 
-        # -------------------------
+        # ========================================================
         # CRITICAL BLOCK
-        # -------------------------
+        # ========================================================
 
         critical_reserves = [
             action
@@ -543,38 +563,137 @@ class HeuristicAgent2(HeuristicAgent):
             )
         ]
 
+        # Critical block overrides taking gems.
         if critical_reserves:
-            return max(
-                critical_reserves,
-                key=lambda action:
+            return [
+                (
+                    action,
                     self._score_reserve_action(
                         state,
                         action,
                     ),
-            )
+                )
+                for action in critical_reserves
+            ]
 
-        # -------------------------
+        # ========================================================
         # NORMAL H1 BEHAVIOR
-        # -------------------------
+        # ========================================================
 
         if take_actions:
-            return max(
-                take_actions,
-                key=lambda action:
+            return [
+                (
+                    action,
                     self._score_take_gems(
                         state,
                         action,
                     ),
-            )
+                )
+                for action in take_actions
+            ]
 
         if reserve_actions:
-            return max(
-                reserve_actions,
-                key=lambda action:
+            return [
+                (
+                    action,
                     self._score_reserve_action(
                         state,
                         action,
                     ),
+                )
+                for action in reserve_actions
+            ]
+
+        # Forced discard / noble / fallback.
+        # Equal scores -> uniform soft policy.
+        return [
+            (action, 0.0)
+            for action in legal_actions
+        ]
+
+
+    def get_policy(
+        self,
+        env,
+        state,
+        action_size=1139,
+        temperature=10.0,
+    ):
+
+        if temperature <= 0:
+            raise ValueError(
+                "temperature must be greater than 0"
             )
 
-        return legal_actions[0]
+        scored_actions = self.get_scored_actions(
+            env,
+            state,
+        )
+
+        policy = np.zeros(
+            action_size,
+            dtype=np.float32,
+        )
+
+        if not scored_actions:
+            return policy
+
+        actions = [
+            action
+            for action, _ in scored_actions
+        ]
+
+        scores = np.array(
+            [
+                score
+                for _, score in scored_actions
+            ],
+            dtype=np.float64,
+        )
+
+        # -----------------------------------------
+        # Handle invalid scores safely
+        # -----------------------------------------
+
+        if not np.any(np.isfinite(scores)):
+
+            probs = np.ones(
+                len(scores),
+                dtype=np.float64,
+            )
+
+            probs /= probs.sum()
+
+        else:
+
+            scores = np.where(
+                np.isfinite(scores),
+                scores,
+                -1e9,
+            )
+
+            # Stable softmax
+            scores -= np.max(scores)
+
+            probs = np.exp(
+                scores / temperature
+            )
+
+            probs /= probs.sum()
+
+        # -----------------------------------------
+        # Fill dense 1139 policy
+        # -----------------------------------------
+
+        for action, prob in zip(
+            actions,
+            probs,
+        ):
+
+            action_id = env.action_to_id(
+                action
+            )
+
+            policy[action_id] = prob
+
+        return policy
