@@ -19,7 +19,7 @@ def main_greedy_vs_random():
     )
 
     checkpoint = torch.load(
-        "checkpoints/heuristic_pretrain/heuristic_pretrain_best_combined.pt",
+        "checkpoints/heuristic_pretrain/heuristic_pretrain_best_400sim.pt",
         map_location="cpu",
         weights_only=False
     )
@@ -49,10 +49,10 @@ def main_greedy_vs_random():
     results = evaluate_agents(
         agent_a=trained_agent,
         agent_b=random_agent,
-        num_games=50,
+        num_games=150,
         max_steps=300,
         debug_mode=True,
-        seed=500000,
+        seed=500025,
         is_evaluation_dynamic=True
 
     )

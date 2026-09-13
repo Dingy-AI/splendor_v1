@@ -20,45 +20,27 @@ CHECKPOINT_PATH = (
     "heuristic_pretrain_best_400sim.pt"
 )
 
-OUTPUT_PATH = (
-    "splendor_v1/training/data/"
-    "model_replay_buffer_m1_600.pkl"
-)
-
-NUM_GAMES = 1000
-SIMULATIONS = 600
+SIMULATIONS = 800
 REPLAY_CAPACITY = 500_000
+SAVE_EVERY_SUCCESSFUL_GAMES = 10
 
-SAVE_EVERY_GAMES = 10
+# Fixed seed shard. Python-style half-open range:
+# START_SEED = 0, END_SEED = 100 -> seeds 0..99
+START_SEED = 100
+END_SEED = 200
 
-
-# ------------------------------------------------------------
-# REPLAY START MODE
-# ------------------------------------------------------------
-#
-# False:
-#     Start with an EMPTY replay buffer.
-#     completed_games = 0
-#     next_seed = 0
-#
-# True:
-#     Load OUTPUT_PATH and resume using:
-#         games_completed
-#         next_seed
-#
-# ------------------------------------------------------------
-
+# False = start shard from scratch.
+# True  = resume this exact shard from its saved replay file.
 START_FROM_EXISTING = False
 
+OUTPUT_PATH = (
+    "splendor_v1/training/data/"
+    f"model_replay_buffer_m1_{SIMULATIONS}sim_"
+    f"seed_{START_SEED:04d}_{END_SEED - 1:04d}.pkl"
+)
 
-# ============================================================
-# HELPERS
-# ============================================================
 
-def load_model(
-    checkpoint_path,
-    device,
-):
+def load_model(checkpoint_path, device):
 
     model = SplendorNetwork().to(device)
 
@@ -68,27 +50,16 @@ def load_model(
         weights_only=True,
     )
 
-    # Supports:
-    #
-    # 1. Full checkpoint
-    # 2. Raw model.state_dict()
-
     if (
         isinstance(checkpoint, dict)
         and "model_state_dict" in checkpoint
     ):
-        state_dict = checkpoint[
-            "model_state_dict"
-        ]
-
+        state_dict = checkpoint["model_state_dict"]
     else:
         state_dict = checkpoint
 
-    model.load_state_dict(
-        state_dict
-    )
+    model.load_state_dict(state_dict)
 
-    # Fixed teacher for entire dataset.
     model.eval()
 
     for parameter in model.parameters():
@@ -97,9 +68,25 @@ def load_model(
     return model
 
 
-# ============================================================
-# LOAD EXISTING REPLAY
-# ============================================================
+def create_fresh_replay_buffer():
+
+    replay_buffer = ReplayBuffer(
+        REPLAY_CAPACITY
+    )
+
+    games_completed = 0
+    seeds_attempted = 0
+    failed_seeds = []
+    next_seed = START_SEED
+
+    return (
+        replay_buffer,
+        games_completed,
+        seeds_attempted,
+        failed_seeds,
+        next_seed,
+    )
+
 
 def load_replay_buffer(path):
 
@@ -111,6 +98,26 @@ def load_replay_buffer(path):
     with open(path, "rb") as f:
         data = pickle.load(f)
 
+    saved_start_seed = data.get(
+        "start_seed",
+        START_SEED,
+    )
+
+    saved_end_seed = data.get(
+        "end_seed",
+        END_SEED,
+    )
+
+    if (
+        saved_start_seed != START_SEED
+        or saved_end_seed != END_SEED
+    ):
+        raise ValueError(
+            "Replay shard does not match configured seed range.\n"
+            f"File range:   [{saved_start_seed}, {saved_end_seed})\n"
+            f"Config range: [{START_SEED}, {END_SEED})"
+        )
+
     replay_buffer = ReplayBuffer(
         data["capacity"]
     )
@@ -118,55 +125,41 @@ def load_replay_buffer(path):
     replay_buffer.buffer = data["buffer"]
     replay_buffer.position = data["position"]
 
-    # --------------------------------------------------------
-    # Resume metadata
-    # --------------------------------------------------------
-
     games_completed = data.get(
         "games_completed",
         0,
     )
 
+    seeds_attempted = data.get(
+        "seeds_attempted",
+        0,
+    )
+
+    failed_seeds = data.get(
+        "failed_seeds",
+        [],
+    )
+
     next_seed = data.get(
         "next_seed",
-        games_completed,
+        START_SEED,
     )
 
     return (
         replay_buffer,
         games_completed,
+        seeds_attempted,
+        failed_seeds,
         next_seed,
     )
 
-
-# ============================================================
-# CREATE FRESH REPLAY
-# ============================================================
-
-def create_fresh_replay_buffer():
-
-    replay_buffer = ReplayBuffer(
-        REPLAY_CAPACITY
-    )
-
-    games_completed = 0
-    next_seed = 0
-
-    return (
-        replay_buffer,
-        games_completed,
-        next_seed,
-    )
-
-
-# ============================================================
-# SAVE
-# ============================================================
 
 def save_replay_buffer(
     replay_buffer,
     output_path,
     games_completed,
+    seeds_attempted,
+    failed_seeds,
     next_seed,
 ):
 
@@ -174,10 +167,14 @@ def save_replay_buffer(
         "capacity": replay_buffer.capacity,
         "buffer": replay_buffer.buffer,
         "position": replay_buffer.position,
-
-        # Resume information
+        "start_seed": START_SEED,
+        "end_seed": END_SEED,
         "games_completed": games_completed,
+        "seeds_attempted": seeds_attempted,
+        "failed_seeds": failed_seeds,
         "next_seed": next_seed,
+        "simulations": SIMULATIONS,
+        "checkpoint_path": CHECKPOINT_PATH,
     }
 
     output_directory = os.path.dirname(
@@ -190,15 +187,9 @@ def save_replay_buffer(
             exist_ok=True,
         )
 
-    # Write temporary file first so an interrupted
-    # save doesn't destroy the existing replay.
-    temp_path = (
-        output_path
-        + ".tmp"
-    )
+    temp_path = output_path + ".tmp"
 
     with open(temp_path, "wb") as f:
-
         pickle.dump(
             data,
             f,
@@ -211,11 +202,16 @@ def save_replay_buffer(
     )
 
 
-# ============================================================
-# MAIN
-# ============================================================
-
 def main():
+
+    if END_SEED <= START_SEED:
+        raise ValueError(
+            "END_SEED must be greater than START_SEED."
+        )
+
+    total_seeds_in_shard = (
+        END_SEED - START_SEED
+    )
 
     device = torch.device(
         "cuda"
@@ -224,64 +220,26 @@ def main():
     )
 
     print("=" * 70)
-    print("MODEL REPLAY GENERATION")
+    print("MODEL REPLAY GENERATION - FIXED SEED SHARD")
     print("=" * 70)
-
-    print(
-        f"Device:              {device}"
-    )
-
-    print(
-        f"Checkpoint:          {CHECKPOINT_PATH}"
-    )
-
-    print(
-        f"Target games:        {NUM_GAMES}"
-    )
-
-    print(
-        f"Simulations:         {SIMULATIONS}"
-    )
-
-    print(
-        f"Replay capacity:     {REPLAY_CAPACITY:,}"
-    )
-
-    print(
-        f"Output:              {OUTPUT_PATH}"
-    )
-
-    print(
-        f"Start from existing: {START_FROM_EXISTING}"
-    )
-
+    print(f"Device:              {device}")
+    print(f"Checkpoint:          {CHECKPOINT_PATH}")
+    print(f"Simulations:         {SIMULATIONS}")
+    print(f"Seed range:          [{START_SEED}, {END_SEED})")
+    print(f"Seeds in shard:      {total_seeds_in_shard}")
+    print(f"Replay capacity:     {REPLAY_CAPACITY:,}")
+    print(f"Output:              {OUTPUT_PATH}")
+    print(f"Start from existing: {START_FROM_EXISTING}")
     print()
 
-
-    # ========================================================
-    # ENVIRONMENT
-    # ========================================================
-
     env = SplendorEnv()
-
-
-    # ========================================================
-    # FIXED MODEL
-    # ========================================================
 
     model = load_model(
         CHECKPOINT_PATH,
         device,
     )
 
-    print(
-        "Loaded frozen model."
-    )
-
-
-    # ========================================================
-    # MCTS TEACHER
-    # ========================================================
+    print("Loaded frozen model.")
 
     mcts = MCTS(
         simulations=SIMULATIONS,
@@ -290,36 +248,36 @@ def main():
         model=model,
     )
 
-
-    # ========================================================
-    # REPLAY BUFFER
-    # ========================================================
-
     if START_FROM_EXISTING:
 
         (
             replay_buffer,
-            completed_games,
+            games_completed,
+            seeds_attempted,
+            failed_seeds,
             next_seed,
         ) = load_replay_buffer(
             OUTPUT_PATH
         )
 
         print()
-        print(
-            "Loaded existing replay buffer."
-        )
-
+        print("Loaded existing shard.")
         print(
             f"Positions:       "
             f"{len(replay_buffer.buffer):,}"
         )
-
         print(
             f"Games completed: "
-            f"{completed_games}"
+            f"{games_completed}"
         )
-
+        print(
+            f"Seeds attempted: "
+            f"{seeds_attempted}"
+        )
+        print(
+            f"Failed seeds:    "
+            f"{len(failed_seeds)}"
+        )
         print(
             f"Next seed:       "
             f"{next_seed}"
@@ -329,92 +287,80 @@ def main():
 
         (
             replay_buffer,
-            completed_games,
+            games_completed,
+            seeds_attempted,
+            failed_seeds,
             next_seed,
         ) = create_fresh_replay_buffer()
 
         print()
+        print("Created fresh replay shard.")
+        print("Games completed: 0")
+        print("Seeds attempted: 0")
         print(
-            "Created fresh replay buffer."
+            f"Next seed:       "
+            f"{next_seed}"
         )
-
-        print(
-            "Games completed: 0"
-        )
-
-        print(
-            "Next seed:       0"
-        )
-
-
-    # ========================================================
-    # GENERATOR
-    # ========================================================
 
     generator = ModelReplayGenerator(
         env=env,
         mcts=mcts,
         replay_buffer=replay_buffer,
-
-        # Fixed deterministic teacher.
         add_root_noise=False,
     )
 
-
-    # ========================================================
-    # GENERATE
-    # ========================================================
-
     start_time = time.perf_counter()
 
-    positions_generated_this_run = 0
     games_generated_this_run = 0
+    positions_generated_this_run = 0
 
-
-    while completed_games < NUM_GAMES:
+    while next_seed < END_SEED:
 
         current_seed = next_seed
 
+        # Advance the resume cursor before running the seed.
+        next_seed += 1
+        seeds_attempted += 1
+
         try:
 
-            num_positions = (
-                generator.generate_game(
-                    seed=current_seed,
-                )
+            num_positions = generator.generate_game(
+                seed=current_seed,
             )
 
         except RuntimeError as e:
 
-            print()
-            print(
-                f"FAILED seed {current_seed}: "
-                f"{e}"
-            )
-
-            print(
-                "Skipping seed and continuing."
+            failed_seeds.append(
+                current_seed
             )
 
             print()
+            print(
+                f"FAILED seed {current_seed}: {e}"
+            )
+            print(
+                "Skipping this seed. "
+                "Shard boundary will not change."
+            )
+            print()
 
-            next_seed += 1
+            save_replay_buffer(
+                replay_buffer=replay_buffer,
+                output_path=OUTPUT_PATH,
+                games_completed=games_completed,
+                seeds_attempted=seeds_attempted,
+                failed_seeds=failed_seeds,
+                next_seed=next_seed,
+            )
 
             continue
 
-
-        # ----------------------------------------------------
-        # Successful game
-        # ----------------------------------------------------
-
-        completed_games += 1
+        games_completed += 1
         games_generated_this_run += 1
 
         positions_generated_this_run += (
             num_positions
         )
-
-        next_seed += 1
-
 
         elapsed = (
             time.perf_counter()
@@ -426,11 +372,9 @@ def main():
             / games_generated_this_run
         )
 
-
         print(
-            f"Game "
-            f"{completed_games}/{NUM_GAMES} "
-            f"- seed {current_seed} "
+            f"Seed {current_seed} "
+            f"- successful game {games_completed} "
             f"- {num_positions} positions "
             f"- buffer size: "
             f"{len(replay_buffer.buffer):,} "
@@ -438,46 +382,34 @@ def main():
             f"{average_seconds:.2f}s/game"
         )
 
-
-        # ----------------------------------------------------
-        # Periodic save
-        # ----------------------------------------------------
-
         if (
-            completed_games
-            % SAVE_EVERY_GAMES
+            games_completed
+            % SAVE_EVERY_SUCCESSFUL_GAMES
             == 0
         ):
 
             save_replay_buffer(
                 replay_buffer=replay_buffer,
                 output_path=OUTPUT_PATH,
-                games_completed=completed_games,
+                games_completed=games_completed,
+                seeds_attempted=seeds_attempted,
+                failed_seeds=failed_seeds,
                 next_seed=next_seed,
             )
 
             print(
-                f"Saved after "
-                f"{completed_games} "
-                f"completed games."
+                f"Saved shard after "
+                f"{games_completed} successful games."
             )
-
-
-    # ========================================================
-    # FINAL SAVE
-    # ========================================================
 
     save_replay_buffer(
         replay_buffer=replay_buffer,
         output_path=OUTPUT_PATH,
-        games_completed=completed_games,
+        games_completed=games_completed,
+        seeds_attempted=seeds_attempted,
+        failed_seeds=failed_seeds,
         next_seed=next_seed,
     )
-
-
-    # ========================================================
-    # SUMMARY
-    # ========================================================
 
     elapsed = (
         time.perf_counter()
@@ -486,12 +418,38 @@ def main():
 
     print()
     print("=" * 70)
-    print("GENERATION COMPLETE")
+    print("SHARD GENERATION COMPLETE")
     print("=" * 70)
 
     print(
-        f"Total games:              "
-        f"{completed_games}"
+        f"Seed range:               "
+        f"[{START_SEED}, {END_SEED})"
+    )
+
+    print(
+        f"Seeds attempted:          "
+        f"{seeds_attempted}/{total_seeds_in_shard}"
+    )
+
+    print(
+        f"Successful games:         "
+        f"{games_completed}"
+    )
+
+    print(
+        f"Failed seeds:             "
+        f"{len(failed_seeds)}"
+    )
+
+    if failed_seeds:
+        print(
+            f"Failed seed list:         "
+            f"{failed_seeds}"
+        )
+
+    print(
+        f"Total replay positions:   "
+        f"{len(replay_buffer.buffer):,}"
     )
 
     print(
@@ -500,17 +458,11 @@ def main():
     )
 
     print(
-        f"Total replay positions:   "
-        f"{len(replay_buffer.buffer):,}"
-    )
-
-    print(
         f"Positions generated now:  "
         f"{positions_generated_this_run:,}"
     )
 
     if games_generated_this_run > 0:
-
         print(
             f"Avg positions/game:       "
             f"{positions_generated_this_run / games_generated_this_run:.2f}"
@@ -522,7 +474,7 @@ def main():
     )
 
     print(
-        f"Next seed:                "
+        f"Final next seed:          "
         f"{next_seed}"
     )
 

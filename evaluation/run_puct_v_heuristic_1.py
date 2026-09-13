@@ -19,7 +19,7 @@ def main_puct_vs_heuristic_1():
     )
 
     checkpoint = torch.load(
-        "checkpoints/model_906_games.pt",
+        "checkpoints/heuristic_pretrain/heuristic_pretrain_best_400sim.pt",
         map_location="cpu",
         weights_only=False
     )

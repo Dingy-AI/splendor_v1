@@ -22,7 +22,7 @@ class ModelReplayGenerator:
     # GENERATE ONE GAME
     # ==================================================
 
-    def generate_game(self, seed=None):
+    def generate_game(self, seed=None, max_steps=200):
 
         # -------------------------
         # RESET
@@ -41,28 +41,25 @@ class ModelReplayGenerator:
         trajectory = []
 
         terminated = False
-
-        # -------------------------
-        # PLAY GAME
-        # -------------------------
+        step_count = 0
 
         while not terminated:
 
-            player = state.current_player
+            step_count += 1
 
-            # ------------------------------------------
-            # Encode current state
-            # ------------------------------------------
+            if step_count > max_steps:
+                raise RuntimeError(
+                    f"Game exceeded max_steps={max_steps} "
+                    f"for seed={seed}."
+                )
+
+            player = state.current_player
 
             observation = (
                 self.env
                 .observation_encoder
                 .encoder(state)
             )
-
-            # ------------------------------------------
-            # Run MCTS using the FROZEN model
-            # ------------------------------------------
 
             action, root = self.mcts.search(
                 self.env,
@@ -71,10 +68,6 @@ class ModelReplayGenerator:
                 add_root_noise=self.add_root_noise,
                 teacher_mode=False,
             )
-
-            # ------------------------------------------
-            # Convert visit counts -> policy target
-            # ------------------------------------------
 
             policy = self._get_policy_from_root(
                 root
@@ -88,39 +81,22 @@ class ModelReplayGenerator:
                 )
             )
 
-            # ------------------------------------------
-            # Play strongest MCTS action
-            #
-            # IMPORTANT:
-            # return exact Action object from tree.
-            # Do NOT reconstruct with id_to_action().
-            # ------------------------------------------
-
             if action is None:
                 raise RuntimeError(
-                    "MCTS returned no action "
-                    "before termination."
+                    f"MCTS returned no action "
+                    f"for seed={seed}, "
+                    f"step={step_count}."
                 )
 
             result = self.env.step(action)
 
-            # ------------------------------------------
-            # Gymnasium-style termination handling
-            # ------------------------------------------
-
             if isinstance(result, tuple):
 
                 if len(result) == 5:
-
                     _, _, terminated, truncated, _ = result
-
-                    terminated = (
-                        terminated
-                        or truncated
-                    )
+                    terminated = terminated or truncated
 
                 elif len(result) == 4:
-
                     _, _, terminated, _ = result
 
             state = self.env.state

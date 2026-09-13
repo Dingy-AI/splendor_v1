@@ -20,7 +20,7 @@ def main_puct_vs_puct():
     )
 
     checkpoint_1 = torch.load(
-        "checkpoints/heuristic_pretrain/heuristic_pretrain_best_combined.pt",
+        "checkpoints/heuristic_pretrain/heuristic_pretrain_best_400sim.pt",
         map_location="cpu",
         weights_only=False
 
@@ -39,7 +39,7 @@ def main_puct_vs_puct():
     )
 
     checkpoint_2 = torch.load(
-        "checkpoints/heuristic_pretrain/heuristic_pretrain_best_combined.pt",
+        "checkpoints/heuristic_pretrain/heuristic_pretrain_best_400sim.pt",
         map_location="cpu",
         weights_only=False
 
@@ -59,25 +59,25 @@ def main_puct_vs_puct():
 
     puct_agent_1 = NeuralPUCTAgent(
         model=model_1,
-        simulations=200,
+        simulations=800,
         debug_mode=False, 
         teacher_mode=False,
-        name="Combined 200sim"
+        name="800sim"
     )
 
     puct_agent_2 = NeuralPUCTAgent(
         model=model_2,
-        simulations=400,
+        simulations=1000,
         debug_mode=False, 
         teacher_mode=False,
-        name="Combined 400sim"
+        name="1000sim"
 
     )
     # -------------------------
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating trained 200 vs 400...")
+    print("\nEvaluating 800sim vs 1000sim...")
 
     results = evaluate_agents(
         agent_a=puct_agent_1,
@@ -85,8 +85,8 @@ def main_puct_vs_puct():
         num_games=50,
         max_steps=300,
         debug_mode=True,
-        seed=500000,
-        # seed=500025,
+        # seed=500000,
+        seed=500025,
         is_evaluation_dynamic = True
     )
 
@@ -97,12 +97,12 @@ def main_puct_vs_puct():
     print("\nEvaluation complete.")
 
     print(
-        f"200 wins: "
+        f"800sim Model wins: "
         f"{results['agent_a_wins']}"
     )
 
     print(
-        f"400 wins: "
+        f"1000sim Model wins: "
         f"{results['agent_b_wins']}"
     )
 
@@ -122,7 +122,7 @@ def main_puct_vs_puct():
     )
 
     print(
-        f"PUCT_1 win rate: "
+        f"Heuristic_Pre-trained win rate: "
         f"{results['agent_a_win_rate']:.2%}"
     )
 
