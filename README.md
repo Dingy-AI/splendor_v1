@@ -44,3 +44,14 @@ python -m splendor_v1.training.train_heuristic_pretrain --replay splendor_v1/tra
 
 # combine pkl files
 python -m splendor_v1.training.combine_pkl_files
+
+
+we have a new cycle ->
+
+# does the model training
+python -m splendor_v1.training.model_generate_training_set
+
+# does the model replay
+ python -m splendor_v1.training.train_model_replay --replay checkpoints/heuristic_pretrain/model_replay_buffer.pkl --epochs 30 --resume checkpoints/heuristic_pretrain/m1_model.pt --reset-optimizer
+
+ and repeat until we cant :o
