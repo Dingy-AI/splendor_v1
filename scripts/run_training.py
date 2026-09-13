@@ -42,7 +42,7 @@ def main():
     )
     checkpoint_path = None
 
-    # checkpoint_path = ("checkpoints/model_1409_games.pt")
+    checkpoint_path = ("checkpoints/model_1606_games.pt")
 
     if checkpoint_path is not None:
 
@@ -61,7 +61,7 @@ def main():
         )
 
         replay_buffer = ReplayBuffer.load(
-            "checkpoints/replay_1409_games.pkl"
+            "checkpoints/replay_1606_games.pkl"
         )
 
         print(

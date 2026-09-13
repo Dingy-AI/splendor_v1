@@ -1,7 +1,13 @@
 # splendor_v1
+
+# creating the environment
+python3 -m venv .venv
+
+
 Initial Splendor Agent and Environment
 
-python -m venv .venv
+Linux: source .venv/bin/activate
+
 
 Activate virtual environment: source .venv/Scripts/activate
 
