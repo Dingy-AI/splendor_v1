@@ -17,7 +17,7 @@ from splendor_v1.training.replay_buffer import ReplayBuffer
 
 CHECKPOINT_PATH = (
     "checkpoints/heuristic_pretrain/"
-    "heuristic_pretrain_best_400sim.pt"
+    "m2_model.pt"
 )
 
 SIMULATIONS = 800
@@ -26,8 +26,8 @@ SAVE_EVERY_SUCCESSFUL_GAMES = 10
 
 # Fixed seed shard. Python-style half-open range:
 # START_SEED = 0, END_SEED = 100 -> seeds 0..99
-START_SEED = 400
-END_SEED = 500
+START_SEED = 0
+END_SEED = 1000
 
 # False = start shard from scratch.
 # True  = resume this exact shard from its saved replay file.

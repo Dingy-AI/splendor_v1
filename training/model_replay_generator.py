@@ -1,5 +1,6 @@
 import numpy as np
 
+from splendor_v1.env.core.enums import NodeType
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 
 
@@ -42,6 +43,7 @@ class ModelReplayGenerator:
 
         terminated = False
         step_count = 0
+        main_decision_count = 0
 
         while not terminated:
 
@@ -69,9 +71,41 @@ class ModelReplayGenerator:
                 teacher_mode=False,
             )
 
+
+
+            # ---------------------------------------
+            # Temperature schedule
+            # ---------------------------------------
+
+            if state.node_type == NodeType.MAIN_DECISION:
+
+                if main_decision_count < 8:
+                    temperature = 0.5
+                else:
+                    temperature = 0.0
+
+                main_decision_count += 1
+
+            else:
+                # Forced discard/noble decisions don't
+                # really need exploration.
+                temperature = 0.0
+
+
+
             policy = self._get_policy_from_root(
                 root
             )
+
+            # ---------------------------------------
+            # Select actual move
+            # ---------------------------------------
+
+            action = self._sample_action_from_root(
+                root,
+                temperature,
+            )
+
 
             trajectory.append(
                 (
@@ -212,3 +246,41 @@ class ModelReplayGenerator:
             "Could not find visit count "
             "on MCTS Node."
         )
+
+
+    def _sample_action_from_root(
+        self,
+        root,
+        temperature,
+    ):
+
+        children = [
+            child
+            for child in root.children
+            if child.visits > 0
+        ]
+
+        if not children:
+            return None
+
+        # Deterministic
+        if temperature <= 1e-8:
+            return max(
+                children,
+                key=lambda child: child.visits,
+            ).action
+
+        visits = np.array(
+            [child.visits for child in children],
+            dtype=np.float64,
+        )
+
+        probs = visits ** (1.0 / temperature)
+        probs /= probs.sum()
+
+        index = np.random.choice(
+            len(children),
+            p=probs,
+        )
+
+        return children[index].action
