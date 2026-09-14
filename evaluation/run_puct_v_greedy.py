@@ -19,7 +19,7 @@ def main_greedy_vs_random():
     )
 
     checkpoint = torch.load(
-        "checkpoints/heuristic_pretrain/heuristic_pretrain_best_400sim.pt",
+        "checkpoints/heuristic_pretrain/m2_model.pt",
         map_location="cpu",
         weights_only=False
     )
@@ -52,7 +52,7 @@ def main_greedy_vs_random():
         num_games=150,
         max_steps=300,
         debug_mode=True,
-        seed=500025,
+        seed=500500,
         is_evaluation_dynamic=True
 
     )

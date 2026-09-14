@@ -19,7 +19,7 @@ def main_puct_vs_heuristic_1():
     )
 
     checkpoint = torch.load(
-        "checkpoints/heuristic_pretrain/heuristic_pretrain_best_400sim.pt",
+        "checkpoints/heuristic_pretrain/m2_model.pt",
         map_location="cpu",
         weights_only=False
     )
@@ -33,7 +33,7 @@ def main_puct_vs_heuristic_1():
 
     trained_agent = NeuralPUCTAgent(
         model=model,
-        simulations=200,
+        simulations=400,
         debug_mode=False, 
         teacher_mode=False
     )
@@ -49,10 +49,10 @@ def main_puct_vs_heuristic_1():
     results = evaluate_agents(
         agent_a=trained_agent,
         agent_b=random_agent,
-        num_games=50,
+        num_games=150,
         max_steps=300,
         debug_mode=True,
-        seed=500000,
+        seed=500500,
         is_evaluation_dynamic=True
 
     )

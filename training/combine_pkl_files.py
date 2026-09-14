@@ -1,76 +1,189 @@
 import pickle
+from pathlib import Path
 
 
-buffer_path_1 = (
-    "splendor_v1/training/data/"
-    "heuristic_replay_buffer.pkl"
-)
+# ============================================================
+# CONFIG
+# ============================================================
 
-buffer_path_2 = (
-    "splendor_v1/training/data/"
-    "heuristic_replay_buffer_2.pkl"
+data_dir = Path(
+    "splendor_v1/training/data"
 )
 
 output_path = (
-    "splendor_v1/training/data/"
-    "heuristic_replay_buffer_combined.pkl"
+    data_dir
+    / "all_replay_buffers_combined.pkl"
 )
 
 
-# --------------------------------------------------
-# Load both buffers
-# --------------------------------------------------
+# ============================================================
+# FIND REPLAY BUFFER FILES
+# ============================================================
 
-with open(buffer_path_1, "rb") as f:
-    data_1 = pickle.load(f)
+pkl_files = sorted(
+    path
+    for path in data_dir.glob("*.pkl")
 
-with open(buffer_path_2, "rb") as f:
-    data_2 = pickle.load(f)
-
-
-buffer_1 = data_1["buffer"]
-buffer_2 = data_2["buffer"]
-
-
-print("Buffer 1:", len(buffer_1))
-print("Buffer 2:", len(buffer_2))
-
-
-# --------------------------------------------------
-# Combine
-# --------------------------------------------------
-
-combined_buffer = (
-    buffer_1
-    + buffer_2
+    # Do not accidentally combine the output
+    # back into itself on a later run.
+    if path != output_path
 )
 
+
+print("=" * 70)
+print("REPLAY BUFFER COMBINER")
+print("=" * 70)
 
 print(
-    "Combined:",
-    len(combined_buffer)
+    f"Found {len(pkl_files)} .pkl files:"
+)
+
+for path in pkl_files:
+    print(
+        f"  {path.name}"
+    )
+
+print()
+
+
+# ============================================================
+# LOAD + COMBINE
+# ============================================================
+
+combined_buffer = []
+
+files_loaded = 0
+files_skipped = 0
+
+
+for path in pkl_files:
+
+    print(
+        f"Loading: {path.name}"
+    )
+
+    try:
+
+        with path.open("rb") as f:
+            data = pickle.load(f)
+
+    except Exception as e:
+
+        print(
+            f"  SKIPPED - could not load: {e}"
+        )
+
+        files_skipped += 1
+        continue
+
+
+    # --------------------------------------------------------
+    # Verify this looks like one of our replay-buffer files
+    # --------------------------------------------------------
+
+    if not isinstance(data, dict):
+
+        print(
+            "  SKIPPED - not a dictionary"
+        )
+
+        files_skipped += 1
+        continue
+
+
+    if "buffer" not in data:
+
+        print(
+            "  SKIPPED - no 'buffer' key"
+        )
+
+        files_skipped += 1
+        continue
+
+
+    buffer = data["buffer"]
+
+
+    if not isinstance(buffer, (list, tuple)):
+
+        print(
+            "  SKIPPED - 'buffer' is not a list/tuple"
+        )
+
+        files_skipped += 1
+        continue
+
+
+    print(
+        f"  samples: {len(buffer):,}"
+    )
+
+    combined_buffer.extend(
+        buffer
+    )
+
+    files_loaded += 1
+
+
+# ============================================================
+# SUMMARY
+# ============================================================
+
+print()
+print("=" * 70)
+print("COMBINATION SUMMARY")
+print("=" * 70)
+
+print(
+    f"Files loaded:  {files_loaded}"
+)
+
+print(
+    f"Files skipped: {files_skipped}"
+)
+
+print(
+    f"Total samples: {len(combined_buffer):,}"
 )
 
 
-# --------------------------------------------------
-# Create new replay-buffer state
-# --------------------------------------------------
+if len(combined_buffer) == 0:
+
+    raise RuntimeError(
+        "No replay samples were found."
+    )
+
+
+# ============================================================
+# CREATE COMBINED REPLAY BUFFER
+# ============================================================
 
 combined_data = {
     "capacity": len(combined_buffer),
+
     "buffer": combined_buffer,
 
-    # Buffer is currently full.
-    # Next inserted sample would replace index 0.
+    # Because capacity == current buffer size,
+    # the next circular-buffer insertion would
+    # begin replacing from index 0.
     "position": 0,
+
+    # Optional metadata
+    "source_files": [
+        path.name
+        for path in pkl_files
+    ],
+
+    "num_source_files": files_loaded,
 }
 
 
-# --------------------------------------------------
-# Save
-# --------------------------------------------------
+# ============================================================
+# SAVE
+# ============================================================
 
-with open(output_path, "wb") as f:
+with output_path.open("wb") as f:
+
     pickle.dump(
         combined_data,
         f,
@@ -78,22 +191,51 @@ with open(output_path, "wb") as f:
     )
 
 
+print()
 print(
-    "Saved combined replay buffer to:",
-    output_path,
+    f"Saved combined replay buffer to:"
+)
+
+print(
+    f"  {output_path}"
 )
 
 
-with open(output_path, "rb") as f:
+# ============================================================
+# VERIFY SAVED FILE
+# ============================================================
+
+with output_path.open("rb") as f:
     test_data = pickle.load(f)
 
+
+print()
+print("=" * 70)
+print("VERIFY")
+print("=" * 70)
+
 print(
-    "Combined length:",
-    len(test_data["buffer"])
+    f"Combined length: "
+    f"{len(test_data['buffer']):,}"
 )
 
-obs, policy, value = test_data["buffer"][0]
 
-print("Observation:", obs.shape)
-print("Policy:", policy.shape)
-print("Value:", value)
+obs, policy, value = (
+    test_data["buffer"][0]
+)
+
+
+print(
+    "Observation:",
+    obs.shape
+)
+
+print(
+    "Policy:",
+    policy.shape
+)
+
+print(
+    "Value:",
+    value
+)

@@ -20,7 +20,7 @@ def main_puct_vs_puct():
     )
 
     checkpoint_1 = torch.load(
-        "checkpoints/heuristic_pretrain/heuristic_pretrain_best_400sim.pt",
+        "checkpoints/heuristic_pretrain/m2_model.pt",
         map_location="cpu",
         weights_only=False
 
@@ -39,7 +39,7 @@ def main_puct_vs_puct():
     )
 
     checkpoint_2 = torch.load(
-        "checkpoints/heuristic_pretrain/heuristic_pretrain_best_400sim.pt",
+        "checkpoints/heuristic_pretrain/m1_model.pt",
         map_location="cpu",
         weights_only=False
 
@@ -59,34 +59,34 @@ def main_puct_vs_puct():
 
     puct_agent_1 = NeuralPUCTAgent(
         model=model_1,
-        simulations=800,
+        simulations=400,
         debug_mode=False, 
         teacher_mode=False,
-        name="800sim"
+        name="m2_model"
     )
 
     puct_agent_2 = NeuralPUCTAgent(
         model=model_2,
-        simulations=1000,
+        simulations=400,
         debug_mode=False, 
         teacher_mode=False,
-        name="1000sim"
+        name="1409"
 
     )
     # -------------------------
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating 800sim vs 1000sim...")
+    print("\nEvaluating m2_model vs 1409...")
 
     results = evaluate_agents(
         agent_a=puct_agent_1,
         agent_b=puct_agent_2,
-        num_games=50,
+        num_games=150,
         max_steps=300,
         debug_mode=True,
         # seed=500000,
-        seed=500025,
+        seed=500525,
         is_evaluation_dynamic = True
     )
 
@@ -97,12 +97,12 @@ def main_puct_vs_puct():
     print("\nEvaluation complete.")
 
     print(
-        f"800sim Model wins: "
+        f"m2_model Model wins: "
         f"{results['agent_a_wins']}"
     )
 
     print(
-        f"1000sim Model wins: "
+        f"1409 Model wins: "
         f"{results['agent_b_wins']}"
     )
 

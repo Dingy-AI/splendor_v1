@@ -26,8 +26,8 @@ SAVE_EVERY_SUCCESSFUL_GAMES = 10
 
 # Fixed seed shard. Python-style half-open range:
 # START_SEED = 0, END_SEED = 100 -> seeds 0..99
-START_SEED = 100
-END_SEED = 200
+START_SEED = 400
+END_SEED = 500
 
 # False = start shard from scratch.
 # True  = resume this exact shard from its saved replay file.
