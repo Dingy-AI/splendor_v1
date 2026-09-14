@@ -19,7 +19,7 @@ def main_greedy_vs_random():
     )
 
     checkpoint = torch.load(
-        "checkpoints/heuristic_pretrain/m2_model.pt",
+        "checkpoints/heuristic_pretrain/m1_model.pt",
         map_location="cpu",
         weights_only=False
     )

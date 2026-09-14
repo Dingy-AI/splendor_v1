@@ -306,7 +306,7 @@ def main():
         env=env,
         mcts=mcts,
         replay_buffer=replay_buffer,
-        add_root_noise=False,
+        add_root_noise=True,
     )
 
     start_time = time.perf_counter()

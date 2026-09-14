@@ -39,7 +39,7 @@ def main_puct_vs_puct():
     )
 
     checkpoint_2 = torch.load(
-        "checkpoints/heuristic_pretrain/m1_model.pt",
+        "checkpoints/heuristic_pretrain/m0_model.pt",
         map_location="cpu",
         weights_only=False
 
@@ -82,7 +82,7 @@ def main_puct_vs_puct():
     results = evaluate_agents(
         agent_a=puct_agent_1,
         agent_b=puct_agent_2,
-        num_games=150,
+        num_games=50,
         max_steps=300,
         debug_mode=True,
         # seed=500000,
