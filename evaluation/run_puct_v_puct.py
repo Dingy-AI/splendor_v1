@@ -39,7 +39,7 @@ def main_puct_vs_puct():
     )
 
     checkpoint_2 = torch.load(
-        "checkpoints/heuristic_pretrain/m0_model.pt",
+        "checkpoints/heuristic_pretrain/m3_model.pt",
         map_location="cpu",
         weights_only=False
 
@@ -70,19 +70,19 @@ def main_puct_vs_puct():
         simulations=400,
         debug_mode=False, 
         teacher_mode=False,
-        name="1409"
+        name="m3_model"
 
     )
     # -------------------------
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating m2_model vs 1409...")
+    print("\nEvaluating m2_model vs m3_model...")
 
     results = evaluate_agents(
         agent_a=puct_agent_1,
         agent_b=puct_agent_2,
-        num_games=50,
+        num_games=150,
         max_steps=300,
         debug_mode=True,
         # seed=500000,
@@ -102,7 +102,7 @@ def main_puct_vs_puct():
     )
 
     print(
-        f"1409 Model wins: "
+        f"m3_model Model wins: "
         f"{results['agent_b_wins']}"
     )
 
@@ -122,7 +122,7 @@ def main_puct_vs_puct():
     )
 
     print(
-        f"Heuristic_Pre-trained win rate: "
+        f"m2_model win rate: "
         f"{results['agent_a_win_rate']:.2%}"
     )
 
