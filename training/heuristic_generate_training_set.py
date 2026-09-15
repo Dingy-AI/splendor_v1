@@ -5,6 +5,7 @@ from splendor_v1.agents.heuristic_agent_6 import HeuristicAgent6
 
 import pickle
 import os
+import traceback
 
 
 # ============================================================
@@ -40,29 +41,26 @@ generator = HeuristicReplayGenerator(
     replay_buffer=replay_buffer,
 )
 
+failed_seeds = []
+successful_games = 0
+
 
 # ============================================================
 # SAVE HELPER
 # ============================================================
 
-def save_replay_buffer(
-    path,
-    replay_buffer,
-    games_completed,
-):
+def save_replay_buffer():
 
     data = {
         "capacity": replay_buffer.capacity,
         "buffer": replay_buffer.buffer,
         "position": replay_buffer.position,
 
-        # Useful metadata for resuming / debugging
-        "games_completed": games_completed,
+        "successful_games": successful_games,
+        "failed_seeds": failed_seeds,
     }
 
-    # Save to temporary file first so a crash during
-    # pickle.dump does not corrupt the previous save.
-    temp_path = path + ".tmp"
+    temp_path = OUTPUT_PATH + ".tmp"
 
     with open(temp_path, "wb") as f:
         pickle.dump(
@@ -73,57 +71,94 @@ def save_replay_buffer(
 
     os.replace(
         temp_path,
-        path,
+        OUTPUT_PATH,
     )
 
     print(
-        f"Saved after {games_completed} games "
-        f"- {len(replay_buffer.buffer):,} positions"
+        f"\nSaved "
+        f"{successful_games} successful games "
+        f"- {len(replay_buffer.buffer):,} positions "
+        f"- {len(failed_seeds)} failed seeds\n"
     )
 
 
 # ============================================================
-# GENERATE GAMES
+# GENERATE
 # ============================================================
 
 for game in range(NUM_GAMES):
 
-    num_positions = generator.generate_game(
-        seed=game,
-    )
+    seed = game
 
-    games_completed = game + 1
+    try:
 
-    print(
-        f"Game {games_completed}/{NUM_GAMES} "
-        f"- {num_positions} positions "
-        f"- buffer size: {len(replay_buffer.buffer):,}"
-    )
-
-    # --------------------------------------------------------
-    # SAVE EVERY 10 GAMES
-    # --------------------------------------------------------
-
-    if games_completed % SAVE_EVERY == 0:
-
-        save_replay_buffer(
-            OUTPUT_PATH,
-            replay_buffer,
-            games_completed,
+        num_positions = generator.generate_game(
+            seed=seed,
         )
+
+        successful_games += 1
+
+        print(
+            f"Seed {seed} "
+            f"- successful game {successful_games} "
+            f"- {num_positions} positions "
+            f"- buffer size: "
+            f"{len(replay_buffer.buffer):,}"
+        )
+
+        # Save every 10 SUCCESSFUL games
+        if successful_games % SAVE_EVERY == 0:
+            save_replay_buffer()
+
+    except Exception as e:
+
+        failed_seeds.append(
+            seed
+        )
+
+        print(
+            f"\nFAILED seed {seed}"
+        )
+
+        print(
+            f"{type(e).__name__}: {e}"
+        )
+
+        # Optional: full stack trace
+        traceback.print_exc()
+
+        print(
+            "Skipping to next seed...\n"
+        )
+
+        # Move on to next game
+        continue
 
 
 # ============================================================
 # FINAL SAVE
 # ============================================================
 
-save_replay_buffer(
-    OUTPUT_PATH,
-    replay_buffer,
-    NUM_GAMES,
-)
+save_replay_buffer()
 
+
+print("=" * 70)
+print("GENERATION COMPLETE")
+print("=" * 70)
 
 print(
-    f"Finished generating {NUM_GAMES} games."
+    f"Successful games: {successful_games}"
+)
+
+print(
+    f"Failed games:     {len(failed_seeds)}"
+)
+
+print(
+    f"Failed seeds:     {failed_seeds}"
+)
+
+print(
+    f"Total positions:  "
+    f"{len(replay_buffer.buffer):,}"
 )
