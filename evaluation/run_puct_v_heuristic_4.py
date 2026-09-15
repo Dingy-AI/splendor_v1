@@ -1,93 +1,60 @@
 import torch
 
-from splendor_v1.agents.random_agent import RandomAgent
-from splendor_v1.agents.neural_puct_agent import NeuralPUCTAgent
+from splendor_v1.agents.heuristic_agent_4 import HeuristicAgent4
 from splendor_v1.env.core.constants import OBSERVATION_SIZE
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 from splendor_v1.network.model import SplendorNetwork
 from splendor_v1.evaluation.evaluate_agents import evaluate_agents
+from splendor_v1.agents.neural_puct_agent import NeuralPUCTAgent
 
 
-def main_puct_vs_puct():
-
-    # -------------------------
-    # Load trained model
-    # -------------------------
-
-    model_1 = SplendorNetwork(
-        OBSERVATION_SIZE,
-        ACTION_SPACE_SIZE,
-    )
-
-    checkpoint_1 = torch.load(
-        "checkpoints/heuristic_pretrain/m2_model.pt",
-        map_location="cpu",
-        weights_only=False
-
-    )
-
-    model_1.load_state_dict(
-        checkpoint_1["model_state_dict"]
-    )
-
-
-    model_1.eval()
-
-    model_2 = SplendorNetwork(
-        OBSERVATION_SIZE,
-        ACTION_SPACE_SIZE,
-    )
-
-    checkpoint_2 = torch.load(
-        "checkpoints/heuristic_pretrain/m3_model.pt",
-        map_location="cpu",
-        weights_only=False
-
-    )
-
-    model_2.load_state_dict(
-        checkpoint_2["model_state_dict"]
-    )
-
-
-    model_2.eval()
-
+def main_puct_vs_heuristic_1():
 
     # -------------------------
     # Create evaluation agents
     # -------------------------
-
-    puct_agent_1 = NeuralPUCTAgent(
-        model=model_1,
-        simulations=400,
-        debug_mode=False, 
-        teacher_mode=False,
-        name="m2_model"
+    model = SplendorNetwork(
+        OBSERVATION_SIZE,
+        ACTION_SPACE_SIZE,
     )
 
-    puct_agent_2 = NeuralPUCTAgent(
-        model=model_2,
+    checkpoint = torch.load(
+        "checkpoints/heuristic_pretrain/m2_model.pt",
+        map_location="cpu",
+        weights_only=False
+    )
+
+    model.load_state_dict(
+        checkpoint["model_state_dict"]
+    )
+
+
+    model.eval()
+
+    trained_agent = NeuralPUCTAgent(
+        model=model,
         simulations=400,
         debug_mode=False, 
-        teacher_mode=False,
-        name="m3_model"
-
+        teacher_mode=False
     )
+
+    random_agent = HeuristicAgent4()
+
     # -------------------------
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating m2_model vs m3_model...")
+    print("\nEvaluating trained PUCT vs HeuristicAgent4...")
 
     results = evaluate_agents(
-        agent_a=puct_agent_1,
-        agent_b=puct_agent_2,
+        agent_a=trained_agent,
+        agent_b=random_agent,
         num_games=50,
         max_steps=300,
         debug_mode=True,
-        # seed=500000,
-        seed=500525,
-        is_evaluation_dynamic = True
+        seed=500500,
+        is_evaluation_dynamic=True
+
     )
 
     # -------------------------
@@ -97,12 +64,12 @@ def main_puct_vs_puct():
     print("\nEvaluation complete.")
 
     print(
-        f"m2_model Model wins: "
+        f"Puct wins: "
         f"{results['agent_a_wins']}"
     )
 
     print(
-        f"m3_model Model wins: "
+        f"HeuristicAgent4 wins: "
         f"{results['agent_b_wins']}"
     )
 
@@ -122,7 +89,7 @@ def main_puct_vs_puct():
     )
 
     print(
-        f"m2_model win rate: "
+        f"Puct win rate: "
         f"{results['agent_a_win_rate']:.2%}"
     )
 
@@ -133,5 +100,5 @@ def main_puct_vs_puct():
 
 
 if __name__ == "__main__":
-    main_puct_vs_puct()
+    main_puct_vs_heuristic_1()
 

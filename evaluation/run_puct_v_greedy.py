@@ -49,7 +49,7 @@ def main_greedy_vs_random():
     results = evaluate_agents(
         agent_a=trained_agent,
         agent_b=random_agent,
-        num_games=150,
+        num_games=50,
         max_steps=300,
         debug_mode=True,
         seed=500500,

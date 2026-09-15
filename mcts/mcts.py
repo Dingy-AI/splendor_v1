@@ -624,8 +624,14 @@ class MCTS:
                 dtype=torch.float32,
             )
 
-            value = 0.0
-
+            # No neural value.
+            # Instead estimate the leaf by playing out the game.
+            value = self.rollout(
+                env,
+                node,
+                root_player=root_player,
+            )
+            
         else:
 
             # Normal neural MCTS
