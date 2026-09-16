@@ -1,7 +1,7 @@
 from splendor_v1.training.heuristic_replay_generator import HeuristicReplayGenerator
 from splendor_v1.env.env import SplendorEnv
 from splendor_v1.training.replay_buffer import ReplayBuffer
-from splendor_v1.agents.heuristic_agent_4 import HeuristicAgent4
+from splendor_v1.agents.heuristic_agent_12 import HeuristicAgent12
 
 import pickle
 import os
@@ -14,7 +14,7 @@ import traceback
 
 OUTPUT_PATH = (
     "splendor_v1/training/data/"
-    "h4_replay_data.pkl"
+    "h12_replay_data.pkl"
 )
 
 NUM_GAMES = 1000
@@ -27,8 +27,8 @@ SAVE_EVERY = 10
 
 env = SplendorEnv()
 
-agent = HeuristicAgent4(
-    num_rollouts=8,
+agent = HeuristicAgent12(
+    num_rollouts=16,
 )
 
 replay_buffer = ReplayBuffer(

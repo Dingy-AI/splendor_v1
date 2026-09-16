@@ -1201,9 +1201,9 @@ NOBLES = [
         Name="Catherine de' Medici, Queen of France",
         points=3,
         requirement={
-            GemColor.WHITE: 3,
+            GemColor.WHITE: 0,
             GemColor.BLUE: 3,
-            GemColor.GREEN: 0,
+            GemColor.GREEN: 3,
             GemColor.RED: 3,
             GemColor.BLACK: 0,
         }
