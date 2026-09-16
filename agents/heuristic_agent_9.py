@@ -1,7 +1,7 @@
 import random
 import numpy as np
 
-from splendor_v1.agents.heuristic_agent3 import HeuristicAgent3
+from splendor_v1.agents.heuristic_agent_3 import HeuristicAgent3
 from splendor_v1.env.core.constants import COLOR_ORDER
 from splendor_v1.env.core.enums import GemColor, NodeType
 from splendor_v1.env.core.actions import ActionType

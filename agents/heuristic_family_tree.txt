@@ -1,0 +1,148 @@
+Heuristic 3
+│
+│  Original cheap strategic heuristic
+│  Hard hierarchy: BUY > TAKE > RESERVE
+│
+├── H5  [Python: inherits H3]
+│   │
+│   │  Opponent-aware improvement to H3
+│   │  H5 > H3: 586–412–2
+│   │
+│   ├── H6  [Python: inherits H5]
+│   │       H5-vs-H5 terminal rollouts
+│   │       ≈ H4, but much slower
+│   │       H6 vs H4: ~63–61
+│   │
+│   ├── H7 family  [Python: inherits H5]
+│   │       Static opponent-aware experiments
+│   │       ├─ race-margin
+│   │       ├─ dual-purpose
+│   │       └─ overlap
+│   │
+│   │       None clearly surpassed H5
+│   │
+│   └── H8  [Python: inherits H5]
+│           Truncated rollout + handcrafted leaf
+│           H8 < H4: 18–32
+│
+│
+├── H4  [Conceptual child of H3]
+│   │
+│   │  H3 root candidates
+│   │  + full H3-vs-H3 terminal rollout
+│   │
+│   │  H4 > H3: 199–0–1
+│   │
+│   │  Major breakthrough
+│   │
+│   └───────────────┐
+│                   │
+│                   ▼
+│              H12  [standalone class; conceptual H4 descendant]
+│              │
+│              │  Protect ALL H4 candidates
+│              │  + Noble extras
+│              │  + old Reserve extras
+│              │
+│              │  ⭐ CURRENT CHAMPION
+│              │
+│              │  H12_16 vs H4_16:
+│              │       66–34
+│              │
+│              ├── H12 Noble-only
+│              │       Ablation experiment
+│              │       Not yet established as stronger
+│              │
+│              ├── H13  [Python: inherits H12]
+│              │       Reserve-default
+│              │       Noble as exception
+│              │       UNTESTED / experimental
+│              │
+│              └── H14 "Kangaroo Reservation"
+│                      [Python: inherits H12]
+│
+│                      Keeps H12/H4 rollout framework
+│                      + H12 Noble strategy
+│                      + redesigned Tier-3 route planner
+│                      + primary/secondary T3
+│                      + T1/T2 bridge logic
+│
+│                      UNTESTED vs H12
+│
+│
+├── H9  [standalone class; uses H3 rollout]
+│   │
+│   │  Broad phase-aware candidate replacement
+│   │  H9 < H4: 17–33
+│   │
+│   ├── H10 "Kangaroo"  [Python: inherits H9]
+│   │       Noble-specialized
+│   │       Clearly weaker than H4
+│   │
+│   └── H11 "Reserve"  [Python: inherits H9]
+│           High-point / reserve-specialized
+│           Clearly weaker than H4
+│
+│
+└── H15 "Unified Route Planner"
+        [standalone class; uses H3 for rollouts]
+
+        Fresh architecture
+        Does NOT inherit H12/H14
+
+        Noble + Tier-3 + Tier-2 scoring
+        all contribute to ONE route model
+
+        T1 = engine
+        T2 = bridge + points
+        T3 = scoring destination
+
+        Primary + secondary T3
+        Tier-3 archetypes
+        Unified color demand
+        Diverse BUY / TAKE / RESERVE shortlist
+        Full H3 terminal rollout
+
+        UNTESTED
+
+
+1 — Static heuristics	H3, H5, H7	Better handcrafted scoring helps, but eventually plateaus
+2 — Terminal search	H4, H6, H8	Full terminal rollout is extremely powerful; H4 becomes the foundation
+3 — Strategic candidate expansion	H9–H14	Don't replace H4's good candidates; add carefully chosen blind-spot challengers
+4 — Unified planning	H15	Try to derive strategies dynamically from the entire resource/scoring graph
+
+
+                  ⭐ H12_16
+                     │
+                     │ 66–34 vs H4_16
+                     ▼
+                    H4
+                 /      \
+              ≈ H6      H5
+                         │
+                        H7
+                         
+              H8 / H9 / H10 / H11
+                    weaker
+
+
+
+H3
+└── H5
+    ├── H6
+    ├── H7 variants
+    └── H8
+
+H9
+├── H10
+└── H11
+
+H12
+├── H12 Diagnostics
+├── H12 Noble-only
+├── H13
+└── H14
+    └── H14 Diagnostics
+
+H15
+└── H15 Diagnostics
