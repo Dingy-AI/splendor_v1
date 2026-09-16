@@ -8,7 +8,7 @@ from splendor_v1.network.model import SplendorNetwork
 from splendor_v1.evaluation.evaluate_agents import evaluate_agents
 from splendor_v1.agents.heuristic_agent_12_diagnostics import HeuristicAgent12Diagnostics
 
-from splendor_v1.agents.heuristic_agent_15 import HeuristicAgent15Diagnostics
+from splendor_v1.agents.heuristic_agent_16 import HeuristicAgent16Diagnostics
 
 
 def main_heuristic_vs_greedy():
@@ -17,7 +17,7 @@ def main_heuristic_vs_greedy():
     # Create evaluation agents
     # -------------------------
 
-    trained_agent = HeuristicAgent15Diagnostics(num_rollouts=16)
+    trained_agent = HeuristicAgent16Diagnostics(num_rollouts=16)
 
     greedy_agent = HeuristicAgent12Diagnostics(num_rollouts=16)
 
@@ -25,7 +25,7 @@ def main_heuristic_vs_greedy():
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating trained HeuristicAgent15Diagnostics vs HeuristicAgent12Diagnostics...")
+    print("\nEvaluating trained HeuristicAgent16Diagnostics vs HeuristicAgent12Diagnostics...")
 
 
     results = evaluate_agents(
@@ -34,7 +34,7 @@ def main_heuristic_vs_greedy():
         num_games=6,
         max_steps=300,
         debug_mode=True,
-        seed=519850,
+        seed=600000,
         is_evaluation_dynamic = True
 
     )
@@ -55,7 +55,7 @@ def main_heuristic_vs_greedy():
     print("\nEvaluation complete.")
 
     print(
-        f"HeuristicAgent15Diagnostics wins: "
+        f"HeuristicAgent16Diagnostics wins: "
         f"{results['agent_a_wins']}"
     )
 
@@ -80,7 +80,7 @@ def main_heuristic_vs_greedy():
     )
 
     print(
-        f"HeuristicAgent15Diagnostics win rate: "
+        f"HeuristicAgent16Diagnostics win rate: "
         f"{results['agent_a_win_rate']:.2%}"
     )
 

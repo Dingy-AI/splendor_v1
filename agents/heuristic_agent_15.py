@@ -356,6 +356,342 @@ class HeuristicAgent15:
     # PUBLIC API
     # ============================================================
 
+        self._pending_resource_action = None
+        self._active_overflow_episode = None
+
+
+    # ============================================================
+    # OVERFLOW / RESOURCE-ACTION DIAGNOSTICS
+    # ============================================================
+
+    def _diag_color_name(self, color):
+        return getattr(color, "name", str(color))
+
+    def _diag_token_count(self, state):
+        player = state.players[state.current_player]
+        return int(sum(player.gems.values()))
+
+    def _diag_action_color_names(self, action):
+        for attr in ("gem_colors", "discard_colors", "colors"):
+            colors = getattr(action, attr, None)
+            if colors is not None:
+                try:
+                    return [
+                        self._diag_color_name(color)
+                        for color in colors
+                    ]
+                except TypeError:
+                    pass
+        return []
+
+    def _diag_gold_available(self, state):
+        for color, count in state.bank.items():
+            if self._diag_color_name(color) == "GOLD":
+                return count > 0
+        return False
+
+    def _capture_resource_action_context(self, state, action):
+        self._pending_resource_action = None
+
+        action_type = getattr(action, "action_type", None)
+
+        if action_type not in (
+            ActionType.TAKE_GEMS,
+            ActionType.RESERVE_VISIBLE,
+            ActionType.RESERVE_TOP_DECK,
+        ):
+            return
+
+        if action_type == ActionType.TAKE_GEMS:
+            gained_colors = self._diag_action_color_names(action)
+        elif self._diag_gold_available(state):
+            gained_colors = ["GOLD"]
+        else:
+            gained_colors = []
+
+        demand_by_name = {}
+        board_model = self.last_board_model or {}
+
+        for color, value in board_model.get(
+            "color_demand",
+            {},
+        ).items():
+            demand_by_name[
+                self._diag_color_name(color)
+            ] = float(value)
+
+        self._pending_resource_action = {
+            "action_type": getattr(
+                action_type,
+                "name",
+                str(action_type),
+            ),
+            "starting_token_count": self._diag_token_count(state),
+            "gained_colors": gained_colors,
+            "color_demand": demand_by_name,
+        }
+
+    def _start_overflow_episode(
+        self,
+        state,
+    ):
+        context = self._pending_resource_action or {}
+
+        current_tokens = self._diag_token_count(state)
+        max_gems = int(getattr(state, "max_gems", 10))
+
+        initial_overflow = max(
+            0,
+            current_tokens - max_gems,
+        )
+
+        self._active_overflow_episode = {
+            "action_type": context.get(
+                "action_type",
+                "UNKNOWN",
+            ),
+            "starting_token_count": context.get(
+                "starting_token_count",
+                None,
+            ),
+            "gained_colors": list(
+                context.get(
+                    "gained_colors",
+                    [],
+                )
+            ),
+            "color_demand": dict(
+                context.get(
+                    "color_demand",
+                    {},
+                )
+            ),
+            "peak_token_count": current_tokens,
+            "initial_overflow": initial_overflow,
+            "discarded_colors": [],
+        }
+
+        self._pending_resource_action = None
+
+    def _finish_overflow_episode(self):
+        episode = self._active_overflow_episode
+
+        if not episode:
+            return
+
+        self._diag15[
+            "overflow_events"
+        ] += 1
+
+        preceding_action = episode.get(
+            "action_type",
+            "UNKNOWN",
+        )
+
+        self._diag15[
+            "overflow_preceding_action_counts"
+        ][preceding_action] += 1
+
+        starting_tokens = episode.get(
+            "starting_token_count",
+            None,
+        )
+
+        if starting_tokens is not None:
+            self._diag15[
+                "overflow_start_token_counts"
+            ][starting_tokens] += 1
+
+            self._diag15[
+                "overflow_start_token_sum"
+            ] += starting_tokens
+
+            self._diag15[
+                "overflow_start_token_observations"
+            ] += 1
+
+        initial_overflow = int(
+            episode.get(
+                "initial_overflow",
+                0,
+            )
+        )
+
+        self._diag15[
+            "overflow_size_counts"
+        ][initial_overflow] += 1
+
+        self._diag15[
+            "overflow_size_sum"
+        ] += initial_overflow
+
+        gained_colors = list(
+            episode.get(
+                "gained_colors",
+                [],
+            )
+        )
+
+        discarded_colors = list(
+            episode.get(
+                "discarded_colors",
+                [],
+            )
+        )
+
+        demand_by_name = episode.get(
+            "color_demand",
+            {},
+        )
+
+        for color_name in gained_colors:
+            self._diag15[
+                "overflow_gained_color_counts"
+            ][color_name] += 1
+
+            if color_name != "GOLD":
+                self._diag15[
+                    "overflow_gained_demand_sum"
+                ] += demand_by_name.get(
+                    color_name,
+                    0.0,
+                )
+
+                self._diag15[
+                    "overflow_gained_demand_tokens"
+                ] += 1
+
+        for color_name in discarded_colors:
+            self._diag15[
+                "overflow_discarded_color_counts"
+            ][color_name] += 1
+
+            if color_name != "GOLD":
+                self._diag15[
+                    "overflow_discarded_demand_sum"
+                ] += demand_by_name.get(
+                    color_name,
+                    0.0,
+                )
+
+                self._diag15[
+                    "overflow_discarded_demand_tokens"
+                ] += 1
+
+        gained_counter = Counter(
+            gained_colors
+        )
+
+        discarded_counter = Counter(
+            discarded_colors
+        )
+
+        rediscard_counter = (
+            gained_counter
+            & discarded_counter
+        )
+
+        rediscard_tokens = sum(
+            rediscard_counter.values()
+        )
+
+        if rediscard_tokens > 0:
+            self._diag15[
+                "overflow_events_rediscarding_gained_color"
+            ] += 1
+
+            self._diag15[
+                "overflow_rediscard_token_count"
+            ] += rediscard_tokens
+
+            self._diag15[
+                "overflow_rediscard_color_counts"
+            ].update(
+                rediscard_counter
+            )
+
+        self._active_overflow_episode = None
+
+    def _record_overflow_discard_step(
+        self,
+        state,
+        discard_action,
+    ):
+        if self._active_overflow_episode is None:
+            self._start_overflow_episode(
+                state
+            )
+
+        episode = self._active_overflow_episode
+
+        discarded_colors = (
+            self._diag_action_color_names(
+                discard_action
+            )
+        )
+
+        episode[
+            "discarded_colors"
+        ].extend(
+            discarded_colors
+        )
+
+        current_tokens = (
+            self._diag_token_count(
+                state
+            )
+        )
+
+        max_gems = int(
+            getattr(
+                state,
+                "max_gems",
+                10,
+            )
+        )
+
+        # State is pre-step. One gem will be discarded by this forced
+        # action. End the episode when that discard returns us to cap.
+        if current_tokens - 1 <= max_gems:
+            self._finish_overflow_episode()
+
+    def _update_overflow_diagnostics(
+        self,
+        state,
+        action,
+    ):
+        node_name = getattr(
+            state.node_type,
+            "name",
+            str(state.node_type),
+        )
+
+        if (
+            state.node_type
+            == NodeType.MAIN_DECISION
+        ):
+            if self._active_overflow_episode is not None:
+                self._finish_overflow_episode()
+
+            self._capture_resource_action_context(
+                state,
+                action,
+            )
+
+        elif node_name == "OVERFLOW_DISCARD":
+            self._record_overflow_discard_step(
+                state,
+                action,
+            )
+
+        elif node_name == "NOBLE_CLAIM":
+            if self._active_overflow_episode is not None:
+                self._finish_overflow_episode()
+
+        else:
+            if self._active_overflow_episode is None:
+                self._pending_resource_action = None
+
     def select_action(
         self,
         env,
@@ -3304,6 +3640,57 @@ class HeuristicAgent15Diagnostics(
             "forced_node_calls":
                 0,
 
+            "forced_node_type_counts":
+                Counter(),
+
+            "overflow_events":
+                0,
+
+            "overflow_preceding_action_counts":
+                Counter(),
+
+            "overflow_start_token_counts":
+                Counter(),
+
+            "overflow_start_token_sum":
+                0,
+
+            "overflow_start_token_observations":
+                0,
+
+            "overflow_size_counts":
+                Counter(),
+
+            "overflow_size_sum":
+                0,
+
+            "overflow_gained_color_counts":
+                Counter(),
+
+            "overflow_discarded_color_counts":
+                Counter(),
+
+            "overflow_events_rediscarding_gained_color":
+                0,
+
+            "overflow_rediscard_token_count":
+                0,
+
+            "overflow_rediscard_color_counts":
+                Counter(),
+
+            "overflow_gained_demand_sum":
+                0.0,
+
+            "overflow_gained_demand_tokens":
+                0,
+
+            "overflow_discarded_demand_sum":
+                0.0,
+
+            "overflow_discarded_demand_tokens":
+                0,
+
             "primary_t3_count":
                 0,
 
@@ -3331,6 +3718,9 @@ class HeuristicAgent15Diagnostics(
             "candidate_count_sum":
                 0,
         }
+
+        self._pending_resource_action = None
+        self._active_overflow_episode = None
 
     def select_action(
         self,
@@ -3360,6 +3750,11 @@ class HeuristicAgent15Diagnostics(
             action,
         )
 
+        self._update_overflow_diagnostics(
+            state,
+            action,
+        )
+
         return action
 
     def _record_diagnostic_decision(
@@ -3374,6 +3769,18 @@ class HeuristicAgent15Diagnostics(
             self._diag15[
                 "forced_node_calls"
             ] += 1
+
+            node_type_name = getattr(
+                state.node_type,
+                "name",
+                str(
+                    state.node_type
+                ),
+            )
+
+            self._diag15[
+                "forced_node_type_counts"
+            ][node_type_name] += 1
 
             return
 
@@ -3548,6 +3955,126 @@ class HeuristicAgent15Diagnostics(
                     "forced_node_calls"
                 ],
 
+            "forced_node_type_counts":
+                dict(
+                    self._diag15[
+                        "forced_node_type_counts"
+                    ]
+                ),
+
+            "overflow_events":
+                self._diag15[
+                    "overflow_events"
+                ],
+
+            "overflow_preceding_action_counts":
+                dict(
+                    self._diag15[
+                        "overflow_preceding_action_counts"
+                    ]
+                ),
+
+            "overflow_start_token_counts":
+                dict(
+                    self._diag15[
+                        "overflow_start_token_counts"
+                    ]
+                ),
+
+            "average_overflow_start_token_count":
+                (
+                    self._diag15[
+                        "overflow_start_token_sum"
+                    ]
+                    / self._diag15[
+                        "overflow_start_token_observations"
+                    ]
+                    if self._diag15[
+                        "overflow_start_token_observations"
+                    ]
+                    else 0.0
+                ),
+
+            "overflow_size_counts":
+                dict(
+                    self._diag15[
+                        "overflow_size_counts"
+                    ]
+                ),
+
+            "average_overflow_size":
+                (
+                    self._diag15[
+                        "overflow_size_sum"
+                    ]
+                    / self._diag15[
+                        "overflow_events"
+                    ]
+                    if self._diag15[
+                        "overflow_events"
+                    ]
+                    else 0.0
+                ),
+
+            "overflow_gained_color_counts":
+                dict(
+                    self._diag15[
+                        "overflow_gained_color_counts"
+                    ]
+                ),
+
+            "overflow_discarded_color_counts":
+                dict(
+                    self._diag15[
+                        "overflow_discarded_color_counts"
+                    ]
+                ),
+
+            "overflow_events_rediscarding_gained_color":
+                self._diag15[
+                    "overflow_events_rediscarding_gained_color"
+                ],
+
+            "overflow_rediscard_token_count":
+                self._diag15[
+                    "overflow_rediscard_token_count"
+                ],
+
+            "overflow_rediscard_color_counts":
+                dict(
+                    self._diag15[
+                        "overflow_rediscard_color_counts"
+                    ]
+                ),
+
+            "average_overflow_gained_color_demand":
+                (
+                    self._diag15[
+                        "overflow_gained_demand_sum"
+                    ]
+                    / self._diag15[
+                        "overflow_gained_demand_tokens"
+                    ]
+                    if self._diag15[
+                        "overflow_gained_demand_tokens"
+                    ]
+                    else 0.0
+                ),
+
+            "average_overflow_discarded_color_demand":
+                (
+                    self._diag15[
+                        "overflow_discarded_demand_sum"
+                    ]
+                    / self._diag15[
+                        "overflow_discarded_demand_tokens"
+                    ]
+                    if self._diag15[
+                        "overflow_discarded_demand_tokens"
+                    ]
+                    else 0.0
+                ),
+
             "primary_t3_count":
                 self._diag15[
                     "primary_t3_count"
@@ -3643,20 +4170,144 @@ class HeuristicAgent15Diagnostics(
             "=== HeuristicAgent15 Unified Route Planner Diagnostics ===",
             f"Strategic decisions: {stats['strategic_decisions']}",
             f"Forced-node calls: {stats['forced_node_calls']}",
-            "",
-            (
-                "Primary T3 available: "
-                f"{stats['primary_t3_count']} "
-                f"({stats['primary_t3_pct']:.2f}%)"
-            ),
-            (
-                "Compatible secondary T3 available: "
-                f"{stats['secondary_t3_count']} "
-                f"({stats['secondary_t3_pct']:.2f}%)"
-            ),
-            "",
-            "Primary T3 archetypes:",
+            "Forced-node split:",
         ]
+
+        forced_counts = stats.get(
+            "forced_node_type_counts",
+            {},
+        )
+
+        for node_type_name in (
+            "OVERFLOW_DISCARD",
+            "NOBLE_CLAIM",
+        ):
+            count = forced_counts.get(
+                node_type_name,
+                0,
+            )
+
+            pct_value = (
+                100.0
+                * count
+                / stats["forced_node_calls"]
+                if stats["forced_node_calls"]
+                else 0.0
+            )
+
+            lines.append(
+                f"  {node_type_name}: "
+                f"{count} "
+                f"({pct_value:.2f}%)"
+            )
+
+        other_forced = sum(
+            count
+            for name, count
+            in forced_counts.items()
+            if name not in (
+                "OVERFLOW_DISCARD",
+                "NOBLE_CLAIM",
+            )
+        )
+
+        if other_forced:
+            lines.append(
+                f"  OTHER: {other_forced}"
+            )
+
+        overflow_events = stats.get(
+            "overflow_events",
+            0,
+        )
+
+        lines.extend(
+            [
+                "",
+                "Overflow episode details:",
+                f"  Episodes: {overflow_events}",
+                (
+                    "  Previous action: "
+                    f"{stats.get('overflow_preceding_action_counts', {})}"
+                ),
+                (
+                    "  Starting token count: "
+                    f"{stats.get('overflow_start_token_counts', {})}"
+                ),
+                (
+                    "  Average starting tokens: "
+                    f"{stats.get('average_overflow_start_token_count', 0.0):.3f}"
+                ),
+                (
+                    "  Overflow size: "
+                    f"{stats.get('overflow_size_counts', {})}"
+                ),
+                (
+                    "  Average overflow size: "
+                    f"{stats.get('average_overflow_size', 0.0):.3f}"
+                ),
+                (
+                    "  Gained colors before overflow: "
+                    f"{stats.get('overflow_gained_color_counts', {})}"
+                ),
+                (
+                    "  Discarded colors: "
+                    f"{stats.get('overflow_discarded_color_counts', {})}"
+                ),
+            ]
+        )
+
+        rediscard_events = stats.get(
+            "overflow_events_rediscarding_gained_color",
+            0,
+        )
+
+        rediscard_pct = (
+            100.0
+            * rediscard_events
+            / overflow_events
+            if overflow_events
+            else 0.0
+        )
+
+        lines.extend(
+            [
+                (
+                    "  Immediately re-discarded a gained color: "
+                    f"{rediscard_events} "
+                    f"({rediscard_pct:.2f}%)"
+                ),
+                (
+                    "  Re-discarded gained tokens: "
+                    f"{stats.get('overflow_rediscard_token_count', 0)}"
+                ),
+                (
+                    "  Re-discarded colors: "
+                    f"{stats.get('overflow_rediscard_color_counts', {})}"
+                ),
+                (
+                    "  Avg route-demand / gained colored token: "
+                    f"{stats.get('average_overflow_gained_color_demand', 0.0):.3f}"
+                ),
+                (
+                    "  Avg route-demand / discarded colored token: "
+                    f"{stats.get('average_overflow_discarded_color_demand', 0.0):.3f}"
+                ),
+                "",
+                (
+                    "Primary T3 available: "
+                    f"{stats['primary_t3_count']} "
+                    f"({stats['primary_t3_pct']:.2f}%)"
+                ),
+                (
+                    "Compatible secondary T3 available: "
+                    f"{stats['secondary_t3_count']} "
+                    f"({stats['secondary_t3_pct']:.2f}%)"
+                ),
+                "",
+                "Primary T3 archetypes:",
+            ]
+        )
 
         if stats[
             "primary_archetypes"
