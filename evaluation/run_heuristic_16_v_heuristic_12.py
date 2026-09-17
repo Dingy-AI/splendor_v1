@@ -8,7 +8,7 @@ from splendor_v1.network.model import SplendorNetwork
 from splendor_v1.evaluation.evaluate_agents import evaluate_agents
 from splendor_v1.agents.heuristic_agent_12_diagnostics import HeuristicAgent12Diagnostics
 
-from splendor_v1.agents.heuristic_agent_16 import HeuristicAgent16Diagnostics
+from splendor_v1.agents.heuristic_agent_16.heuristic_agent_16 import HeuristicAgent16Diagnostics
 
 
 def main_heuristic_vs_greedy():
@@ -17,9 +17,9 @@ def main_heuristic_vs_greedy():
     # Create evaluation agents
     # -------------------------
 
-    trained_agent = HeuristicAgent16Diagnostics(num_rollouts=16)
+    trained_agent = HeuristicAgent16Diagnostics(num_rollouts=8)
 
-    greedy_agent = HeuristicAgent12Diagnostics(num_rollouts=16)
+    greedy_agent = HeuristicAgent12Diagnostics(num_rollouts=8)
 
     # -------------------------
     # Evaluate
@@ -31,10 +31,10 @@ def main_heuristic_vs_greedy():
     results = evaluate_agents(
         agent_a=trained_agent,
         agent_b=greedy_agent,
-        num_games=6,
+        num_games=50,
         max_steps=300,
         debug_mode=True,
-        seed=600000,
+        seed=900000,
         is_evaluation_dynamic = True
 
     )

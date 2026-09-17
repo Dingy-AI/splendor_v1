@@ -1,14 +1,11 @@
 import torch
 
-from splendor_v1.agents.heuristic_agent_12 import HeuristicAgent12
-from splendor_v1.agents.heuristic_agent_4 import HeuristicAgent4
+from splendor_v1.agents.greedy_agent import GreedyAgent
+from splendor_v1.agents.heuristic_agent_16.heuristic_agent_16 import HeuristicAgent16Diagnostics
 from splendor_v1.env.core.constants import OBSERVATION_SIZE
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 from splendor_v1.network.model import SplendorNetwork
 from splendor_v1.evaluation.evaluate_agents import evaluate_agents
-from splendor_v1.agents.heuristic_agent_15 import HeuristicAgent15Diagnostics
-
-from splendor_v1.agents.heuristic_agent_16.heuristic_agent_16 import HeuristicAgent16Diagnostics
 
 
 def main_heuristic_vs_greedy():
@@ -17,36 +14,36 @@ def main_heuristic_vs_greedy():
     # Create evaluation agents
     # -------------------------
 
-    trained_agent = HeuristicAgent16Diagnostics(num_rollouts=8)
+    trained_agent = HeuristicAgent16Diagnostics(num_rollouts=8
+    )
 
-    greedy_agent = HeuristicAgent15Diagnostics(num_rollouts=8)
+    greedy_agent = GreedyAgent()
 
     # -------------------------
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating trained HeuristicAgent16Diagnostics vs HeuristicAgent15Diagnostics...")
+    print("\nEvaluating trained HeuristicAgent16Diagnostics vs GreedyAgent...")
 
 
     results = evaluate_agents(
         agent_a=trained_agent,
         agent_b=greedy_agent,
-        num_games=100,
+        num_games=50,
         max_steps=300,
-        debug_mode=True,
-        seed=900000,
-        is_evaluation_dynamic = True
-
+         debug_mode=True,
+          seed=900000,
+          is_evaluation_dynamic = True
     )
-    # ONLY SLIGHTLY BETTER :)
+
     # Evaluation complete.
-    # HeuristicAgent2 wins: 54
-    # HeuristicAgent wins: 46
+    # HeuristicAgent2 wins: 60
+    # GreedyAgent wins: 39
     # Ties: 0
-    # Deadlocks: 0
+    # Deadlocks: 1
     # Aborted: 0
-    # HeuristicAgent2 win rate: 54.00%
-    # Average steps: 61.8
+    # HeuristicAgent2 win rate: 60.61%
+    # Average steps: 67.4
 
     # -------------------------
     # Print results
@@ -60,7 +57,7 @@ def main_heuristic_vs_greedy():
     )
 
     print(
-        f"HeuristicAgent15Diagnostics wins: "
+        f"GreedyAgent wins: "
         f"{results['agent_b_wins']}"
     )
 
@@ -88,8 +85,8 @@ def main_heuristic_vs_greedy():
         f"Average steps: "
         f"{results['average_steps']:.1f}"
     )
-    print(greedy_agent.format_diagnostic_summary())
     print(trained_agent.format_diagnostic_summary())
+
 
 if __name__ == "__main__":
     main_heuristic_vs_greedy()

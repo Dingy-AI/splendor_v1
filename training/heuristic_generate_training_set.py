@@ -1,12 +1,14 @@
 from splendor_v1.training.heuristic_replay_generator import HeuristicReplayGenerator
 from splendor_v1.env.env import SplendorEnv
 from splendor_v1.training.replay_buffer import ReplayBuffer
-from splendor_v1.agents.heuristic_agent_12 import HeuristicAgent12
+from splendor_v1.agents.heuristic_agent_16.heuristic_agent_16 import HeuristicAgent16
 
 import pickle
 import os
 import traceback
+import time
 
+start = time.perf_counter()
 
 # ============================================================
 # CONFIG
@@ -14,10 +16,10 @@ import traceback
 
 OUTPUT_PATH = (
     "splendor_v1/training/data/"
-    "h12_replay_data.pkl"
+    "h16_replay_data_g_0_rollout.pkl"
 )
 
-NUM_GAMES = 1000
+NUM_GAMES = 10
 SAVE_EVERY = 10
 
 
@@ -27,8 +29,8 @@ SAVE_EVERY = 10
 
 env = SplendorEnv()
 
-agent = HeuristicAgent12(
-    num_rollouts=16,
+agent = HeuristicAgent16(
+    num_rollouts=0,
 )
 
 replay_buffer = ReplayBuffer(
@@ -88,7 +90,7 @@ def save_replay_buffer():
 
 for game in range(NUM_GAMES):
 
-    seed = game
+    seed = game + 100
 
     try:
 
@@ -134,6 +136,11 @@ for game in range(NUM_GAMES):
         # Move on to next game
         continue
 
+elapsed = time.perf_counter() - start
+print("Games:", NUM_GAMES)
+print("Total seconds:", elapsed)
+print("Seconds/game:", elapsed / NUM_GAMES)
+print("Games/hour:", NUM_GAMES / elapsed * 3600)
 
 # ============================================================
 # FINAL SAVE
