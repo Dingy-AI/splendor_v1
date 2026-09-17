@@ -7,12 +7,12 @@ from pathlib import Path
 # ============================================================
 
 data_dir = Path(
-    "splendor_v1/training/data"
+    "splendor_v1/training/data/h12"
 )
 
 output_path = (
     data_dir
-    / "all_replay_buffers_combined.pkl"
+    / "h12_b_c_d.pkl"
 )
 
 

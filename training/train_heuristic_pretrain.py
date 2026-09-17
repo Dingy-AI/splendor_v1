@@ -8,8 +8,8 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, random_split
 
-from splendor_v1.network.model import SplendorNetwork
-
+# from splendor_v1.network.model import SplendorNetwork
+from splendor_v1.network.model_2_attention import SplendorNetwork
 
 class HeuristicReplayDataset(Dataset):
     def __init__(self, replay_path: str):
