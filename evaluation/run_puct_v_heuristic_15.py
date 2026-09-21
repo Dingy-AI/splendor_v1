@@ -1,6 +1,6 @@
 import torch
 
-from splendor_v1.agents.heuristic_agent_3 import HeuristicAgent3
+from splendor_v1.agents.heuristic_agent_15 import HeuristicAgent15Diagnostics
 from splendor_v1.env.core.constants import OBSERVATION_SIZE
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 # from splendor_v1.network.model import SplendorNetwork
@@ -38,13 +38,13 @@ def main_puct_vs_heuristic_1():
         teacher_mode=False
     )
 
-    random_agent = HeuristicAgent3()
+    random_agent = HeuristicAgent15Diagnostics()
 
     # -------------------------
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating gen_2_h12 PUCT vs HeuristicAgent3...")
+    print("\nEvaluating gen_2_h_12 vs HeuristicAgent15...")
 
     results = evaluate_agents(
         agent_a=trained_agent,
@@ -54,6 +54,7 @@ def main_puct_vs_heuristic_1():
         debug_mode=True,
         seed=500000,
         is_evaluation_dynamic=True
+
     )
 
     # -------------------------
@@ -63,12 +64,12 @@ def main_puct_vs_heuristic_1():
     print("\nEvaluation complete.")
 
     print(
-        f"gen_2_h12 wins: "
+        f"gen_2_h_12 wins: "
         f"{results['agent_a_wins']}"
     )
 
     print(
-        f"HeuristicAgent3 wins: "
+        f"HeuristicAgent15 wins: "
         f"{results['agent_b_wins']}"
     )
 
@@ -88,7 +89,7 @@ def main_puct_vs_heuristic_1():
     )
 
     print(
-        f"gen_2_h12 win rate: "
+        f"gen_2_h_12 win rate: "
         f"{results['agent_a_win_rate']:.2%}"
     )
 
@@ -97,6 +98,7 @@ def main_puct_vs_heuristic_1():
         f"{results['average_steps']:.1f}"
     )
 
+    print(random_agent.format_diagnostic_summary())
 
 if __name__ == "__main__":
     main_puct_vs_heuristic_1()

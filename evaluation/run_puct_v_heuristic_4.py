@@ -3,10 +3,10 @@ import torch
 from splendor_v1.agents.heuristic_agent_4 import HeuristicAgent4
 from splendor_v1.env.core.constants import OBSERVATION_SIZE
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
-from splendor_v1.network.model import SplendorNetwork
+# from splendor_v1.network.model import SplendorNetwork
 from splendor_v1.evaluation.evaluate_agents import evaluate_agents
 from splendor_v1.agents.neural_puct_agent import NeuralPUCTAgent
-
+from splendor_v1.network.model_2_attention import SplendorNetwork
 
 def main_puct_vs_heuristic_1():
 
@@ -19,7 +19,7 @@ def main_puct_vs_heuristic_1():
     )
 
     checkpoint = torch.load(
-        "checkpoints/heuristic_pretrain/m2_model.pt",
+        "checkpoints/gen_2/gen_2_h12.pt",
         map_location="cpu",
         weights_only=False
     )
@@ -44,7 +44,7 @@ def main_puct_vs_heuristic_1():
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating trained PUCT vs HeuristicAgent4...")
+    print("\nEvaluating gen_2_h_12 vs HeuristicAgent4...")
 
     results = evaluate_agents(
         agent_a=trained_agent,
@@ -52,7 +52,7 @@ def main_puct_vs_heuristic_1():
         num_games=50,
         max_steps=300,
         debug_mode=True,
-        seed=500500,
+        seed=500000,
         is_evaluation_dynamic=True
 
     )
@@ -64,7 +64,7 @@ def main_puct_vs_heuristic_1():
     print("\nEvaluation complete.")
 
     print(
-        f"Puct wins: "
+        f"gen_2_h_12 wins: "
         f"{results['agent_a_wins']}"
     )
 
@@ -89,7 +89,7 @@ def main_puct_vs_heuristic_1():
     )
 
     print(
-        f"Puct win rate: "
+        f"gen_2_h_12 win rate: "
         f"{results['agent_a_win_rate']:.2%}"
     )
 

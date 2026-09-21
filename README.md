@@ -61,3 +61,32 @@ python -m splendor_v1.training.model_generate_training_set
  python -m splendor_v1.training.train_model_replay --replay checkpoints/heuristic_pretrain/model_replay_buffer.pkl --epochs 30 --resume checkpoints/heuristic_pretrain/m1_model.pt --reset-optimizer
 
  and repeat until we cant :o
+
+
+# heuristic pretrain split script
+python -m splendor_v1.training.train_heuristic_pretrain_split \
+    --replay \
+    splendor_v1/training/data/h16/no_split/h16_old_tagged.pkl \
+    splendor_v1/training/data/h16/h16_with_split.pkl \
+    --output-dir checkpoints/blake_h16
+
+
+ # Model Name List
+Avery → Gen 1
+Blake → Gen 2
+Casey → Gen 3
+Drew → Gen 4
+Emery → Gen 5
+Finley → Gen 6
+Gray → Gen 7
+Harper → Gen 8
+Jordan → Gen 9
+Kai → Gen 10
+Logan → Gen 11
+Morgan → Gen 12
+Noel → Gen 13
+Parker → Gen 14
+Quinn → Gen 15
+Riley → Gen 16
+Sage → Gen 17
+Taylor → Gen 18

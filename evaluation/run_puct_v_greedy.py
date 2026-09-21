@@ -3,7 +3,9 @@ import torch
 from splendor_v1.agents.greedy_agent import GreedyAgent
 from splendor_v1.env.core.constants import OBSERVATION_SIZE
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
-from splendor_v1.network.model import SplendorNetwork
+from splendor_v1.network.model_2_attention import SplendorNetwork
+from splendor_v1.network.model import SplendorNetwork_GEN_1
+
 from splendor_v1.evaluation.evaluate_agents import evaluate_agents
 from splendor_v1.agents.neural_puct_agent import NeuralPUCTAgent
 
@@ -19,7 +21,7 @@ def main_greedy_vs_random():
     )
 
     checkpoint = torch.load(
-        "checkpoints/heuristic_pretrain/m3_model.pt",
+        "checkpoints/gen_2/gen_2_h12.pt",
         map_location="cpu",
         weights_only=False
     )
@@ -44,7 +46,7 @@ def main_greedy_vs_random():
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating trained PUCT vs Greedy...")
+    print("\nEvaluating trained gen_2_h12 vs Greedy...")
 
     results = evaluate_agents(
         agent_a=trained_agent,
@@ -52,7 +54,7 @@ def main_greedy_vs_random():
         num_games=50,
         max_steps=300,
         debug_mode=True,
-        seed=500500,
+        seed=500000,
         is_evaluation_dynamic=True
 
     )
@@ -64,7 +66,7 @@ def main_greedy_vs_random():
     print("\nEvaluation complete.")
 
     print(
-        f"Puct wins: "
+        f"gen_2_h12 wins: "
         f"{results['agent_a_wins']}"
     )
 
@@ -89,7 +91,7 @@ def main_greedy_vs_random():
     )
 
     print(
-        f"Puct win rate: "
+        f"gen_2_h12 win rate: "
         f"{results['agent_a_win_rate']:.2%}"
     )
 

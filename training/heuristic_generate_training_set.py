@@ -19,7 +19,7 @@ start = time.perf_counter()
 
 OUTPUT_PATH = (
     "splendor_v1/training/data/"
-    "h16_replay_data_f_game_split.pkl"
+    "h16_replay_data_j_game_split_comp_a.pkl"
 )
 
 NUM_GAMES = 1000
@@ -197,7 +197,7 @@ def save_replay_buffer():
 
 for game in range(NUM_GAMES):
 
-    seed = game + 5000
+    seed = game + 8000
 
     # Snapshot the replay buffer before generating the game.
     #

@@ -130,3 +130,97 @@ class SplendorNetwork(nn.Module):
         value = self.value_head(features)
 
         return legal_logits, value
+
+
+
+class SplendorNetwork_GEN_1(nn.Module):
+
+    def __init__(
+        self,
+        observation_size: int = OBSERVATION_SIZE,
+        action_space_size: int = ACTION_SPACE_SIZE,
+        hidden_size: int = HIDDEN_SIZE,
+        num_residual_blocks: int = NUM_RESIDUAL_BLOCKS,        
+    ):
+        super().__init__()
+
+        self.stem = nn.Sequential(
+            nn.Linear(
+                observation_size,
+                hidden_size,
+            ),
+            nn.ReLU(),
+        )
+
+        # -------------------------
+        # Residual trunk
+        # -------------------------
+        # 512 -> 512 residual transformations
+        self.residual_blocks = nn.Sequential(
+            *[
+                ResidualBlock(hidden_size)
+                for _ in range(
+                    num_residual_blocks
+                )
+            ]
+        )
+
+
+        self.policy_head = nn.Linear(
+            hidden_size,
+            action_space_size,
+        )
+
+        self.value_head = nn.Sequential(
+            nn.Linear(hidden_size, VALUE_OUTPUT_SIZE),
+            nn.Tanh(),
+        )
+
+    def forward(self, x):
+
+        features = self.stem(x)
+
+        features = self.residual_blocks(
+            features
+        )
+
+        policy_logits = self.policy_head(
+            features
+        )
+
+        value = self.value_head(
+            features
+        )
+
+        return policy_logits, value
+
+
+    def forward_legal(self, x, legal_action_ids):
+        features = self.stem(x)
+        features = self.residual_blocks(features)
+
+        head = self.policy_head
+
+        legal_weights = head.weight.index_select(
+            0,
+            legal_action_ids,
+        )
+
+        legal_bias = (
+            None
+            if head.bias is None
+            else head.bias.index_select(
+                0,
+                legal_action_ids,
+            )
+        )
+
+        legal_logits = F.linear(
+            features,
+            legal_weights,
+            legal_bias,
+        )
+
+        value = self.value_head(features)
+
+        return legal_logits, value
