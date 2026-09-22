@@ -47,31 +47,31 @@ def splendor_root_noise(
 # ============================================================
 
 CHECKPOINT_PATH = (
-    "checkpoints/"
-    "gen_2/gen_2_h12.pt"
+    "splendor_v1/"
+    "training_v2/model/gen_2_h12.pt"
 )
 
 OUTPUT_CHECKPOINT_DIR = (
     "splendor_v1/training_v2/"
-    "model"
+    "data"
 )
 
 OUTPUT_REPLAY_PATH = (
     "splendor_v1/training_v2/data/"
-    "mini_test_model2_replay.pkl"
+    "replay_buffer_blake.pkl"
 )
 
 # Small enough to run quickly, large enough to exercise
 # several complete games and optimizer steps.
-NUM_ITERATIONS = 1
-SELF_PLAY_GAMES_PER_ITERATION = 1
-SIMULATIONS = 20
+NUM_ITERATIONS = 2500
+SELF_PLAY_GAMES_PER_ITERATION = 10
+SIMULATIONS = 400
 BATCH_SIZE = 32
 TRAINING_RATIO = 1.5
 
 # Reproducible but different Splendor setup each game:
 # 10000, 10001, 10002, ...
-BASE_SEED = 10019
+BASE_SEED = 10000
 DYNAMIC_SEEDING = True
 
 # Real intended train/validation split.
@@ -197,7 +197,7 @@ history = run_training(
     # --------------------------------------------------------
 
     # No intermediate checkpoint needed for a 4-game smoke test.
-    checkpoint_every_games=25,
+    checkpoint_every_games=100,
     checkpoint_dir=OUTPUT_CHECKPOINT_DIR,
     starting_games_played=0,
 
@@ -232,7 +232,7 @@ history = run_training(
     # Validation probably will not activate in only four games,
     # which is expected. These are the real defaults we intend
     # to use once enough held-out data exists.
-    min_validation_games=2,
+    min_validation_games=5,
     min_validation_positions=256,
     validation_steps=10,
     validation_batch_size=BATCH_SIZE,
