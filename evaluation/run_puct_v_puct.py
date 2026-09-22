@@ -2,12 +2,15 @@ import torch
 
 from splendor_v1.agents.random_agent import RandomAgent
 from splendor_v1.agents.neural_puct_agent import NeuralPUCTAgent
+from splendor_v1.agents.neural_puct_agent_v3 import NeuralPUCTAgentV3
 from splendor_v1.env.core.constants import OBSERVATION_SIZE
 from splendor_v1.env.core.action_constants import ACTION_SPACE_SIZE
 from splendor_v1.network.model import SplendorNetwork_GEN_1
 from splendor_v1.evaluation.evaluate_agents import evaluate_agents
 
-from splendor_v1.network.model_2_attention import SplendorNetwork
+from splendor_v1.network.model_2_attention import SplendorNetwork_v2
+
+from splendor_v1.network.model_3_wdl_output import SplendorNetwork
 
 def main_puct_vs_puct():
 
@@ -15,7 +18,7 @@ def main_puct_vs_puct():
     # Load trained model
     # -------------------------
 
-    model_1 = SplendorNetwork(
+    model_1 = SplendorNetwork_v2(
         OBSERVATION_SIZE,
         ACTION_SPACE_SIZE,
     )
@@ -40,7 +43,7 @@ def main_puct_vs_puct():
     )
 
     checkpoint_2 = torch.load(
-        "checkpoints/gen_2/gen_2_h12.pt",
+        "checkpoints/gen_3/gen_3_wdl_joint_best.pt",
         map_location="cpu",
         weights_only=False
 
@@ -63,22 +66,22 @@ def main_puct_vs_puct():
         simulations=400,
         debug_mode=False, 
         teacher_mode=False,
-        name="400"
+        name="G2H12"
     )
 
-    puct_agent_2 = NeuralPUCTAgent(
+    puct_agent_2 = NeuralPUCTAgentV3(
         model=model_2,
-        simulations=300,
+        simulations=400,
         debug_mode=False, 
         teacher_mode=False,
-        name="300"
+        name="G3 Joint"
 
     )
     # -------------------------
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating 400 vs 300...")
+    print("\nEvaluating G2H12 vs G3 Joint...")
 
     results = evaluate_agents(
         agent_a=puct_agent_1,
@@ -98,12 +101,12 @@ def main_puct_vs_puct():
     print("\nEvaluation complete.")
 
     print(
-        f"400 Model wins: "
+        f"G2H12 Model wins: "
         f"{results['agent_a_wins']}"
     )
 
     print(
-        f"300 Model wins: "
+        f"G3 Joint Model wins: "
         f"{results['agent_b_wins']}"
     )
 
@@ -123,7 +126,7 @@ def main_puct_vs_puct():
     )
 
     print(
-        f"400 win rate: "
+        f"G2H12 win rate: "
         f"{results['agent_a_win_rate']:.2%}"
     )
 

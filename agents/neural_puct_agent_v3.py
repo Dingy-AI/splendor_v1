@@ -1,7 +1,7 @@
-from splendor_v1.mcts.mcts import MCTS
+from splendor_v1.mcts.mcts_v3 import MCTS
 
 
-class NeuralPUCTAgent:
+class NeuralPUCTAgentV3:
 
     def __init__(
         self,
@@ -10,13 +10,17 @@ class NeuralPUCTAgent:
         debug_mode=False,
         teacher_mode=False,
         name=None,
+        c_puct=3.0,
+        add_root_noise=False,
     ):
         self.name = name
         self.teacher_mode = teacher_mode
         self.model = model
         self.debug_mode = debug_mode
+        self.add_root_noise = add_root_noise
 
-        # This agent is used for inference / evaluation.
+        # Evaluation agent: make sure dropout / training-only
+        # behavior is disabled.
         self.model.eval()
 
         self.mcts = MCTS(
@@ -24,6 +28,7 @@ class NeuralPUCTAgent:
             rollout_type="neural",
             selection_type="puct",
             model=model,
+            c_puct=c_puct,
         )
 
     def select_action(
@@ -31,27 +36,23 @@ class NeuralPUCTAgent:
         env,
         state,
     ):
-        # Protect against some external training code
-        # having called model.train() since agent creation.
-        self.model.eval()
-
         action, root = self.mcts.search(
             env,
             state,
             return_root=True,
             teacher_mode=self.teacher_mode,
-            add_root_noise=False,
+            add_root_noise=self.add_root_noise,
         )
 
         if action is None:
             raise ValueError(
-                "NeuralPUCTAgent could not find "
+                "NeuralPUCTAgentV3 could not find "
                 "a legal action."
             )
 
         if not root.children:
             raise ValueError(
-                "NeuralPUCTAgent could not find "
+                "NeuralPUCTAgentV3 could not find "
                 "any legal child actions."
             )
 

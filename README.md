@@ -97,3 +97,6 @@ Taylor → Gen 18
 
  # new training run
  python -m  splendor_v1.training_v2.run_training_v2_mini
+
+ # script to train model 3 using model 2 data with new WDL head. 
+python -m splendor_v1.training_v3.pretrain_model_3_wdl_legacy_h12 --replay "splendor_v1/training/data/h12/all_h12_replay_buffers_combined.pkl" --head-epochs 10 --joint-epochs 30
