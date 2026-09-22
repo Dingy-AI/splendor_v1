@@ -40,7 +40,7 @@ def main_puct_vs_puct():
     )
 
     checkpoint_2 = torch.load(
-        "checkpoints/gen_2/gen_2_h16_40.pt",
+        "checkpoints/gen_2/gen_2_h12.pt",
         map_location="cpu",
         weights_only=False
 
@@ -63,22 +63,22 @@ def main_puct_vs_puct():
         simulations=400,
         debug_mode=False, 
         teacher_mode=False,
-        name="Gen_2_H_12"
+        name="400"
     )
 
     puct_agent_2 = NeuralPUCTAgent(
         model=model_2,
-        simulations=400,
+        simulations=300,
         debug_mode=False, 
         teacher_mode=False,
-        name="gen_2_h16_40"
+        name="300"
 
     )
     # -------------------------
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating Gen_2_H_12 vs gen_2_h16_40...")
+    print("\nEvaluating 400 vs 300...")
 
     results = evaluate_agents(
         agent_a=puct_agent_1,
@@ -98,12 +98,12 @@ def main_puct_vs_puct():
     print("\nEvaluation complete.")
 
     print(
-        f"Gen_2_H_12 Model wins: "
+        f"400 Model wins: "
         f"{results['agent_a_wins']}"
     )
 
     print(
-        f"gen_2_h16_40 Model wins: "
+        f"300 Model wins: "
         f"{results['agent_b_wins']}"
     )
 
@@ -123,7 +123,7 @@ def main_puct_vs_puct():
     )
 
     print(
-        f"Gen_2_H_12 win rate: "
+        f"400 win rate: "
         f"{results['agent_a_win_rate']:.2%}"
     )
 

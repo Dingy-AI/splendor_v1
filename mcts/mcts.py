@@ -9,16 +9,37 @@ from splendor_v1.mcts.neural_evaluator import neural_evaluate, slow_neural_evalu
 import torch
 class MCTS:
 
-    def __init__(self, 
-                 simulations=25, 
-                 rollout_type="random",
-                 selection_type='ucb',
-                 model=None):
+    def __init__(
+        self,
+        simulations=25,
+        rollout_type="random",
+        selection_type="ucb",
+        model=None,
+        c_puct=3.0,
+        dirichlet_alpha=0.3,
+        dirichlet_epsilon=0.25,
+    ):
+
         self.rollout_type = rollout_type
         self.simulations = simulations
         self.model = model
         self.selection_type = selection_type
 
+        self.c_puct = float(
+            c_puct
+        )
+
+        self.dirichlet_alpha = float(
+            dirichlet_alpha
+        )
+
+        self.dirichlet_epsilon = float(
+            dirichlet_epsilon
+        )
+
+        self.rng = (
+            np.random.default_rng()
+        )
 
         if (rollout_type == "neural" or selection_type == 'puct') and model is None:
             raise ValueError(
@@ -444,7 +465,6 @@ class MCTS:
         self,
         parent,
         root_player,
-        c_puct=3,
     ):
         if not parent.children:
             raise ValueError(
@@ -478,12 +498,11 @@ class MCTS:
             )
 
             exploration = (
-                c_puct
+                self.c_puct
                 * child.prior
                 * sqrt_parent_visits
                 / (1 + visits)
             )
-
             score = exploitation + exploration
 
             # Like max(), keep the first child when scores tie.
@@ -501,7 +520,6 @@ class MCTS:
         parent,
         child,
         root_player,
-        c_puct=3,
     ):
 
         if child.visits == 0:
@@ -517,7 +535,7 @@ class MCTS:
             exploitation = -average_value
 
         exploration = (
-            c_puct
+            self.c_puct
             * child.prior
             * math.sqrt(
                 max(parent.visits, 1)
@@ -666,6 +684,12 @@ class MCTS:
                 prior=prior,
             )
 
+            # Preserve the original policy prior before
+            # Dirichlet noise can modify child.prior.
+            child.network_prior = float(
+                prior
+            )
+
             node.children.append(
                 child
             )
@@ -741,21 +765,33 @@ class MCTS:
     def add_dirichlet_noise(
         self,
         root,
-        alpha=0.3,
-        epsilon=0.25,
     ):
+
         if not root.children:
             return
 
-        noise = np.random.dirichlet(
-            [alpha] * len(root.children)
+        noise = self.rng.dirichlet(
+            [
+                self.dirichlet_alpha
+            ]
+            * len(root.children)
         )
 
-        for child, n in zip(root.children, noise):
+        for child, n in zip(
+            root.children,
+            noise,
+        ):
+
             child.prior = (
-                (1.0 - epsilon) * child.prior
-                + epsilon * n
-        )
+                (
+                    1.0
+                    - self.dirichlet_epsilon
+                )
+                * child.prior
+                +
+                self.dirichlet_epsilon
+                * n
+            )
 
     def print_root_debug(
         self,

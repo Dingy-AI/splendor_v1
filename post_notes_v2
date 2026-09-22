@@ -1,0 +1,27 @@
+Generate self-play
+        ↓
+assign whole games 90/10
+        ↓
+┌──────────────────┬──────────────────┐
+│ train games      │ validation games │
+│ ~90%             │ ~10%             │
+└────────┬─────────┴─────────┬────────┘
+         ↓                   │
+ train_network()             │
+         ↓                   │
+ optimizer update            │
+         ↓                   │
+         └──────────┬────────┘
+                    ↓
+          enough validation data?
+                    │
+              ┌─────┴─────┐
+             no           yes
+              │             │
+            skip     validate_network()
+                            │
+                         no grad
+                            │
+                     validation loss
+
+New training_v2 loop

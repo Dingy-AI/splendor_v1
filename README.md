@@ -90,3 +90,10 @@ Quinn → Gen 15
 Riley → Gen 16
 Sage → Gen 17
 Taylor → Gen 18
+
+# Optuna run for G2H12
+ python -m splendor_v1.training_v2.optuna_hpo_blake --replay "splendor_v1/training_v2/data/h12/all_h12_replay_buffers_combined.pkl" --split-mode legacy-contiguous --val-fraction 0.10 --trials 30 --epochs 12 --study-name "blake_g2h12_hpo_v1" --storage "sqlite:///blake_g2h12_hpo_v1.db" --results-dir "hpo/blake_g2h12_hpo_v1" --device cuda
+
+
+ # new training run
+ python -m  splendor_v1.training_v2.run_training_v2_mini

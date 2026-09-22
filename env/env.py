@@ -1422,18 +1422,74 @@ class SplendorEnv(gym.Env):
         reward = curr_points - prev_points
         return reward
 
-    def _check_terminated(self, state):
+    # def _check_terminated(self, state):
+    #     if not state.end_triggered:
+    #         return False
+    #     # end when we return to start player of final round
+    #     # we are hardcoding this to 2 for a 2 player game
+    #     if state.current_player == len(state.players)-2:
+    #         state.winners = self._compute_winners(state)
+    #         state.game_over = True
+            
+    #         return True
+
+    #     return False
+
+    def _check_terminated(
+        self,
+        state,
+    ):
+        # Final round has not been triggered yet.
         if not state.end_triggered:
             return False
-        # end when we return to start player of final round
-        # we are hardcoding this to 2 for a 2 player game
-        if state.current_player == len(state.players)-2:
-            state.winners = self._compute_winners(state)
+
+        # --------------------------------------------------------
+        # DO NOT TERMINATE DURING A FORCED SUB-DECISION
+        # --------------------------------------------------------
+        #
+        # A player's turn is not complete while they still need
+        # to resolve:
+        #
+        #     OVERFLOW_DISCARD
+        #     NOBLE_CLAIM
+        #
+        # _maybe_advance_player() intentionally leaves the same
+        # player active during these states.
+        # --------------------------------------------------------
+
+        if state.node_type != NodeType.MAIN_DECISION:
+            return False
+
+        # --------------------------------------------------------
+        # END OF FINAL ROUND
+        # --------------------------------------------------------
+        #
+        # In the current 2-player implementation, Player 0 starts
+        # every game.
+        #
+        # Once the turn has advanced back to Player 0 after the
+        # end trigger, both players have received the required
+        # equal number of turns.
+        # --------------------------------------------------------
+
+        if (
+            state.current_player
+            == len(state.players) - 2
+        ):
+            state.winners = (
+                self._compute_winners(
+                    state
+                )
+            )
+
             state.game_over = True
-            
+
             return True
 
         return False
+
+
+
 
     def _compute_winners(self, state: GameState) -> list[int]:
 
