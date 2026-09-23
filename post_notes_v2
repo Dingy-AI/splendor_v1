@@ -25,3 +25,30 @@ assign whole games 90/10
                      validation loss
 
 New training_v2 loop
+
+
+network/model_4_legal_scorer.py
+mcts/neural_evaluator_v4.py
+mcts/mcts_v4.py          # only if needed; ideally minimal changes
+training_v4/train_v4.py
+training_v4/model_3_to_model_4_transfer.py
+
+
+observation
+    ↓
+existing 26-token attention trunk
+    ↓
+state embedding [192]
+         │
+         ├─────────────────┐
+         │                 │
+         │          legal action IDs
+         │                 ↓
+         │          action embedding [64]
+         │                 │
+         └──── concatenate ┘
+                 ↓
+         shared scorer MLP
+          256 → 192 → 1
+                 ↓
+          one logit/action

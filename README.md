@@ -100,3 +100,25 @@ Taylor → Gen 18
 
  # script to train model 3 using model 2 data with new WDL head. 
 python -m splendor_v1.training_v3.pretrain_model_3_wdl_legacy_h12 --replay "splendor_v1/training/data/h12/all_h12_replay_buffers_combined.pkl" --head-epochs 10 --joint-epochs 30
+
+
+# model 4 using model 2 data with WDL Head and action scorer
+python -m splendor_v1.training_v4.pretrain_model_4_legacy_h12
+
+# Extended command
+
+python -m splendor_v1.training_v4.pretrain_model_4_legacy_h12 `
+    --policy-warmup-epochs 20 `
+    --joint-epochs 10 `
+    --batch-size 32 `
+    --policy-lr 1e-3 `
+    --joint-lr 1e-4 `
+    --grad-clip 1.0
+
+# rich fine-tuning with updated database
+python -m splendor_v1.training_v4.finetune_model_4_rich_replay `
+    --replay splendor_v1/training_v4/data/replay_200_games.pkl `
+    --epochs 5 `
+    --batch-size 256 `
+    --learning-rate 1e-4 `
+    --grad-clip 1.0
