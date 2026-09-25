@@ -122,3 +122,20 @@ python -m splendor_v1.training_v4.finetune_model_4_rich_replay `
     --batch-size 256 `
     --learning-rate 1e-4 `
     --grad-clip 1.0
+
+# training v5 command
+python -m splendor_v1.training_v5.run_training_v5
+
+to resume training set 
+RESUME_TRAINING = True
+and make sure the variables below are correct
+
+RESUME_CHECKPOINT_PATH = (
+    "checkpoints/gen_4/self_play_v5_pruning/"
+    "model_100_games_last.pt"
+)
+
+RESUME_REPLAY_PATH = (
+    "splendor_v1/training_v5/data/"
+    "replay_buffer_model4_mcts_v5_pruning.pkl"
+)

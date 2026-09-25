@@ -20,13 +20,13 @@ def main_puct_vs_puct():
     # Load trained model
     # -------------------------
 
-    model_1 = SplendorNetwork_v3(
+    model_1 = SplendorNetwork(
         OBSERVATION_SIZE,
         ACTION_SPACE_SIZE,
     )
 
     checkpoint_1 = torch.load(
-        "checkpoints/gen_3/gen_3_wdl_head_warmup_best.pt",
+        "checkpoints/gen_4/model_1000_games.pt",
         map_location="cpu",
         weights_only=False
 
@@ -45,7 +45,7 @@ def main_puct_vs_puct():
     )
 
     checkpoint_2 = torch.load(
-        "checkpoints/gen_4/gen_4_rich_finetune_best.pt",
+        "checkpoints/gen_4/model_100_games.pt",
         map_location="cpu",
         weights_only=False
 
@@ -63,12 +63,12 @@ def main_puct_vs_puct():
     # Create evaluation agents
     # -------------------------
 
-    puct_agent_1 = NeuralPUCTAgentV3(
+    puct_agent_1 = NeuralPUCTAgentV4(
         model=model_1,
         simulations=400,
         debug_mode=False, 
         teacher_mode=False,
-        name="G3 Warmup"
+        name="G41000"
     )
 
     puct_agent_2 = NeuralPUCTAgentV4(
@@ -76,14 +76,14 @@ def main_puct_vs_puct():
         simulations=400,
         debug_mode=False, 
         teacher_mode=False,
-        name="G4 Rich"
+        name="G4Hundred"
 
     )
     # -------------------------
     # Evaluate
     # -------------------------
 
-    print("\nEvaluating G3 Warmup vs G4 Rich...")
+    print("\nEvaluating G41000 vs G4Hundred...")
 
     results = evaluate_agents(
         agent_a=puct_agent_1,
@@ -91,8 +91,8 @@ def main_puct_vs_puct():
         num_games=50,
         max_steps=300,
         debug_mode=True,
-        seed=500000,
-        # seed=500525,
+        # seed=500000,
+        seed=500500,
         is_evaluation_dynamic = True
     )
 
@@ -103,12 +103,12 @@ def main_puct_vs_puct():
     print("\nEvaluation complete.")
 
     print(
-        f"G3 Warmup Model wins: "
+        f"G41000 Model wins: "
         f"{results['agent_a_wins']}"
     )
 
     print(
-        f"G4 Rich Model wins: "
+        f"G4Hundred Model wins: "
         f"{results['agent_b_wins']}"
     )
 
@@ -128,7 +128,7 @@ def main_puct_vs_puct():
     )
 
     print(
-        f"G3 Warmup win rate: "
+        f"G41000 win rate: "
         f"{results['agent_a_win_rate']:.2%}"
     )
 
