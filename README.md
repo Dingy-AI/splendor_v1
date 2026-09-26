@@ -139,3 +139,95 @@ RESUME_REPLAY_PATH = (
     "splendor_v1/training_v5/data/"
     "replay_buffer_model4_mcts_v5_pruning.pkl"
 )
+
+
+# batch replay profiler - purpose is to look at how batching in the neural evaluation could speed up simulation time
+python -m splendor_v1.training_v5.profile_v5_performance \
+    --skip-game-profile \
+    --batch-sizes 1 2 4 8 16 32 64 128
+
+python -m splendor_v1.training_v5.profile_v5_performance \
+    --profile-games 3
+    --batch-sizes 1 2 4 8 16 32 64 128
+
+# confirming that our current neural evaluator and the direct neural evaluator have matching game states
+# based on model_1900_games.py
+
+python -m splendor_v1.mcts_batched.smoke_test_direct_evaluator
+
+python -m splendor_v1.mcts_batched.smoke_test_direct_evaluator --simulations 400 --num-mcts-states 5
+
+# testing the 3 way batching vs direct vs original
+python -m splendor_v1.mcts_batched.smoke_test_three_way_evaluator
+
+python -m splendor_v1.mcts_batched.smoke_test_three_way_evaluator --simulations 400 --mcts-states 5
+
+#batch speed testing with direct comparison
+ python -m splendor_v1.mcts_batched.concurrent_self_play_smoke           
+
+# batch testing speed without direct
+python -m splendor_v1.mcts_batched.concurrent_self_play_smoke --games 16 --concurrent-games 16 --max-batch-size 16 --skip-direct
+
+python -m splendor_v1.mcts_batched.concurrent_self_play_smoke     --games 64     --concurrent-games 64     --max-batch-size 32     --skip-direct     --output splendor_v1/training_v5/data/concurrent_batching_64_games_batch32.json
+
+# smoke test for multiprocess inference single
+python -m splendor_v1.mcts_batched.smoke_test_multiprocess_inference
+
+# smoke test for multiprocess parallel play
+python -m splendor_v1.mcts_batched.smoke_test_multiprocess_self_play
+
+# training_v6 infrastructure
+Current Model 4
+      ↓
+save inference snapshot
+      ↓
+move parent model + Adam state to CPU
+      ↓
+┌────────────────────────────────────┐
+│ parallel self-play                 │
+│                                    │
+│ 6 CPU game/MCTS processes          │
+│          ↓                         │
+│ centralized GPU Model 4 process    │
+│          ↓                         │
+│ whole games returned to MAIN       │
+│          ↓                         │
+│ persistent ReplayBuffer.add_game() │
+└────────────────────────────────────┘
+      ↓
+GPU server shuts down
+      ↓
+move training model + optimizer to GPU
+      ↓
+train_network()
+      ↓
+validate_network()
+      ↓
+checkpoint
+      ↓
+save new inference weights
+      ↓
+next iteration
+
+
+load Model 4 + replay
+        ↓
+save inference snapshot
+        ↓
+6 CPU self-play processes
+        ↓
+central GPU inference server
+        ↓
+10 real games complete
+        ↓
+MAIN commits them to replay
+        ↓
+GPU server shuts down
+        ↓
+parent Model 4 returns to GPU
+        ↓
+train_network()
+        ↓
+validate_network()
+        ↓
+checkpoint / replay save

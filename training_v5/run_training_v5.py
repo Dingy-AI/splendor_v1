@@ -196,7 +196,7 @@ START_CHECKPOINT_PATH = (
 
     "splendor_v1/training_v5/data/"
 
-    "model_200_games.pt"
+    "model_1900_games.pt"
 
 )
 
@@ -242,7 +242,7 @@ RESUME_CHECKPOINT_PATH = (
 
     "splendor_v1/training_v5/data/"
 
-    "model_200_games.pt"
+    "model_2000_games.pt"
 
 )
 
@@ -282,7 +282,7 @@ RESUME_REPLAY_PATH = (
 
     "splendor_v1/training_v5/data/"
 
-    "replay_200_games.pkl"
+    "replay_2000_games.pkl"
 
 )
 
@@ -364,7 +364,7 @@ STABILITY_CHECKS = 3
 
 
 
-NUM_ITERATIONS = 4
+NUM_ITERATIONS = 100
 
 
 
@@ -430,7 +430,7 @@ REPLAY_CAPACITY = 500_000
 
 
 
-CHECKPOINT_EVERY_GAMES = 20
+CHECKPOINT_EVERY_GAMES = 100
 
 
 
