@@ -134,7 +134,7 @@ INFERENCE_SNAPSHOT_PATH = (
 
 NUM_ITERATIONS = 1
 
-SELF_PLAY_GAMES_PER_ITERATION = 10
+SELF_PLAY_GAMES_PER_ITERATION = 96
 
 
 # ============================================================
@@ -143,7 +143,7 @@ SELF_PLAY_GAMES_PER_ITERATION = 10
 
 # Start with one worker per physical core. Benchmark this later against
 # 4 / 6 / 8 / 12 on the actual machine.
-NUM_SELF_PLAY_WORKERS = 6
+NUM_SELF_PLAY_WORKERS = 32
 
 # One synchronous MCTS game can have only one outstanding NN request,
 # so a batch cannot exceed the number of active workers.
@@ -1252,11 +1252,15 @@ def run_training_v6(
             ),
         )
         print(
-            "GPU max batch size:",
+            "GPU max observed batch size:",
             gpu_stats.get(
                 "max_observed_batch_size"
             ),
         )
+        print(
+            "GPU configured max batch size:",
+            gpu_stats.get("configured_max_batch_size"),
+        )   
         print(
             "GPU inference positions/sec:",
             gpu_stats.get(

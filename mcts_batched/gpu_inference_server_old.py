@@ -208,6 +208,14 @@ def _load_model_in_child(
         device_string
     )
 
+    if (
+        device.type == "cuda"
+        and device.index is None
+    ):
+        device = torch.device(
+            "cuda:0"
+        )
+
     if device.type == "cuda":
         if not torch.cuda.is_available():
             raise RuntimeError(
@@ -215,22 +223,8 @@ def _load_model_in_child(
                 "torch.cuda.is_available() is False."
             )
 
-        # torch.cuda.set_device() requires an explicit CUDA index.
-        # A bare device string like "cuda" has index=None, so
-        # normalize it to cuda:0 while preserving explicit devices
-        # such as cuda:1.
-        cuda_index = (
-            0
-            if device.index is None
-            else int(device.index)
-        )
-
         torch.cuda.set_device(
-            cuda_index
-        )
-
-        device = torch.device(
-            f"cuda:{cuda_index}"
+            device
         )
 
     checkpoint_file = Path(
@@ -834,16 +828,14 @@ def _process_batch(
         for item in valid
     )
 
-    padding_action_id = int(
-        model.padding_action_id
-    )
-
-    legal_action_ids = torch.full(
+    # Padded positions are masked out before scoring. Use action ID
+    # 0 for the unused slots, matching the already-validated
+    # threaded BatchedNeuralEvaluator implementation.
+    legal_action_ids = torch.zeros(
         (
             len(valid),
             max_legal_actions,
         ),
-        fill_value=padding_action_id,
         dtype=torch.long,
         device=device,
     )
@@ -1287,12 +1279,6 @@ class GPUInferenceServerProcess:
         self._ready_status = None
         self._final_status = None
 
-        # Cache the newest telemetry snapshot seen from ANY status event.
-        # Long self-play runs can emit many periodic "stats" events; keeping
-        # the latest snapshot means final telemetry survives even if the
-        # terminal "stopped" event is delayed or lost during shutdown.
-        self._latest_stats = None
-
     @property
     def pid(self):
         if self._process is None:
@@ -1342,34 +1328,6 @@ class GPUInferenceServerProcess:
         )
 
         self._process.start()
-
-    def _record_status(
-        self,
-        status,
-    ):
-        if not isinstance(
-            status,
-            InferenceServerStatus,
-        ):
-            return
-
-        if status.stats is not None:
-            self._latest_stats = (
-                status.stats
-            )
-
-        if status.kind == "ready":
-            self._ready_status = (
-                status
-            )
-
-        if status.kind in (
-            "stopped",
-            "fatal_error",
-        ):
-            self._final_status = (
-                status
-            )
 
     def wait_until_ready(
         self,
@@ -1427,14 +1385,18 @@ class GPUInferenceServerProcess:
             ):
                 continue
 
-            self._record_status(
-                status
-            )
-
             if status.kind == "ready":
+                self._ready_status = (
+                    status
+                )
+
                 return status
 
             if status.kind == "fatal_error":
+                self._final_status = (
+                    status
+                )
+
                 raise RuntimeError(
                     "GPU inference server failed "
                     "during startup:\n"
@@ -1481,39 +1443,12 @@ class GPUInferenceServerProcess:
         if self._process is None:
             return
 
-        # Drain any accumulated periodic telemetry before asking the child
-        # to stop. This is important on long runs: an undrained
-        # multiprocessing status queue can otherwise delay child shutdown.
-        self._drain_final_status()
-
         if self._process.is_alive():
             self.request_shutdown()
 
-            deadline = (
-                time.perf_counter()
-                + float(timeout_s)
+            self._process.join(
+                timeout=timeout_s
             )
-
-            while self._process.is_alive():
-                remaining = (
-                    deadline
-                    - time.perf_counter()
-                )
-
-                if remaining <= 0:
-                    break
-
-                # Join in short slices and drain status events between them
-                # so the child's queue feeder never has to wait on a full
-                # parent-side status pipe.
-                self._process.join(
-                    timeout=min(
-                        0.10,
-                        remaining,
-                    )
-                )
-
-                self._drain_final_status()
 
         if (
             self._process.is_alive()
@@ -1525,8 +1460,6 @@ class GPUInferenceServerProcess:
                 timeout=5.0
             )
 
-        # Capture terminal telemetry if available. final_stats falls back to
-        # the latest periodic snapshot when no terminal event made it across.
         self._drain_final_status()
 
     def _drain_final_status(self):
@@ -1544,9 +1477,13 @@ class GPUInferenceServerProcess:
                 status,
                 InferenceServerStatus,
             ):
-                self._record_status(
-                    status
-                )
+                if status.kind in (
+                    "stopped",
+                    "fatal_error",
+                ):
+                    self._final_status = (
+                        status
+                    )
 
     def drain_status_events(self):
         events = []
@@ -1569,9 +1506,13 @@ class GPUInferenceServerProcess:
                     item
                 )
 
-                self._record_status(
-                    item
-                )
+                if item.kind in (
+                    "stopped",
+                    "fatal_error",
+                ):
+                    self._final_status = (
+                        item
+                    )
 
         return events
 
@@ -1586,25 +1527,13 @@ class GPUInferenceServerProcess:
         return self._final_status
 
     @property
-    def latest_stats(self):
-        # Pick up any periodic status events waiting in the queue.
-        self._drain_final_status()
-
-        return self._latest_stats
-
-    @property
     def final_stats(self):
         status = self.final_status
 
-        if (
-            status is not None
-            and status.stats is not None
-        ):
-            return status.stats
+        if status is None:
+            return None
 
-        # Robust fallback for long runs where the final "stopped" event
-        # is unavailable but periodic telemetry was received successfully.
-        return self._latest_stats
+        return status.stats
 
     def __enter__(self):
         self.start()

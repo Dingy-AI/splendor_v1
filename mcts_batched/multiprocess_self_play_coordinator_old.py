@@ -740,44 +740,6 @@ class MultiprocessSelfPlayCoordinator:
             worker_pids
         )
 
-    def _capture_gpu_server_stats(
-        self,
-    ):
-        """
-        Drain parent-side GPU status events and retain the newest telemetry.
-
-        This is intentionally cheap and safe to call after every completed
-        game. Long runs can produce hundreds of periodic GPU-stat events;
-        draining them continuously prevents shutdown-time queue buildup.
-        """
-
-        if self.server is None:
-            return
-
-        try:
-            self.server.drain_status_events()
-
-            latest_stats = getattr(
-                self.server,
-                "latest_stats",
-                None,
-            )
-
-            if latest_stats is not None:
-                self._last_gpu_server_stats = (
-                    copy.deepcopy(
-                        latest_stats
-                    )
-                )
-
-        except Exception as exc:
-            # Telemetry failure must not abort valid self-play, but it also
-            # must not disappear silently.
-            print(
-                "WARNING: failed to drain GPU inference telemetry: "
-                f"{type(exc).__name__}: {exc}"
-            )
-
     def close(
         self,
     ):
@@ -796,16 +758,10 @@ class MultiprocessSelfPlayCoordinator:
                     terminate_if_needed=True,
                 )
 
-            except Exception as exc:
-                print(
-                    "WARNING: self-play worker-pool shutdown failed: "
-                    f"{type(exc).__name__}: {exc}"
-                )
+            except Exception:
+                pass
 
         if self.server is not None:
-            # First drain periodic events accumulated during the last game.
-            self._capture_gpu_server_stats()
-
             try:
                 self.server.close(
                     timeout_s=(
@@ -815,34 +771,12 @@ class MultiprocessSelfPlayCoordinator:
                     terminate_if_needed=True,
                 )
 
-            except Exception as exc:
-                print(
-                    "WARNING: GPU inference-server shutdown failed: "
-                    f"{type(exc).__name__}: {exc}"
-                )
-
-            # Capture exact terminal stats when available. The server wrapper
-            # now falls back to its newest periodic snapshot if the terminal
-            # event was unavailable.
-            try:
-                final_stats = (
+                self._last_gpu_server_stats = (
                     self.server.final_stats
                 )
 
-                if final_stats is not None:
-                    self._last_gpu_server_stats = (
-                        copy.deepcopy(
-                            final_stats
-                        )
-                    )
-
-            except Exception as exc:
-                print(
-                    "WARNING: failed to read final GPU telemetry: "
-                    f"{type(exc).__name__}: {exc}"
-                )
-
-            self._capture_gpu_server_stats()
+            except Exception:
+                pass
 
         self._started = False
         self._closed = True
@@ -1311,10 +1245,6 @@ class MultiprocessSelfPlayCoordinator:
             )
 
             committed += 1
-
-            # Keep the GPU status queue drained throughout long runs.
-            # This also keeps _last_gpu_server_stats fresh for fallback.
-            self._capture_gpu_server_stats()
 
             # The completed worker is now available. Put exactly
             # one new job into the shared job queue if work remains.
