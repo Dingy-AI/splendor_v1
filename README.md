@@ -232,3 +232,9 @@ train_network()
 validate_network()
         ↓
 checkpoint / replay save
+
+
+# main computer
+32 workers
+
+# secondary computer ?

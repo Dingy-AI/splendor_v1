@@ -95,13 +95,13 @@ RESUME_TRAINING = True
 # ============================================================
 
 START_CHECKPOINT_PATH = (
-    "splendor_v1/training_v5/data/"
-    "model_1900_games.pt"
+    "splendor_v1/training_v6/data/"
+    "model_2010_games_last.pt"
 )
 
 RESUME_CHECKPOINT_PATH = (
-    "splendor_v1/training_v5/data/"
-    "model_2000_games.pt"
+    "splendor_v1/training_v6/data/"
+    "model_2010_games_last.pt"
 )
 
 OUTPUT_REPLAY_PATH = (
@@ -112,8 +112,8 @@ OUTPUT_REPLAY_PATH = (
 # V5 replay is forward-compatible with V6 because the rich replay
 # schema and Model 4 training targets are unchanged.
 RESUME_REPLAY_PATH = (
-    "splendor_v1/training_v5/data/"
-    "replay_2000_games.pkl"
+    "splendor_v1/training_v6/data/"
+    "replay_buffer_model4_mcts_v6_multiprocess.pkl"
 )
 
 OUTPUT_CHECKPOINT_DIR = (
@@ -132,10 +132,12 @@ INFERENCE_SNAPSHOT_PATH = (
 # RUN SIZE
 # ============================================================
 
-NUM_ITERATIONS = 1
+NUM_ITERATIONS = 219
+# NUM_ITERATIONS = 3
+
 
 SELF_PLAY_GAMES_PER_ITERATION = 96
-
+# SELF_PLAY_GAMES_PER_ITERATION = 12
 
 # ============================================================
 # MULTIPROCESS SELF-PLAY
@@ -149,7 +151,7 @@ NUM_SELF_PLAY_WORKERS = 32
 # so a batch cannot exceed the number of active workers.
 GPU_MAX_BATCH_SIZE = NUM_SELF_PLAY_WORKERS
 
-GPU_BATCH_WAIT_MS = 0.5
+GPU_BATCH_WAIT_MS = 1.0
 
 SELF_PLAY_STARTUP_TIMEOUT_S = 180.0
 SELF_PLAY_GAME_RESULT_TIMEOUT_S = 900.0
@@ -161,6 +163,7 @@ SELF_PLAY_SHUTDOWN_TIMEOUT_S = 30.0
 # ============================================================
 
 SIMULATIONS = 400
+# SIMULATIONS = 20
 
 ADAPTIVE_SIMULATIONS = True
 
@@ -193,14 +196,25 @@ TRAINING_RATIO = 1.5
 
 LEARNING_RATE = 1e-4
 
+# Cosine LR schedule. The scheduler is stepped ONCE per completed
+# self-play/training iteration, not once per optimizer update.
+MIN_LEARNING_RATE = 2.5e-5
+
+# CosineAnnealingLR interprets T_max as the number of scheduler.step()
+# calls. Because V6 steps once per training iteration, NUM_ITERATIONS is
+# the natural schedule length for a full uninterrupted run. When resuming
+# from a checkpoint that already contains scheduler state, the saved
+# scheduler state takes precedence.
+LR_SCHEDULER_T_MAX = NUM_ITERATIONS
+
 WEIGHT_DECAY = 0.0
 
 GRAD_CLIP = 1.0
 
 REPLAY_CAPACITY = 500_000
 
-CHECKPOINT_EVERY_GAMES = 100
-
+CHECKPOINT_EVERY_GAMES = 500
+# CHECKPOINT_EVERY_GAMES = 20
 
 # ============================================================
 # SEEDS / TRAIN-VALIDATION SPLIT
@@ -392,6 +406,142 @@ def create_optimizer(
         model.parameters(),
         lr=LEARNING_RATE,
         weight_decay=WEIGHT_DECAY,
+    )
+
+
+def create_scheduler(
+    optimizer,
+):
+    """
+    Smoothly anneal the learning rate across V6 training iterations.
+
+    Important:
+        train_network() can step a scheduler after every optimizer update.
+        V6 intentionally does NOT pass this scheduler into train_network().
+        Instead, run_training_v6() calls scheduler.step() once after the
+        complete training phase for each self-play iteration.
+    """
+
+    return torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer,
+        T_max=max(
+            1,
+            int(
+                LR_SCHEDULER_T_MAX
+            ),
+        ),
+        eta_min=float(
+            MIN_LEARNING_RATE
+        ),
+    )
+
+
+def maybe_restore_scheduler(
+    scheduler,
+    checkpoint,
+):
+    if not RESUME_TRAINING:
+        print(
+            "Fresh run: LR scheduler starts new."
+        )
+
+        return False
+
+    if not isinstance(
+        checkpoint,
+        dict,
+    ):
+        print(
+            "Resume checkpoint has no scheduler metadata. "
+            "Starting a fresh LR schedule."
+        )
+
+        return False
+
+    scheduler_state = checkpoint.get(
+        "scheduler_state_dict"
+    )
+
+    if scheduler_state is None:
+        print(
+            "Resume checkpoint has no scheduler_state_dict. "
+            "Starting cosine LR schedule from the current run."
+        )
+
+        return False
+
+    scheduler.load_state_dict(
+        scheduler_state
+    )
+
+    print(
+        "LR scheduler state restored."
+    )
+
+    return True
+
+
+def attach_scheduler_state_to_checkpoint(
+    path,
+    scheduler,
+):
+    """
+    save_model_if_needed() already accepts the scheduler for scheduled
+    checkpoints. The legacy final save_checkpoint() helper does not expose
+    a scheduler argument, so add the scheduler state to the final *_last.pt
+    payload after it is written.
+    """
+
+    checkpoint = torch.load(
+        path,
+        map_location="cpu",
+        weights_only=False,
+    )
+
+    if not isinstance(
+        checkpoint,
+        dict,
+    ):
+        raise TypeError(
+            "Final checkpoint payload must be a dict in order to "
+            "store LR scheduler state."
+        )
+
+    checkpoint[
+        "scheduler_state_dict"
+    ] = scheduler.state_dict()
+
+    checkpoint[
+        "scheduler_name"
+    ] = "CosineAnnealingLR"
+
+    checkpoint[
+        "scheduler_config"
+    ] = {
+        "T_max": int(
+            LR_SCHEDULER_T_MAX
+        ),
+        "eta_min": float(
+            MIN_LEARNING_RATE
+        ),
+        "step_unit": "training_iteration",
+    }
+
+    temp_path = (
+        str(
+            path
+        )
+        + ".scheduler.tmp"
+    )
+
+    torch.save(
+        checkpoint,
+        temp_path,
+    )
+
+    os.replace(
+        temp_path,
+        path,
     )
 
 
@@ -921,6 +1071,7 @@ def run_training_v6(
     *,
     model,
     optimizer,
+    scheduler,
     replay_buffer,
     active_checkpoint_path,
     starting_games_played,
@@ -1259,8 +1410,10 @@ def run_training_v6(
         )
         print(
             "GPU configured max batch size:",
-            gpu_stats.get("configured_max_batch_size"),
-        )   
+            gpu_stats.get(
+                "configured_max_batch_size"
+            ),
+        )
         print(
             "GPU inference positions/sec:",
             gpu_stats.get(
@@ -1324,6 +1477,14 @@ def run_training_v6(
         training_results = None
         validation_results = None
 
+        learning_rate_before = float(
+            optimizer.param_groups[
+                0
+            ][
+                "lr"
+            ]
+        )
+
         if training_steps > 0:
             training_results = train_network(
                 model=model,
@@ -1335,6 +1496,9 @@ def run_training_v6(
                 training_steps=(
                     training_steps
                 ),
+                # Do not pass the cosine scheduler here: train_network()
+                # would step it once per optimizer update. V6 steps it once
+                # per complete self-play/training iteration below.
                 scheduler=None,
                 split="train",
                 grad_clip=GRAD_CLIP,
@@ -1420,6 +1584,37 @@ def run_training_v6(
             )
 
         # ----------------------------------------------------
+        # Learning-rate scheduler
+        # ----------------------------------------------------
+
+        if training_steps > 0:
+            scheduler.step()
+
+            learning_rate_after = float(
+                optimizer.param_groups[
+                    0
+                ][
+                    "lr"
+                ]
+            )
+
+            if training_results is not None:
+                training_results[
+                    "learning_rate_before"
+                ] = learning_rate_before
+
+                training_results[
+                    "learning_rate_after"
+                ] = learning_rate_after
+
+            print(
+                "Learning rate:",
+                f"{learning_rate_before:.8g}",
+                "->",
+                f"{learning_rate_after:.8g}",
+            )
+
+        # ----------------------------------------------------
         # Scheduled full model/replay checkpoints
         # ----------------------------------------------------
 
@@ -1444,7 +1639,7 @@ def run_training_v6(
                 replay_buffer=(
                     replay_buffer
                 ),
-                scheduler=None,
+                scheduler=scheduler,
             )
 
             if checkpoint_saved:
@@ -1512,6 +1707,11 @@ def run_training_v6(
         optimizer=optimizer,
         games_played=games_played,
         history=history,
+    )
+
+    attach_scheduler_state_to_checkpoint(
+        final_checkpoint_path,
+        scheduler,
     )
 
     replay_buffer.save(
@@ -1615,9 +1815,24 @@ def main():
         model
     )
 
+    # Restore the optimizer first so its saved learning rate and moments
+    # are in place before the scheduler is constructed.  This matters on
+    # resume: loading optimizer state after scheduler state could overwrite
+    # the learning rate that belongs to the restored scheduler position.
     optimizer_restored = (
         maybe_restore_optimizer(
             optimizer,
+            checkpoint,
+        )
+    )
+
+    scheduler = create_scheduler(
+        optimizer
+    )
+
+    scheduler_restored = (
+        maybe_restore_scheduler(
+            scheduler,
             checkpoint,
         )
     )
@@ -1659,6 +1874,22 @@ def main():
     print(
         "Optimizer restored:",
         optimizer_restored,
+    )
+    print(
+        "LR scheduler restored:",
+        scheduler_restored,
+    )
+    print(
+        "LR scheduler:",
+        "CosineAnnealingLR",
+    )
+    print(
+        "LR scheduler T_max:",
+        LR_SCHEDULER_T_MAX,
+    )
+    print(
+        "Minimum learning rate:",
+        MIN_LEARNING_RATE,
     )
     print(
         "Replay positions:",
@@ -1708,6 +1939,7 @@ def main():
     history = run_training_v6(
         model=model,
         optimizer=optimizer,
+        scheduler=scheduler,
         replay_buffer=replay_buffer,
         active_checkpoint_path=(
             active_checkpoint_path
