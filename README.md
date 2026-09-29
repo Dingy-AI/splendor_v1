@@ -248,3 +248,5 @@ checkpoint / replay save
 | 1,000 | 93.9% | **99.91%** | ~100% | ~100% |
 | 2,000 | 98.7% | ~100% | ~100% | ~100% |
 
+# single game debugger
+python -m splendor_v1.training_v6.debug_single_self_play_game

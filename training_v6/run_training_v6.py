@@ -95,8 +95,8 @@ RESUME_TRAINING = True
 # ============================================================
 
 START_CHECKPOINT_PATH = (
-    "splendor_v1/training_v6/data/"
-    "model_4000_games.pt"
+    "splendor_v1/training_v5/data/"
+    "model_1900_games.pt"
 )
 
 RESUME_CHECKPOINT_PATH = (
@@ -106,14 +106,14 @@ RESUME_CHECKPOINT_PATH = (
 
 OUTPUT_REPLAY_PATH = (
     "splendor_v1/training_v6/data/"
-    "replay_buffer_v6.pkl"
+    "replay_buffer_model4_mcts_v6_multiprocess.pkl"
 )
 
 # V5 replay is forward-compatible with V6 because the rich replay
 # schema and Model 4 training targets are unchanged.
 RESUME_REPLAY_PATH = (
     "splendor_v1/training_v6/data/"
-    "replay_4000_games.pkl"
+    "replay_buffer_model4_mcts_v6_multiprocess.pkl"
 )
 
 OUTPUT_CHECKPOINT_DIR = (
@@ -216,14 +216,14 @@ GRAD_CLIP = 1.0
 
 REPLAY_CAPACITY = 500_000
 
-CHECKPOINT_EVERY_GAMES = 250
+CHECKPOINT_EVERY_GAMES = 500
 
 
 # ============================================================
 # SEEDS / TRAIN-VALIDATION SPLIT
 # ============================================================
 
-BASE_SEED = 1_000_000
+BASE_SEED = 10000
 
 DYNAMIC_SEEDING = True
 
