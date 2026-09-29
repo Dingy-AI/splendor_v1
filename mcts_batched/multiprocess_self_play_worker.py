@@ -798,6 +798,7 @@ class MultiprocessSelfPlayPool:
         inference_ipc,
         config,
         mp_context,
+        start_delay_s=0.0,
     ):
         if num_workers < 1:
             raise ValueError(
@@ -829,6 +830,15 @@ class MultiprocessSelfPlayPool:
         self.mp_context = (
             mp_context
         )
+
+        self.start_delay_s = float(
+            start_delay_s
+        )
+
+        if self.start_delay_s < 0:
+            raise ValueError(
+                "start_delay_s must be >= 0."
+            )
 
         self.job_queue = (
             mp_context.Queue()
@@ -894,6 +904,18 @@ class MultiprocessSelfPlayPool:
             self.processes.append(
                 process
             )
+
+            # Stagger Windows/spawn worker initialization so all
+            # workers do not simultaneously allocate interpreter,
+            # environment, MCTS, replay scratch, and queue state.
+            # There is no reason to sleep after the final worker.
+            if (
+                self.start_delay_s > 0
+                and worker_id < self.num_workers - 1
+            ):
+                time.sleep(
+                    self.start_delay_s
+                )
 
     def submit(
         self,

@@ -96,24 +96,24 @@ RESUME_TRAINING = True
 
 START_CHECKPOINT_PATH = (
     "splendor_v1/training_v6/data/"
-    "model_2010_games_last.pt"
+    "model_4000_games.pt"
 )
 
 RESUME_CHECKPOINT_PATH = (
     "splendor_v1/training_v6/data/"
-    "model_2010_games_last.pt"
+    "model_4000_games.pt"
 )
 
 OUTPUT_REPLAY_PATH = (
     "splendor_v1/training_v6/data/"
-    "replay_buffer_model4_mcts_v6_multiprocess.pkl"
+    "replay_buffer_v6.pkl"
 )
 
 # V5 replay is forward-compatible with V6 because the rich replay
 # schema and Model 4 training targets are unchanged.
 RESUME_REPLAY_PATH = (
     "splendor_v1/training_v6/data/"
-    "replay_buffer_model4_mcts_v6_multiprocess.pkl"
+    "replay_4000_games.pkl"
 )
 
 OUTPUT_CHECKPOINT_DIR = (
@@ -133,11 +133,9 @@ INFERENCE_SNAPSHOT_PATH = (
 # ============================================================
 
 NUM_ITERATIONS = 219
-# NUM_ITERATIONS = 3
-
 
 SELF_PLAY_GAMES_PER_ITERATION = 96
-# SELF_PLAY_GAMES_PER_ITERATION = 12
+
 
 # ============================================================
 # MULTIPROCESS SELF-PLAY
@@ -145,13 +143,19 @@ SELF_PLAY_GAMES_PER_ITERATION = 96
 
 # Start with one worker per physical core. Benchmark this later against
 # 4 / 6 / 8 / 12 on the actual machine.
-NUM_SELF_PLAY_WORKERS = 32
+NUM_SELF_PLAY_WORKERS = 24
 
 # One synchronous MCTS game can have only one outstanding NN request,
 # so a batch cannot exceed the number of active workers.
 GPU_MAX_BATCH_SIZE = NUM_SELF_PLAY_WORKERS
 
 GPU_BATCH_WAIT_MS = 1.0
+
+# Windows uses spawn, so starting many Python workers at once can create
+# a large transient RAM/commit spike. Stagger the 24 workers by 0.5 s.
+# This spreads startup over ~11.5 seconds without affecting steady-state
+# self-play throughput once all workers are ready.
+SELF_PLAY_WORKER_START_DELAY_S = 0.5
 
 SELF_PLAY_STARTUP_TIMEOUT_S = 180.0
 SELF_PLAY_GAME_RESULT_TIMEOUT_S = 900.0
@@ -163,7 +167,6 @@ SELF_PLAY_SHUTDOWN_TIMEOUT_S = 30.0
 # ============================================================
 
 SIMULATIONS = 400
-# SIMULATIONS = 20
 
 ADAPTIVE_SIMULATIONS = True
 
@@ -213,14 +216,14 @@ GRAD_CLIP = 1.0
 
 REPLAY_CAPACITY = 500_000
 
-CHECKPOINT_EVERY_GAMES = 500
-# CHECKPOINT_EVERY_GAMES = 20
+CHECKPOINT_EVERY_GAMES = 250
+
 
 # ============================================================
 # SEEDS / TRAIN-VALIDATION SPLIT
 # ============================================================
 
-BASE_SEED = 10000
+BASE_SEED = 1_000_000
 
 DYNAMIC_SEEDING = True
 
@@ -1199,6 +1202,9 @@ def run_training_v6(
                 startup_timeout_s=(
                     SELF_PLAY_STARTUP_TIMEOUT_S
                 ),
+                worker_start_delay_s=(
+                    SELF_PLAY_WORKER_START_DELAY_S
+                ),
                 game_result_timeout_s=(
                     SELF_PLAY_GAME_RESULT_TIMEOUT_S
                 ),
@@ -1898,6 +1904,10 @@ def main():
     print(
         "CPU self-play workers:",
         NUM_SELF_PLAY_WORKERS,
+    )
+    print(
+        "Worker start delay seconds:",
+        SELF_PLAY_WORKER_START_DELAY_S,
     )
     print(
         "GPU max batch size:",
