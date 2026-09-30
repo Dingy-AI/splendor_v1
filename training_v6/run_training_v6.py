@@ -96,12 +96,12 @@ RESUME_TRAINING = True
 
 START_CHECKPOINT_PATH = (
     "splendor_v1/training_v5/data/"
-    "model_1900_games.pt"
+    "model_5824_games.pt"
 )
 
 RESUME_CHECKPOINT_PATH = (
     "splendor_v1/training_v6/data/"
-    "model_4000_games.pt"
+    "model_5824_games.pt"
 )
 
 OUTPUT_REPLAY_PATH = (
@@ -113,7 +113,7 @@ OUTPUT_REPLAY_PATH = (
 # schema and Model 4 training targets are unchanged.
 RESUME_REPLAY_PATH = (
     "splendor_v1/training_v6/data/"
-    "replay_buffer_model4_mcts_v6_multiprocess.pkl"
+    "replay_5824_games.pkl"
 )
 
 OUTPUT_CHECKPOINT_DIR = (
@@ -134,7 +134,7 @@ INFERENCE_SNAPSHOT_PATH = (
 
 NUM_ITERATIONS = 219
 
-SELF_PLAY_GAMES_PER_ITERATION = 96
+SELF_PLAY_GAMES_PER_ITERATION = 20
 
 
 # ============================================================
@@ -143,7 +143,8 @@ SELF_PLAY_GAMES_PER_ITERATION = 96
 
 # Start with one worker per physical core. Benchmark this later against
 # 4 / 6 / 8 / 12 on the actual machine.
-NUM_SELF_PLAY_WORKERS = 24
+NUM_SELF_PLAY_WORKERS = 20
+CHECKPOINT_EVERY_GAMES = 250
 
 # One synchronous MCTS game can have only one outstanding NN request,
 # so a batch cannot exceed the number of active workers.
@@ -215,9 +216,6 @@ WEIGHT_DECAY = 0.0
 GRAD_CLIP = 1.0
 
 REPLAY_CAPACITY = 500_000
-
-CHECKPOINT_EVERY_GAMES = 500
-
 
 # ============================================================
 # SEEDS / TRAIN-VALIDATION SPLIT

@@ -250,3 +250,6 @@ checkpoint / replay save
 
 # single game debugger
 python -m splendor_v1.training_v6.debug_single_self_play_game
+
+# parallel evaluation against heuristic/random (NOTE we need to becareful to not overheat the computer)
+ python -m splendor_v1.evaluation.run_parallel_baseline_evaluation_v6   --model splendor_v1/training_v6/data/model_4000_games.pt   --opponent h16   --games 100   --workers 3   --gpu-max-batch-size 3  --simulations 400   --min-simulations 80   --check-interval 20   --target-visits-per-action 20   --single-action-simulations 4   --stability-checks 3   --h16-rollouts 8  --output-json splendor_v1/evaluation/results/model4000_vs_h16_200.json    

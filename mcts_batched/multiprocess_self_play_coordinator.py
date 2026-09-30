@@ -1071,6 +1071,15 @@ class MultiprocessSelfPlayCoordinator:
         completed = 0
         committed = 0
 
+        # A rare environment dead-end can make an individual self-play
+        # attempt unusable. Failed attempts are discarded atomically and
+        # replaced so the block still returns exactly ``requested``
+        # successfully committed games. Repeated failures still abort the
+        # run so a systemic bug cannot spin forever.
+        consecutive_failures = 0
+        max_consecutive_failures = 10
+        failed_game_seeds = []
+
         results = []
         persistent_game_ids = []
 
@@ -1093,7 +1102,12 @@ class MultiprocessSelfPlayCoordinator:
             nonlocal submitted
             nonlocal in_flight
 
-            if next_offset >= requested:
+            # Do not cap submissions at ``requested`` attempts. A failed
+            # attempt needs a replacement. Instead, keep enough jobs in
+            # flight to make reaching ``requested`` successful commits
+            # possible, while never overscheduling once successes + current
+            # in-flight jobs can already fill the block.
+            if committed + in_flight >= requested:
                 return False
 
             default_game_id = (
@@ -1233,16 +1247,60 @@ class MultiprocessSelfPlayCoordinator:
             in_flight -= 1
 
             if not message.success:
-                raise SelfPlayGameFailed(
-                    "Self-play game failed: "
-                    f"worker={message.worker_id}, "
-                    f"pid={message.pid}, "
-                    f"game_id={message.game_id}, "
-                    f"seed={message.seed}, "
-                    f"error_type={message.error_type}, "
-                    f"error={message.error}\n"
-                    f"{message.traceback or ''}"
+                consecutive_failures += 1
+                failed_game_seeds.append(
+                    int(message.seed)
                 )
+
+                print()
+                print("=" * 78)
+                print("SELF-PLAY GAME FAILED - DISCARDING ATTEMPT")
+                print(
+                    f"worker={message.worker_id} "
+                    f"pid={message.pid} "
+                    f"game_id={message.game_id} "
+                    f"seed={message.seed}"
+                )
+                print(
+                    f"{message.error_type}: "
+                    f"{message.error}"
+                )
+                print(
+                    "Consecutive failures: "
+                    f"{consecutive_failures}/"
+                    f"{max_consecutive_failures}"
+                )
+                print("A replacement self-play job will be submitted.")
+                print("=" * 78)
+                print()
+
+                if (
+                    consecutive_failures
+                    >= max_consecutive_failures
+                ):
+                    raise SelfPlayGameFailed(
+                        "Self-play aborted after "
+                        f"{consecutive_failures} consecutive failed games. "
+                        "Recent failed seeds: "
+                        f"{failed_game_seeds[-max_consecutive_failures:]}. "
+                        "Last failure: "
+                        f"worker={message.worker_id}, "
+                        f"pid={message.pid}, "
+                        f"game_id={message.game_id}, "
+                        f"seed={message.seed}, "
+                        f"error_type={message.error_type}, "
+                        f"error={message.error}\n"
+                        f"{message.traceback or ''}"
+                    )
+
+                # The failed game was never committed to persistent replay.
+                # Refill the now-free worker slot and continue collecting
+                # successes until ``requested`` games have been committed.
+                submit_next_job()
+                continue
+
+            # Any successful game breaks the consecutive-failure streak.
+            consecutive_failures = 0
 
             persistent_game_id = (
                 self._commit_completed_game(
@@ -1623,7 +1681,10 @@ class MultiprocessSelfPlayCoordinator:
                 ),
 
             "failed_games":
-                0,
+                int(
+                    completed
+                    - committed
+                ),
 
             "wall_seconds":
                 float(
