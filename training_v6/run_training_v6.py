@@ -96,12 +96,12 @@ RESUME_TRAINING = True
 
 START_CHECKPOINT_PATH = (
     "splendor_v1/training_v5/data/"
-    "model_5824_games.pt"
+    "model_7284_games.pt"
 )
 
 RESUME_CHECKPOINT_PATH = (
     "splendor_v1/training_v6/data/"
-    "model_5824_games.pt"
+    "model_7284_games.pt"
 )
 
 OUTPUT_REPLAY_PATH = (
@@ -113,7 +113,7 @@ OUTPUT_REPLAY_PATH = (
 # schema and Model 4 training targets are unchanged.
 RESUME_REPLAY_PATH = (
     "splendor_v1/training_v6/data/"
-    "replay_5824_games.pkl"
+    "replay_7284_games.pkl"
 )
 
 OUTPUT_CHECKPOINT_DIR = (
@@ -134,7 +134,7 @@ INFERENCE_SNAPSHOT_PATH = (
 
 NUM_ITERATIONS = 219
 
-SELF_PLAY_GAMES_PER_ITERATION = 20
+SELF_PLAY_GAMES_PER_ITERATION = 100
 
 
 # ============================================================
@@ -143,7 +143,7 @@ SELF_PLAY_GAMES_PER_ITERATION = 20
 
 # Start with one worker per physical core. Benchmark this later against
 # 4 / 6 / 8 / 12 on the actual machine.
-NUM_SELF_PLAY_WORKERS = 20
+NUM_SELF_PLAY_WORKERS = 16
 CHECKPOINT_EVERY_GAMES = 250
 
 # One synchronous MCTS game can have only one outstanding NN request,
