@@ -253,3 +253,57 @@ python -m splendor_v1.training_v6.debug_single_self_play_game
 
 # parallel evaluation against heuristic/random (NOTE we need to becareful to not overheat the computer)
  python -m splendor_v1.evaluation.run_parallel_baseline_evaluation_v6   --model splendor_v1/training_v6/data/model_4000_games.pt   --opponent h16   --games 100   --workers 3   --gpu-max-batch-size 3  --simulations 400   --min-simulations 80   --check-interval 20   --target-visits-per-action 20   --single-action-simulations 4   --stability-checks 3   --h16-rollouts 8  --output-json splendor_v1/evaluation/results/model4000_vs_h16_200.json    
+
+# Comparison
+Baseline
+      Simulation Pruning
+      Parallelization on CPU and GPU 
+      200/250 Games / HR approximation at 20 - 32 Workers
+
+
+Rust_v1 
+      400 games / HR approximation at 32 workers 
+
+# Rust Benchmark
+python -m splendor_v1.rust_engine.benchmark_self_play --games 16 --workers 16 --device cuda --report splendor_v1/rust_engine/native_benchmark.json
+
+# Stress test
+python -m splendor_v1.rust_engine.benchmark_self_play --games 100 --workers 32 --batch-size 32 --device cuda --report splendor_v1/rust_engine/native_benchmark.json
+
+# Rebuilding the Rust
+python -m maturin develop --release --manifest-path splendor_v1/rust_engine/Cargo.toml
+
+# RUST RUN
+python -m splendor_v1.rust_engine.run_training
+
+# RUST_V2 Rebuild
+python -m maturin develop --release --manifest-path splendor_v1/rust_engine_v2/Cargo.toml
+
+# RUST_V2 pytest 
+python -m pytest splendor_v1/rust_engine_v2 -q
+
+# RUST_V2 game result comparison # goes up to 750 games /hr
+python -m splendor_v1.rust_engine_v2.benchmark_self_play --games 100 --workers 32 --batch-size 32 --device cuda --precision fp32 --report splendor_v1/rust_engine_v2/benchmark_fp32_32.json
+
+# Rust_V2 game reesult 2,436 / hr
+
+python -m splendor_v1.rust_engine_v2.benchmark_self_play --games 512 --workers 128 --batch-size 128 --device cuda --precision fp32 --report splendor_v1/rust_engine_v2/benchmark_fp32_128.json
+
+# Rust_V2 game result 3,800 / hr
+python -m splendor_v1.rust_engine_v2.benchmark_self_play --games 1024 --workers 256 --batch-size 256 --device cuda --precision fp32 --report splendor_v1/rust_engine_v2/benchmark_fp32_256.json
+
+# RUST_V2 Reduced precision Test
+python -m splendor_v1.rust_engine_v2.profile_inference --device cuda --precisions fp32 fp16 bf16 --report splendor_v1/rust_engine_v2/inference_gpu_profile.json
+
+# RUST_V2 training 
+python -m splendor_v1.rust_engine_v2.run_training
+
+
+# 1209
+python -m splendor_v1.rust_engine_v2.benchmark_self_play --games 100 --workers 64 --batch-size 64 --device cuda --precision fp32 --report splendor_v1/rust_engine_v2/benchmark_fp32_64.json
+
+# 
+python -m splendor_v1.rust_engine_v2.benchmark_self_play --games 512 --workers 128 --batch-size 128 --device cuda --precision fp32 --report splendor_v1/rust_engine_v2/benchmark_fp32_128.json
+
+# OFFICIAL RUN COMMAND NOW make sure we are changing the v6 run_training_v6.py to match. Do not run the run_training_v6.py directly now or IT WILL FRY YOUR COMPUTER
+python -m splendor_v1.rust_engine_v2.run_training --precision fp32

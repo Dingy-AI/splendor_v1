@@ -1,0 +1,193 @@
+{
+  "device": "cpu",
+  "checkpoint": "splendor_v1/training_v6/data/model4_v6_inference_latest.pt",
+  "checkpoint_sha256": "3706f3b4de3f1c6dd3e0fbddcb25d4f471170f8fdf6f9e756e4b469b50ed9da0",
+  "torch_version": "2.14.1+cpu",
+  "gpu_name": null,
+  "warmup": 1,
+  "repeats": 2,
+  "seed_start": 10000,
+  "results": [
+    {
+      "batch_size": 16,
+      "options": {
+        "precision": "fp32",
+        "compile_mode": "off",
+        "profile": true,
+        "bucket_shapes": false
+      },
+      "candidates": 26,
+      "status": "ok",
+      "wall_seconds": 0.03495118800037744,
+      "pipeline_positions_per_second": 915.5625840144384,
+      "comparison_to_fp32": {
+        "max_policy_absolute_error": 0.0,
+        "max_value_absolute_error": 0.0,
+        "policy_argmax_agreement": 1.0,
+        "finite": true,
+        "max_policy_sum_error": 1.1920928955078125e-07
+      },
+      "profile": {
+        "total_batches": 2,
+        "total_inference_positions": 32,
+        "max_observed_batch_size": 16,
+        "padded_positions": 0,
+        "padded_action_cells": 496,
+        "total_action_cells": 832,
+        "total_inference_seconds": 0.03488954499971442,
+        "host_prepare_seconds": 9.301099998992868e-05,
+        "host_transfer_enqueue_seconds": 1.4511999324895442e-05,
+        "host_forward_dispatch_seconds": 0.03456945099969744,
+        "host_readback_seconds": 0.0002125710007021553,
+        "gpu_input_transfer_seconds": 0.0,
+        "gpu_forward_seconds": 0.0,
+        "gpu_postprocess_seconds": 0.0,
+        "gpu_readback_seconds": 0.0,
+        "backend": "rust_arena_v2",
+        "precision": "fp32",
+        "output_heads_precision": "fp32",
+        "compile_mode": "off",
+        "bucket_shapes": false,
+        "cuda_event_profiling": false,
+        "average_batch_size": 16.0,
+        "inference_positions_per_second": 917.180203991251
+      }
+    },
+    {
+      "batch_size": 16,
+      "options": {
+        "precision": "bf16",
+        "compile_mode": "off",
+        "profile": true,
+        "bucket_shapes": false
+      },
+      "candidates": 26,
+      "status": "ok",
+      "wall_seconds": 0.027337710999745468,
+      "pipeline_positions_per_second": 1170.5442346763393,
+      "comparison_to_fp32": {
+        "max_policy_absolute_error": 0.002527981996536255,
+        "max_value_absolute_error": 0.012190490961074829,
+        "policy_argmax_agreement": 1.0,
+        "finite": true,
+        "max_policy_sum_error": 1.1920928955078125e-07
+      },
+      "profile": {
+        "total_batches": 2,
+        "total_inference_positions": 32,
+        "max_observed_batch_size": 16,
+        "padded_positions": 0,
+        "padded_action_cells": 496,
+        "total_action_cells": 832,
+        "total_inference_seconds": 0.027276128000266908,
+        "host_prepare_seconds": 9.620600030757487e-05,
+        "host_transfer_enqueue_seconds": 1.3660000149684492e-05,
+        "host_forward_dispatch_seconds": 0.026950755999678222,
+        "host_readback_seconds": 0.00021550600013142684,
+        "gpu_input_transfer_seconds": 0.0,
+        "gpu_forward_seconds": 0.0,
+        "gpu_postprocess_seconds": 0.0,
+        "gpu_readback_seconds": 0.0,
+        "backend": "rust_arena_v2",
+        "precision": "bf16",
+        "output_heads_precision": "fp32",
+        "compile_mode": "off",
+        "bucket_shapes": false,
+        "cuda_event_profiling": false,
+        "average_batch_size": 16.0,
+        "inference_positions_per_second": 1173.1870447186222
+      }
+    },
+    {
+      "batch_size": 32,
+      "options": {
+        "precision": "fp32",
+        "compile_mode": "off",
+        "profile": true,
+        "bucket_shapes": false
+      },
+      "candidates": 27,
+      "status": "ok",
+      "wall_seconds": 0.07607021900003019,
+      "pipeline_positions_per_second": 841.3279314993769,
+      "comparison_to_fp32": {
+        "max_policy_absolute_error": 0.0,
+        "max_value_absolute_error": 0.0,
+        "policy_argmax_agreement": 1.0,
+        "finite": true,
+        "max_policy_sum_error": 1.1920928955078125e-07
+      },
+      "profile": {
+        "total_batches": 2,
+        "total_inference_positions": 64,
+        "max_observed_batch_size": 32,
+        "padded_positions": 0,
+        "padded_action_cells": 1132,
+        "total_action_cells": 1728,
+        "total_inference_seconds": 0.07599521599968284,
+        "host_prepare_seconds": 0.00011731799895642325,
+        "host_transfer_enqueue_seconds": 1.7846000446297694e-05,
+        "host_forward_dispatch_seconds": 0.07559382900035416,
+        "host_readback_seconds": 0.000266222999925958,
+        "gpu_input_transfer_seconds": 0.0,
+        "gpu_forward_seconds": 0.0,
+        "gpu_postprocess_seconds": 0.0,
+        "gpu_readback_seconds": 0.0,
+        "backend": "rust_arena_v2",
+        "precision": "fp32",
+        "output_heads_precision": "fp32",
+        "compile_mode": "off",
+        "bucket_shapes": false,
+        "cuda_event_profiling": false,
+        "average_batch_size": 32.0,
+        "inference_positions_per_second": 842.1582748086024
+      }
+    },
+    {
+      "batch_size": 32,
+      "options": {
+        "precision": "bf16",
+        "compile_mode": "off",
+        "profile": true,
+        "bucket_shapes": false
+      },
+      "candidates": 27,
+      "status": "ok",
+      "wall_seconds": 0.04713916200034873,
+      "pipeline_positions_per_second": 1357.6821751631167,
+      "comparison_to_fp32": {
+        "max_policy_absolute_error": 0.002527981996536255,
+        "max_value_absolute_error": 0.012190490961074829,
+        "policy_argmax_agreement": 0.96875,
+        "finite": true,
+        "max_policy_sum_error": 1.1920928955078125e-07
+      },
+      "profile": {
+        "total_batches": 2,
+        "total_inference_positions": 64,
+        "max_observed_batch_size": 32,
+        "padded_positions": 0,
+        "padded_action_cells": 1132,
+        "total_action_cells": 1728,
+        "total_inference_seconds": 0.04707080799926189,
+        "host_prepare_seconds": 0.00010890500016103033,
+        "host_transfer_enqueue_seconds": 1.577300008648308e-05,
+        "host_forward_dispatch_seconds": 0.046697695999682765,
+        "host_readback_seconds": 0.0002484339993316098,
+        "gpu_input_transfer_seconds": 0.0,
+        "gpu_forward_seconds": 0.0,
+        "gpu_postprocess_seconds": 0.0,
+        "gpu_readback_seconds": 0.0,
+        "backend": "rust_arena_v2",
+        "precision": "bf16",
+        "output_heads_precision": "fp32",
+        "compile_mode": "off",
+        "bucket_shapes": false,
+        "cuda_event_profiling": false,
+        "average_batch_size": 32.0,
+        "inference_positions_per_second": 1359.6537370041233
+      }
+    }
+  ],
+  "note": "Standalone inference; not completed games/hour. CUDA events add profiling overhead."
+}

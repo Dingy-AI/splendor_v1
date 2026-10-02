@@ -1,0 +1,78 @@
+{
+  "requested_games": 2,
+  "submitted_games": 2,
+  "completed_worker_games": 2,
+  "committed_games": 2,
+  "failed_games": 0,
+  "wall_seconds": 6.280659925999771,
+  "games_per_hour": 1146.3763497517955,
+  "total_positions": 123,
+  "split_games": {
+    "train": 2
+  },
+  "split_positions": {
+    "train": 123
+  },
+  "positions_per_hour": 70502.14550973542,
+  "average_positions_per_game": 61.5,
+  "average_individual_game_seconds": 5.739742020999984,
+  "median_individual_game_seconds": 5.739742020999984,
+  "min_individual_game_seconds": 5.222897873999955,
+  "max_individual_game_seconds": 6.2565861680000125,
+  "average_actual_simulations": 23.67479674796748,
+  "simulation_savings_fraction": 0.013550135501355037,
+  "average_legal_actions": 20.203252032520325,
+  "stop_reasons": {
+    "max_simulations": 121,
+    "single_legal_action": 2
+  },
+  "worker_evaluator": {
+    "neural_requests": 2783
+  },
+  "worker_pids": [
+    2
+  ],
+  "persistent_game_ids": [
+    0,
+    1
+  ],
+  "gpu_server": {
+    "backend": "rust_threads",
+    "average_batch_size": 1.839391936549901,
+    "max_observed_batch_size": 2,
+    "configured_max_batch_size": 2,
+    "inference_positions_per_second": 505.0747190014311,
+    "total_batches": 1513,
+    "total_inference_positions": 2783,
+    "total_inference_seconds": 5.510075827002765
+  },
+  "execution_backend": "rust",
+  "self_play_execution": "rust_threaded_cross_game_gpu_batching",
+  "native_worker_threads": 2,
+  "device": "cpu",
+  "checkpoint": "splendor_v1/training_v6/data/model4_v6_inference_latest.pt",
+  "checkpoint_sha256": "3706f3b4de3f1c6dd3e0fbddcb25d4f471170f8fdf6f9e756e4b469b50ed9da0",
+  "simulations": 24,
+  "seed_start": 10000,
+  "established_baseline_games_per_hour": 200.0,
+  "comparison_note": "Compare against 200 only on the baseline hardware/checkpoint/search workload",
+  "training_step": {
+    "average_total_loss": 2.514474391937256,
+    "average_policy_loss": 2.266169309616089,
+    "average_wdl_loss": 0.2483050674200058,
+    "average_policy_kl": 0.3405492901802063,
+    "average_grad_norm": 1.4681439399719238,
+    "average_predicted_value": -0.10854102671146393,
+    "average_target_value": -0.08943089097738266,
+    "average_target_policy_entropy": 1.9256197214126587,
+    "average_wdl_accuracy": 1.0,
+    "average_policy_top1": 0.6666666865348816,
+    "average_loss_probability": 0.5528468489646912,
+    "average_draw_probability": 0.0028474079445004463,
+    "average_win_probability": 0.4443058371543884,
+    "average_target_loss_fraction": 0.5447154641151428,
+    "average_target_draw_fraction": 0.0,
+    "average_target_win_fraction": 0.45528456568717957,
+    "average_legal_actions": 19.447154998779297
+  }
+}

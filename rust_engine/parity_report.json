@@ -1,0 +1,28 @@
+{
+  "games_checked": 10000,
+  "start_seed": 0,
+  "finished_games": 9770,
+  "decision_capped_games": 0,
+  "no_legal_action_games": 230,
+  "decisions_checked": 897885,
+  "branch_successors_checked": 58687,
+  "max_legal_actions": 103,
+  "action_types": {
+    "BUY_RESERVED": 43509,
+    "BUY_VISIBLE": 291082,
+    "DISCARD_GEMS": 155179,
+    "RESERVE_TOP_DECK": 20032,
+    "RESERVE_VISIBLE": 79618,
+    "TAKE_GEMS": 293348,
+    "TAKE_NOBLE": 15117
+  },
+  "node_types": {
+    "MAIN_DECISION": 737589,
+    "NOBLE_CLAIM": 15117,
+    "OVERFLOW_DISCARD": 155179
+  },
+  "full_state_match": true,
+  "ordered_action_ids_match": true,
+  "float32_observations_match_exactly": true,
+  "reward_and_termination_match": true
+}

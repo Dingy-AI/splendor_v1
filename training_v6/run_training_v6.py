@@ -96,12 +96,12 @@ RESUME_TRAINING = True
 
 START_CHECKPOINT_PATH = (
     "splendor_v1/training_v5/data/"
-    "model_7284_games.pt"
+    "model_8884_games.pt"
 )
 
 RESUME_CHECKPOINT_PATH = (
     "splendor_v1/training_v6/data/"
-    "model_7284_games.pt"
+    "model_8884_games.pt"
 )
 
 OUTPUT_REPLAY_PATH = (
@@ -113,7 +113,7 @@ OUTPUT_REPLAY_PATH = (
 # schema and Model 4 training targets are unchanged.
 RESUME_REPLAY_PATH = (
     "splendor_v1/training_v6/data/"
-    "replay_7284_games.pkl"
+    "replay_8884_games.pkl"
 )
 
 OUTPUT_CHECKPOINT_DIR = (
@@ -132,9 +132,18 @@ INFERENCE_SNAPSHOT_PATH = (
 # RUN SIZE
 # ============================================================
 
-NUM_ITERATIONS = 219
+NUM_ITERATIONS = 1
+# NUM_ITERATIONS = 219
+# CosineAnnealingLR interprets T_max as the number of scheduler.step()
+# calls. Because V6 steps once per training iteration, NUM_ITERATIONS is
+# the natural schedule length for a full uninterrupted run. When resuming
+# from a checkpoint that already contains scheduler state, the saved
+# scheduler state takes precedence.
+# LR_SCHEDULER_T_MAX = NUM_ITERATIONS
+LR_SCHEDULER_T_MAX = 219
 
-SELF_PLAY_GAMES_PER_ITERATION = 100
+
+SELF_PLAY_GAMES_PER_ITERATION = 1024
 
 
 # ============================================================
@@ -143,8 +152,9 @@ SELF_PLAY_GAMES_PER_ITERATION = 100
 
 # Start with one worker per physical core. Benchmark this later against
 # 4 / 6 / 8 / 12 on the actual machine.
-NUM_SELF_PLAY_WORKERS = 16
-CHECKPOINT_EVERY_GAMES = 250
+NUM_SELF_PLAY_WORKERS = 256
+
+CHECKPOINT_EVERY_GAMES = 500
 
 # One synchronous MCTS game can have only one outstanding NN request,
 # so a batch cannot exceed the number of active workers.
@@ -203,13 +213,6 @@ LEARNING_RATE = 1e-4
 # Cosine LR schedule. The scheduler is stepped ONCE per completed
 # self-play/training iteration, not once per optimizer update.
 MIN_LEARNING_RATE = 2.5e-5
-
-# CosineAnnealingLR interprets T_max as the number of scheduler.step()
-# calls. Because V6 steps once per training iteration, NUM_ITERATIONS is
-# the natural schedule length for a full uninterrupted run. When resuming
-# from a checkpoint that already contains scheduler state, the saved
-# scheduler state takes precedence.
-LR_SCHEDULER_T_MAX = NUM_ITERATIONS
 
 WEIGHT_DECAY = 0.0
 

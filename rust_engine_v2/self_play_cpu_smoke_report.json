@@ -1,0 +1,123 @@
+{
+  "requested_games": 2,
+  "submitted_games": 2,
+  "completed_worker_games": 2,
+  "committed_games": 2,
+  "failed_games": 0,
+  "wall_seconds": 5.232038159000695,
+  "games_per_hour": 1376.13675229295,
+  "total_positions": 123,
+  "split_games": {
+    "train": 2
+  },
+  "split_positions": {
+    "train": 123
+  },
+  "positions_per_hour": 84632.41026601642,
+  "average_positions_per_game": 61.5,
+  "average_individual_game_seconds": 4.893648699000096,
+  "median_individual_game_seconds": 4.893648699000096,
+  "min_individual_game_seconds": 4.583203881000372,
+  "max_individual_game_seconds": 5.204093516999819,
+  "average_actual_simulations": 23.67479674796748,
+  "simulation_savings_fraction": 0.013550135501355037,
+  "average_legal_actions": 20.203252032520325,
+  "stop_reasons": {
+    "max_simulations": 121,
+    "single_legal_action": 2
+  },
+  "worker_evaluator": {
+    "neural_requests": 2783
+  },
+  "worker_pids": [
+    2
+  ],
+  "persistent_game_ids": [
+    0,
+    1
+  ],
+  "gpu_server": {
+    "total_batches": 1517,
+    "total_inference_positions": 2783,
+    "max_observed_batch_size": 2,
+    "padded_positions": 0,
+    "padded_action_cells": 14340,
+    "total_action_cells": 71270,
+    "total_inference_seconds": 5.085346579991892,
+    "host_prepare_seconds": 0.05249638196801243,
+    "host_transfer_enqueue_seconds": 0.0030890350053596194,
+    "host_forward_dispatch_seconds": 4.923155540996049,
+    "host_readback_seconds": 0.07817558902115707,
+    "gpu_input_transfer_seconds": 0.0,
+    "gpu_forward_seconds": 0.0,
+    "gpu_postprocess_seconds": 0.0,
+    "gpu_readback_seconds": 0.0,
+    "backend": "rust_arena_v2",
+    "precision": "fp32",
+    "output_heads_precision": "fp32",
+    "compile_mode": "off",
+    "bucket_shapes": false,
+    "cuda_event_profiling": false,
+    "average_batch_size": 1.8345418589321028,
+    "inference_positions_per_second": 547.2586688485718,
+    "configured_max_batch_size": 2
+  },
+  "execution_backend": "rust_v2",
+  "self_play_execution": "rust_v2_native_arena_gpu_batching",
+  "native_game_slots": 2,
+  "native_worker_threads": 0,
+  "inference_options": {
+    "precision": "fp32",
+    "compile_mode": "off",
+    "profile": true,
+    "bucket_shapes": false,
+    "checkpoint_sha256": "3706f3b4de3f1c6dd3e0fbddcb25d4f471170f8fdf6f9e756e4b469b50ed9da0"
+  },
+  "checkpoint_sha256": "3706f3b4de3f1c6dd3e0fbddcb25d4f471170f8fdf6f9e756e4b469b50ed9da0",
+  "pipeline_profile": {
+    "checkpoint_load_seconds": 0.02749008600039815,
+    "native_scheduler_seconds": 0.03047746202810231,
+    "replay_boundary_seconds": 0.08572006896793027,
+    "evaluator_seconds": 5.085346579991892,
+    "completed_decisions": 123
+  },
+  "device": "cpu",
+  "checkpoint": "splendor_v1/training_v6/data/model4_v6_inference_latest.pt",
+  "simulations": 24,
+  "search_settings": {
+    "simulations": 24,
+    "min_simulations": 80,
+    "check_interval": 20,
+    "target_visits_per_action": 20.0,
+    "single_action_simulations": 4,
+    "stability_checks": 3,
+    "c_puct": 3.0,
+    "dirichlet_alpha": 0.3,
+    "dirichlet_epsilon": 0.25,
+    "max_game_steps": 300
+  },
+  "adaptive_simulations": true,
+  "seed_start": 10000,
+  "established_baseline_games_per_hour": 200.0,
+  "measured_v1_32_worker_games_per_hour": 381.9802252667691,
+  "comparison_note": "Compare using the same hardware, checkpoint, seeds, and search workload",
+  "training_step": {
+    "average_total_loss": 2.4357118606567383,
+    "average_policy_loss": 2.2079904079437256,
+    "average_wdl_loss": 0.2277214676141739,
+    "average_policy_kl": 0.3367956578731537,
+    "average_grad_norm": 1.9510172605514526,
+    "average_predicted_value": -0.14136701822280884,
+    "average_target_value": -0.056910570710897446,
+    "average_target_policy_entropy": 1.8711947202682495,
+    "average_wdl_accuracy": 1.0,
+    "average_policy_top1": 0.6666666865348816,
+    "average_loss_probability": 0.5692477822303772,
+    "average_draw_probability": 0.002871427685022354,
+    "average_win_probability": 0.42788076400756836,
+    "average_target_loss_fraction": 0.5284552574157715,
+    "average_target_draw_fraction": 0.0,
+    "average_target_win_fraction": 0.47154471278190613,
+    "average_legal_actions": 19.552845001220703
+  }
+}

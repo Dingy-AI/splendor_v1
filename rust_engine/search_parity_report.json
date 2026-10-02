@@ -1,0 +1,29 @@
+{
+  "games_checked": 12,
+  "start_seed": 0,
+  "simulations_per_search": 200,
+  "finished_games": 12,
+  "decision_capped_games": 0,
+  "no_legal_action_games": 0,
+  "decisions_checked": 1167,
+  "simulations_checked": 192964,
+  "neural_requests_checked": 185227,
+  "player_perspective_flips": 906,
+  "inherited_visits_across_searches": 99804,
+  "stop_reasons": {
+    "stable_after_soft_budget": 502,
+    "max_simulations": 36,
+    "single_legal_action": 16,
+    "fixed_budget": 613
+  },
+  "node_types": {
+    "MAIN_DECISION": 906,
+    "OVERFLOW_DISCARD": 240,
+    "NOBLE_CLAIM": 21
+  },
+  "neural_requests_match_exactly": true,
+  "complete_trees_match": true,
+  "search_metadata_matches": true,
+  "chosen_actions_match": true,
+  "tree_reuse_and_compaction_match": true
+}
