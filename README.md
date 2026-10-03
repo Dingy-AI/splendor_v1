@@ -299,11 +299,14 @@ python -m splendor_v1.rust_engine_v2.profile_inference --device cuda --precision
 python -m splendor_v1.rust_engine_v2.run_training
 
 
-# 1209
+# 2400 games / hr
 python -m splendor_v1.rust_engine_v2.benchmark_self_play --games 100 --workers 64 --batch-size 64 --device cuda --precision fp32 --report splendor_v1/rust_engine_v2/benchmark_fp32_64.json
-
-# 
+ 
+# 3800 games / hr
 python -m splendor_v1.rust_engine_v2.benchmark_self_play --games 512 --workers 128 --batch-size 128 --device cuda --precision fp32 --report splendor_v1/rust_engine_v2/benchmark_fp32_128.json
 
 # OFFICIAL RUN COMMAND NOW make sure we are changing the v6 run_training_v6.py to match. Do not run the run_training_v6.py directly now or IT WILL FRY YOUR COMPUTER
 python -m splendor_v1.rust_engine_v2.run_training --precision fp32
+
+# Rust Evaluation - 2000 games 
+python -m splendor_v1.rust_engine_v2.evaluate_models --model-a "path/to/model_A.pt" --model-b "path/to/model_B.pt" --games 2000 --workers 256 --batch-size 256 --device cuda --precision fp32 --simulations 400 --report splendor_v1/rust_engine_v2/match_report.json

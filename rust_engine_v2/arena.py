@@ -26,9 +26,9 @@ def response_bytes(output, rows, width):
 class ArenaSearch(RustMCTS):
     """The replay recorder's root interface, with no separate Python leaf loop."""
 
-    def __init__(self, arena, slot, state, search_config, seed):
+    def __init__(self, arena, slot, state, search_config, seed, adaptive_simulations=True):
         self.arena, self.slot = arena, slot
-        settings = native_search_settings(search_config)
+        settings = native_search_settings(search_config, adaptive_simulations)
         self.dirichlet_alpha = settings.pop("dirichlet_alpha")
         self.arena.add(slot, state, json.dumps(settings))
         mcts_seed, action_seed = np.random.SeedSequence(int(seed)).spawn(2)

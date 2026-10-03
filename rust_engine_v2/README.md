@@ -172,6 +172,35 @@ V1 or V2 failure without a model:
 python -m splendor_v1.rust_engine.replay_failure "path/to/failure.json"
 ```
 
+## Compare two models
+
+```powershell
+python -m splendor_v1.rust_engine_v2.evaluate_models --model-a "path/to/new_model.pt" --model-b "path/to/old_model.pt" --games 1000 --workers 256 --batch-size 256 --device cuda --precision fp32 --report splendor_v1/rust_engine_v2/match_report.json
+```
+
+This plays 500 paired seeds with swapped seats, greedy moves and no root noise.
+Both models share the GPU, with separate inference batches for each search's
+owner. It matches the Python V6 evaluator's search ownership and tree reuse,
+and leaves model files and training replay untouched. Use the report's
+`complete_pair_results` for the balanced match score. Failures stop by default
+and save a partial report; they never count as draws.
+
+This Python-only addition needs no Rust rebuild when V2 is already installed.
+See [EVALUATION.md](EVALUATION.md) for settings, reports, failure handling and
+verification.
+
+## Compare a model with a heuristic agent
+
+```powershell
+python -m splendor_v1.rust_engine_v2.evaluate_heuristic --model "path/to/model.pt" --opponent random --games 1000 --workers 256 --batch-size 256 --device cuda --precision fp32 --report splendor_v1/rust_engine_v2/model_vs_random.json
+```
+
+Choose `random`, `greedy`, `h3` or `h12`. The model uses Rust MCTS and GPU
+batching; its opponent chooses direct moves using the selected policy.
+Greedy/H3/H12 retain their existing Python scoring, including H12's rollouts.
+Seats and seeds are paired, and failures never count as draws. This update
+needs no rebuild. See [HEURISTIC_EVALUATION.md](HEURISTIC_EVALUATION.md).
+
 ## Validation
 
 On Linux CPython 3.14.7 with CPU PyTorch, V2 passed 127 Python tests and six Rust
